@@ -2,6 +2,7 @@ import type { CampaignView, GoalStateView, TimelineEventView } from "@datum/core
 import { LockedPanel } from "@/components/approval/locked-panel";
 import { Timeline } from "@/components/campaign/timeline";
 import { TaskList } from "@/components/execution/task-list";
+import { WhyPanel } from "@/components/why/why-panel";
 import { countInterventions } from "@/lib/campaign-phase";
 import type { Resource } from "@/lib/use-resource";
 import { BudgetPanel } from "./budget-panel";
@@ -39,6 +40,7 @@ export function LiveCampaign({
           </aside>
         )}
       </div>
+      <WhyPanel goal={goal} />
       <BudgetPanel ledger={campaign.ledger} tasks={campaign.tasks} />
       <div className="grid items-start gap-14 lg:grid-cols-2 lg:gap-12">
         <TaskList tasks={campaign.tasks} />
