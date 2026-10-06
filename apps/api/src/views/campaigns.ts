@@ -1,60 +1,67 @@
-import type { ApprovalLock, Currency, Money } from "@datum/core";
-import type { ApprovalRow, AuditEventRow, BrandRow, CampaignRow, SpotRow } from "@datum/db";
+import { toWireMoney, type CampaignView, type PlaybookView, type SpotView } from "@datum/core";
+import type { BrandRow, CampaignRow, PlaybookRow, SpotRow } from "@datum/db";
+
+export interface SpotWithScans {
+  readonly spot: SpotRow;
+  readonly scans: number;
+}
+
+export interface CampaignParts {
+  readonly campaign: CampaignRow;
+  readonly brand: BrandRow;
+  readonly playbook: PlaybookRow | null;
+  readonly spots: readonly SpotWithScans[];
+}
 
 const isoOrNull = (value: Date | null): string | null =>
   value === null ? null : value.toISOString();
 
-const money = (amountMinor: number, currency: Currency): Money => ({ amountMinor, currency });
-
-export function toCampaignView(campaign: CampaignRow, brand: BrandRow) {
+export function toPlaybookView(playbook: PlaybookRow, brand: BrandRow): PlaybookView {
   return {
-    id: campaign.id,
-    brand: { id: brand.id, name: brand.name, website: brand.website },
-    brandPlaybookVersion: campaign.brandPlaybookVersion,
-    message: campaign.message,
-    destinationUrl: campaign.destinationUrl,
-    status: campaign.status,
-    deadline: campaign.deadline.toISOString(),
-    budget: money(campaign.budgetMinor, campaign.currency),
-    approvedAt: isoOrNull(campaign.approvedAt),
-    completedAt: isoOrNull(campaign.completedAt),
-    createdAt: campaign.createdAt.toISOString(),
+    brandId: playbook.brandId,
+    version: playbook.version,
+    website: brand.website,
+    approvedLogoUrl: playbook.approvedLogoUrl,
+    approvedTagline: playbook.approvedTagline,
+    defaultPrintFormat: playbook.defaultPrintFormat,
+    maxAutonomousPhysicalSpend: toWireMoney({
+      amountMinor: playbook.maxAutonomousPhysicalSpendMinor,
+      currency: playbook.currency,
+    }),
+    forbiddenClaims: playbook.forbiddenClaims,
+    notes: playbook.notes,
   };
 }
 
-export function toSpotView(spot: SpotRow, scanCount: number) {
+function toSpotView({ spot, scans }: SpotWithScans): SpotView {
   return {
     id: spot.id,
     code: spot.code,
     name: spot.name,
     instructions: spot.instructions,
     qrTargetUrl: spot.qrTargetUrl,
-    assetUrl: spot.assetUrl,
     status: spot.status,
     firstPassStatus: spot.firstPassStatus,
-    scanCount,
+    scanCount: scans,
+    card: null,
   };
 }
 
-export function toApprovalLock(approval: ApprovalRow): ApprovalLock {
+export function toCampaignView({ campaign, brand, playbook, spots }: CampaignParts): CampaignView {
   return {
-    campaignId: approval.campaignId,
-    assetVersion: approval.assetVersion,
-    assetHash: approval.assetHash,
-    spotsHash: approval.spotsHash,
-    budget: money(approval.budgetMinor, approval.currency),
-    deadline: approval.deadline.toISOString(),
-    evidencePolicy: approval.evidencePolicy,
-    approvedBy: approval.approvedBy,
-    approvedAt: approval.approvedAt.toISOString(),
-  };
-}
-
-export function toAuditEventView(event: AuditEventRow) {
-  return {
-    id: event.id,
-    type: event.type,
-    payload: event.payload,
-    createdAt: event.createdAt.toISOString(),
+    id: campaign.id,
+    status: campaign.status,
+    brand: { id: brand.id, name: brand.name, website: brand.website },
+    message: campaign.message,
+    destinationUrl: campaign.destinationUrl,
+    deadline: campaign.deadline.toISOString(),
+    budget: toWireMoney({ amountMinor: campaign.budgetMinor, currency: campaign.currency }),
+    createdAt: campaign.createdAt.toISOString(),
+    approvedAt: isoOrNull(campaign.approvedAt),
+    completedAt: isoOrNull(campaign.completedAt),
+    playbook: playbook === null ? null : toPlaybookView(playbook, brand),
+    proposal: null,
+    approval: null,
+    spots: spots.map(toSpotView),
   };
 }

@@ -4,11 +4,14 @@ import {
   addMoney,
   compareMoney,
   formatMoney,
+  fromWireMoney,
   isMoneyText,
   MoneyError,
+  moneyText,
   parseMoney,
   subtractMoney,
   sumMoney,
+  toWireMoney,
   zeroMoney,
 } from "../src/money";
 
@@ -129,5 +132,23 @@ describe("money arithmetic", () => {
 
   it("refuses fractional minor units in arithmetic", () => {
     expect(() => addMoney(sgd(0.1), sgd(0.2))).toThrow(MoneyError);
+  });
+});
+
+describe("wire money", () => {
+  it("writes minor units as a two-decimal string without the currency", () => {
+    expect(moneyText(sgd(5000))).toBe("50.00");
+    expect(moneyText(sgd(5))).toBe("0.05");
+    expect(moneyText(sgd(-120))).toBe("-1.20");
+  });
+
+  it("converts to and from the wire shape exactly", () => {
+    expect(toWireMoney(sgd(3780))).toEqual({ amount: "37.80", currency: "SGD" });
+    expect(fromWireMoney({ amount: "37.80", currency: "SGD" })).toEqual(sgd(3780));
+    expect(fromWireMoney(toWireMoney(sgd(123_456_789)))).toEqual(sgd(123_456_789));
+  });
+
+  it("refuses a malformed wire amount", () => {
+    expect(() => fromWireMoney({ amount: "37.805", currency: "SGD" })).toThrow(MoneyError);
   });
 });

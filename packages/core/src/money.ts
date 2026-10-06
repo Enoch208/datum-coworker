@@ -1,4 +1,5 @@
 import type { Currency, Money } from "./contract";
+import type { MoneyText, WireMoney } from "./wire";
 
 export type MoneyErrorCode =
   "MALFORMED_AMOUNT" | "AMOUNT_TOO_LARGE" | "NOT_MINOR_UNITS" | "CURRENCY_MISMATCH";
@@ -78,9 +79,22 @@ export const compareMoney = (left: Money, right: Money): -1 | 0 | 1 => {
   return left.amountMinor > right.amountMinor ? 1 : 0;
 };
 
-export const formatMoney = (money: Money): string => {
+const unsignedText = (money: Money): string => {
   assertMinorUnits(money);
   const digits = String(Math.abs(money.amountMinor)).padStart(3, "0");
-  const sign = money.amountMinor < 0 ? "-" : "";
-  return `${sign}${money.currency} ${digits.slice(0, -2)}.${digits.slice(-2)}`;
+  return `${digits.slice(0, -2)}.${digits.slice(-2)}`;
 };
+
+const signOf = (money: Money): string => (money.amountMinor < 0 ? "-" : "");
+
+export const formatMoney = (money: Money): string =>
+  `${signOf(money)}${money.currency} ${unsignedText(money)}`;
+
+export const moneyText = (money: Money): MoneyText => `${signOf(money)}${unsignedText(money)}`;
+
+export const toWireMoney = (money: Money): WireMoney => ({
+  amount: moneyText(money),
+  currency: money.currency,
+});
+
+export const fromWireMoney = (wire: WireMoney): Money => parseMoney(wire.amount, wire.currency);

@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import type { AuditEventType } from "@datum/core";
 import { auditEvents, type Executor } from "@datum/db";
-import { toAuditEventView } from "../views/campaigns";
+import { toAuditEventView } from "../views/timeline";
 
 export async function recordAudit(
   db: Executor,

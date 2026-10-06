@@ -4,10 +4,6 @@ import { notFound } from "../http/errors";
 
 const userAgentMaxLength = 256;
 
-export function spotScanUrl(appBaseUrl: string, campaignId: string, spotCode: string): string {
-  return `${appBaseUrl}/c/${campaignId}/${encodeURIComponent(spotCode)}`;
-}
-
 export async function recordScan(
   db: Executor,
   campaignId: string,

@@ -40,7 +40,7 @@ async function insertEvidence(physicalTaskId: string, contentHash: string) {
 
 describe("database invariants", () => {
   it("rejects a second physical task with the same idempotency key", async () => {
-    const { campaign } = await createCampaign();
+    const campaign = await createCampaign();
     const key = `campaign:${campaign.id}:spot:A:attempt:1`;
     await insertTask(campaign.id, key);
     await expect(insertTask(campaign.id, key)).rejects.toMatchObject({
@@ -49,7 +49,7 @@ describe("database invariants", () => {
   });
 
   it("counts a duplicate evidence upload for the same task only once", async () => {
-    const { campaign } = await createCampaign();
+    const campaign = await createCampaign();
     const task = await insertTask(campaign.id, `campaign:${campaign.id}:spot:A:attempt:1`);
     await insertEvidence(task.id, photoHash);
     await expect(insertEvidence(task.id, photoHash)).rejects.toMatchObject({
@@ -60,7 +60,7 @@ describe("database invariants", () => {
   });
 
   it("refuses a campaign budget that is not positive", async () => {
-    const { campaign } = await createCampaign();
+    const campaign = await createCampaign();
     await expect(
       db.insert(campaigns).values({
         brandId: campaign.brand.id,
@@ -76,7 +76,7 @@ describe("database invariants", () => {
   });
 
   it("stores runner tokens only as a sha256 hash", async () => {
-    const { campaign } = await createCampaign();
+    const campaign = await createCampaign();
     const task = await insertTask(campaign.id, `campaign:${campaign.id}:spot:A:attempt:1`);
     await expect(
       db

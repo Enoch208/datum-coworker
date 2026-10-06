@@ -1,19 +1,31 @@
-import { currencies, type CampaignBrief, type Money, type SpotDraft } from "@datum/core";
+import {
+  currencies,
+  fromWireMoney,
+  isMoneyText,
+  isSpotCode,
+  type CreateCampaignRequest,
+  type SpotDraft,
+  type WireMoney,
+} from "@datum/core";
 import { z } from "zod";
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 const httpUrl = z.url({ protocol: /^https?$/ }).max(2000);
 
 const spotSchema = z.strictObject({
-  code: z.string().regex(/^[A-Z0-9]{1,8}$/, "A spot code is 1 to 8 uppercase letters or digits"),
+  code: z.string().refine(isSpotCode, "A spot code is 1 to 4 uppercase letters or digits"),
   name: text(120),
   instructions: text(1000),
 }) satisfies z.ZodType<unknown, SpotDraft>;
 
-const moneySchema = z.strictObject({
-  amountMinor: z.int().positive(),
+const wireMoneySchema = z.strictObject({
+  amount: z.string().refine(isMoneyText, "An amount is a decimal string such as 50.00"),
   currency: z.enum(currencies),
-}) satisfies z.ZodType<unknown, Money>;
+}) satisfies z.ZodType<unknown, WireMoney>;
+
+const budgetSchema = wireMoneySchema
+  .transform(fromWireMoney)
+  .refine((money) => money.amountMinor > 0, "The budget must be more than zero");
 
 const spotsSchema = z
   .array(spotSchema)
@@ -45,7 +57,7 @@ export const createCampaignSchema = z.strictObject({
   destinationUrl: httpUrl,
   spots: spotsSchema,
   deadline: futureDeadline,
-  budget: moneySchema,
-}) satisfies z.ZodType<unknown, CampaignBrief>;
+  budget: budgetSchema,
+}) satisfies z.ZodType<unknown, CreateCampaignRequest>;
 
 export type CreateCampaignInput = z.output<typeof createCampaignSchema>;

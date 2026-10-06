@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { CampaignBrief } from "@datum/core";
+import type { CampaignView, CreateCampaignRequest } from "@datum/core";
 import {
   approvals,
   auditEvents,
@@ -16,7 +16,6 @@ import {
 } from "@datum/db";
 import { afterAll, beforeEach } from "vitest";
 import { createApp } from "../src/app";
-import type { campaignDetail } from "../src/services/campaigns";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (databaseUrl === undefined || !databaseUrl.endsWith("/datum_test")) {
@@ -26,8 +25,6 @@ if (databaseUrl === undefined || !databaseUrl.endsWith("/datum_test")) {
 export const db = createDb(databaseUrl);
 export const appBaseUrl = "https://datum.test";
 export const app = createApp({ db, appBaseUrl });
-
-export type CampaignDetail = Awaited<ReturnType<typeof campaignDetail>>;
 
 const allTables = [
   masumiPaymentEvidence,
@@ -71,7 +68,7 @@ export async function call<Body>(
   return { status: response.status, body: body as Body };
 }
 
-export function briefBody(overrides: Partial<CampaignBrief> = {}): CampaignBrief {
+export function briefBody(overrides: Partial<CreateCampaignRequest> = {}): CreateCampaignRequest {
   return {
     brandName: "Kopi Lab",
     brandUrl: "https://kopilab.example",
@@ -82,15 +79,15 @@ export function briefBody(overrides: Partial<CampaignBrief> = {}): CampaignBrief
       { code: "A", name: "Amoy Street cafe window", instructions: "Tape inside the glass" },
     ],
     deadline: new Date(Date.now() + 86_400_000).toISOString(),
-    budget: { amountMinor: 5_000, currency: "SGD" },
+    budget: { amount: "50.00", currency: "SGD" },
     ...overrides,
   };
 }
 
 export async function createCampaign(
-  overrides: Partial<CampaignBrief> = {},
-): Promise<CampaignDetail> {
-  const reply = await call<CampaignDetail>("POST", "/campaigns", briefBody(overrides));
+  overrides: Partial<CreateCampaignRequest> = {},
+): Promise<CampaignView> {
+  const reply = await call<CampaignView>("POST", "/campaigns", briefBody(overrides));
   if (reply.status !== 201) {
     throw new Error(`Creating a campaign failed with ${String(reply.status)}`);
   }

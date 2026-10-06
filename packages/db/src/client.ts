@@ -11,6 +11,7 @@ export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 export type Executor = Db | Tx;
 
 export type BrandRow = typeof schema.brands.$inferSelect;
+export type PlaybookRow = typeof schema.brandPlaybooks.$inferSelect;
 export type CampaignRow = typeof schema.campaigns.$inferSelect;
 export type SpotRow = typeof schema.spots.$inferSelect;
 export type ApprovalRow = typeof schema.approvals.$inferSelect;

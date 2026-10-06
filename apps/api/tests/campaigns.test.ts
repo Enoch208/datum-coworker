@@ -1,6 +1,6 @@
+import type { ApiError, CampaignView } from "@datum/core";
 import { brands, campaigns } from "@datum/db";
 import { describe, expect, it } from "vitest";
-import type { errorBody } from "../src/http/errors";
 import { createCampaign as createCampaignDirectly } from "../src/services/campaigns";
 import {
   app,
@@ -10,41 +10,50 @@ import {
   createCampaign,
   db,
   resetDatabaseBetweenTests,
-  type CampaignDetail,
 } from "./support";
 
 resetDatabaseBetweenTests();
 
-type ErrorBody = ReturnType<typeof errorBody>;
-
 describe("POST /campaigns", () => {
   it("creates a draft campaign with its brand, spots and spot QR targets", async () => {
-    const reply = await call<CampaignDetail>("POST", "/campaigns", briefBody());
+    const reply = await call<CampaignView>("POST", "/campaigns", briefBody());
     expect(reply.status).toBe(201);
-    const { campaign, spots, approval } = reply.body;
+    const campaign = reply.body;
     expect(campaign).toMatchObject({
       status: "DRAFT",
       brand: { name: "Kopi Lab", website: "https://kopilab.example" },
-      brandPlaybookVersion: null,
       message: "Show this card for a free oat flat white",
       destinationUrl: "https://kopilab.example/offer",
-      budget: { amountMinor: 5_000, currency: "SGD" },
+      budget: { amount: "50.00", currency: "SGD" },
       approvedAt: null,
       completedAt: null,
+      playbook: null,
+      proposal: null,
+      approval: null,
     });
     expect(campaign.id).toMatch(/^cmp_[0-9a-z]{16}$/);
-    expect(spots.map((spot) => [spot.code, spot.qrTargetUrl])).toEqual([
+    expect(campaign.spots.map((spot) => [spot.code, spot.qrTargetUrl])).toEqual([
       ["A", `${appBaseUrl}/c/${campaign.id}/A`],
       ["B", `${appBaseUrl}/c/${campaign.id}/B`],
     ]);
-    expect(spots.every((spot) => spot.status === "PENDING" && spot.scanCount === 0)).toBe(true);
-    expect(approval).toBeNull();
+    expect(
+      campaign.spots.every(
+        (spot) => spot.status === "PENDING" && spot.scanCount === 0 && spot.card === null,
+      ),
+    ).toBe(true);
+  });
+
+  it("stores the wire budget as exact integer cents", async () => {
+    const campaign = await createCampaign({ budget: { amount: "37.8", currency: "SGD" } });
+    expect(campaign.budget).toEqual({ amount: "37.80", currency: "SGD" });
+    const [row] = await db.select().from(campaigns);
+    expect(row?.budgetMinor).toBe(3_780);
   });
 
   it("reuses an existing brand whatever the casing of its name", async () => {
     const first = await createCampaign();
     const second = await createCampaign({ brandName: "KOPI LAB", brandUrl: null });
-    expect(second.campaign.brand.id).toBe(first.campaign.brand.id);
+    expect(second.brand.id).toBe(first.brand.id);
     expect(await db.select().from(brands)).toHaveLength(1);
   });
 
@@ -59,17 +68,20 @@ describe("POST /campaigns", () => {
       },
     ],
     ["a past deadline", { deadline: new Date(Date.now() - 60_000).toISOString() }],
-    ["a zero budget", { budget: { amountMinor: 0, currency: "SGD" } }],
-    ["a negative budget", { budget: { amountMinor: -100, currency: "SGD" } }],
-    ["a fractional minor amount", { budget: { amountMinor: 12.5, currency: "SGD" } }],
-    ["an unsupported currency", { budget: { amountMinor: 5_000, currency: "USD" } }],
+    ["a zero budget", { budget: { amount: "0.00", currency: "SGD" } }],
+    ["a negative budget", { budget: { amount: "-1.00", currency: "SGD" } }],
+    ["a sub-cent budget", { budget: { amount: "12.505", currency: "SGD" } }],
+    ["a numeric budget", { budget: { amount: 50, currency: "SGD" } }],
+    ["a minor-unit budget", { budget: { amountMinor: 5_000, currency: "SGD" } }],
+    ["an unsupported currency", { budget: { amount: "50.00", currency: "USD" } }],
     ["a lowercase spot code", { spots: [{ code: "a", name: "Window", instructions: "Tape" }] }],
+    ["a five-character spot code", { spots: [{ code: "ABCDE", name: "W", instructions: "T" }] }],
     ["no spots", { spots: [] }],
     ["a non-web destination", { destinationUrl: "javascript:alert(1)" }],
     ["a deadline without an offset", { deadline: "2099-01-01T10:00:00" }],
     ["an unknown field", { approvedBy: "someone" }],
   ])("rejects %s with 400 and stores nothing", async (_label, overrides) => {
-    const reply = await call<ErrorBody>("POST", "/campaigns", { ...briefBody(), ...overrides });
+    const reply = await call<ApiError>("POST", "/campaigns", { ...briefBody(), ...overrides });
     expect(reply.status).toBe(400);
     expect(reply.body.error).toBe("VALIDATION_FAILED");
     expect(await db.select().from(campaigns)).toEqual([]);
@@ -77,7 +89,7 @@ describe("POST /campaigns", () => {
 
   it("names the duplicated spot code in the validation message", async () => {
     const spot = { code: "C", name: "Board", instructions: "Pin it" };
-    const reply = await call<ErrorBody>("POST", "/campaigns", briefBody({ spots: [spot, spot] }));
+    const reply = await call<ApiError>("POST", "/campaigns", briefBody({ spots: [spot, spot] }));
     expect(reply.body.message).toContain("Spot code C is used more than once");
   });
 
@@ -96,6 +108,7 @@ describe("POST /campaigns", () => {
       ...briefBody(),
       spots: [spot, spot],
       deadline: new Date(Date.now() + 3_600_000),
+      budget: { amountMinor: 5_000, currency: "SGD" as const },
     };
     await expect(createCampaignDirectly(db, appBaseUrl, input)).rejects.toMatchObject({
       cause: { code: "23505", constraint_name: "spots_campaign_code_unique" },
@@ -114,9 +127,9 @@ describe("GET /campaigns/:id", () => {
         { code: "B", name: "Gym counter", instructions: "Leave a stack" },
       ],
     });
-    const reply = await call<CampaignDetail>("GET", `/campaigns/${created.campaign.id}`);
+    const reply = await call<CampaignView>("GET", `/campaigns/${created.id}`);
     expect(reply.status).toBe(200);
-    expect(reply.body.campaign).toEqual(created.campaign);
+    expect(reply.body).toEqual(created);
     expect(reply.body.spots.map((spot) => spot.code)).toEqual(["A", "B", "C"]);
   });
 
@@ -126,7 +139,7 @@ describe("GET /campaigns/:id", () => {
       "/campaigns/not-an-id",
       "/campaigns/cmp_0000000000000000/timeline",
     ]) {
-      const reply = await call<ErrorBody>("GET", path);
+      const reply = await call<ApiError>("GET", path);
       expect(reply.status).toBe(404);
       expect(reply.body.error).toBe("NOT_FOUND");
     }
@@ -138,17 +151,17 @@ describe("GET /campaigns/:id/timeline", () => {
     const created = await createCampaign();
     const reply = await call<{ type: string; payload: unknown; createdAt: string }[]>(
       "GET",
-      `/campaigns/${created.campaign.id}/timeline`,
+      `/campaigns/${created.id}/timeline`,
     );
     expect(reply.status).toBe(200);
     expect(reply.body).toHaveLength(1);
     expect(reply.body[0]).toMatchObject({
       type: "CAMPAIGN_CREATED",
       payload: {
-        brandId: created.campaign.brand.id,
+        brandId: created.brand.id,
         spotCodes: ["B", "A"],
         budget: { amountMinor: 5_000, currency: "SGD" },
-        deadline: created.campaign.deadline,
+        deadline: created.deadline,
       },
     });
   });
