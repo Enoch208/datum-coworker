@@ -1,15 +1,17 @@
 import type { CampaignView } from "@datum/core";
 import { useCallback } from "react";
-import { useLocation, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import { CampaignHeader } from "@/components/campaign/campaign-header";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
 import { NoProposal } from "@/components/campaign/no-proposal";
 import { ProposalCopy } from "@/components/campaign/proposal-copy";
 import { ProposalDetails } from "@/components/campaign/proposal-sections";
 import { SpotCards } from "@/components/campaign/spot-cards";
+import { secondaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { ApiRequestError, getCampaign } from "@/lib/api-client";
 import { readPlanHandoff } from "@/lib/plan-handoff";
+import { appRoutes } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { useRepeat, useResource } from "@/lib/use-resource";
 
@@ -18,6 +20,9 @@ function MissingCampaign({ message }: { message: string }) {
     <section className="max-w-xl">
       <h1 className="text-4xl font-light tracking-tight">No campaign here</h1>
       <p className="mt-4 text-lg font-light text-muted">{message}</p>
+      <Link to={appRoutes.newCampaign} className={`${secondaryButton} mt-8`}>
+        Create a campaign
+      </Link>
     </section>
   );
 }

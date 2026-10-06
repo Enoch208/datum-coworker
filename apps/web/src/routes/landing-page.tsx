@@ -1,4 +1,9 @@
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Link } from "react-router";
 import { BrandMark } from "@/components/brand-mark";
+import { primaryButton } from "@/components/feedback/buttons";
+import { appRoutes } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
 
 export function LandingPage() {
@@ -17,6 +22,10 @@ export function LandingPage() {
         Give it the result you want, a deadline and a budget. Approve once, and it coordinates the
         printing, placement and proof until every spot is live.
       </p>
+      <Link to={appRoutes.newCampaign} className={`${primaryButton} mt-12 self-start`}>
+        Create a campaign
+        <HugeiconsIcon icon={ArrowRight01Icon} size={18} strokeWidth={1.8} aria-hidden />
+      </Link>
     </main>
   );
 }

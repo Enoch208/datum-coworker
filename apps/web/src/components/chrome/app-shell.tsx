@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect } from "react";
 import { Link, useLocation } from "react-router";
 import { BrandMark } from "@/components/brand-mark";
+import { secondaryButton } from "@/components/feedback/buttons";
 import { appRoutes } from "@/lib/routes";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -17,6 +18,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to={appRoutes.landing} aria-label="Datum home" className="rounded-md">
             <BrandMark height={24} />
           </Link>
+          {pathname !== appRoutes.newCampaign && (
+            <Link to={appRoutes.newCampaign} className={secondaryButton}>
+              New campaign
+            </Link>
+          )}
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-24 sm:px-8 sm:pt-16">

@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router";
 import { AppShell } from "./components/chrome/app-shell";
 import { CampaignPage } from "./routes/campaign-page";
 import { LandingPage } from "./routes/landing-page";
+import { NewCampaignPage } from "./routes/new-campaign-page";
 import { NotFoundPage } from "./routes/not-found-page";
 
 export function App() {
@@ -13,6 +14,7 @@ export function App() {
         element={
           <AppShell>
             <Routes>
+              <Route path="/campaigns/new" element={<NewCampaignPage />} />
               <Route path="/campaigns/:campaignId" element={<CampaignPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

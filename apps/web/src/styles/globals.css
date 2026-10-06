@@ -3,22 +3,25 @@
 @import "@fontsource-variable/geist-mono/wght.css";
 @import "./theme.css";
 
-html {
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-}
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    color-scheme: dark;
+  }
 
-body {
-  background: var(--color-canvas);
-}
+  body {
+    background: var(--color-canvas);
+  }
 
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 
-::selection {
-  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
 }
