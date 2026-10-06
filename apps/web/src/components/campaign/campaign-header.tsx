@@ -5,9 +5,19 @@ import type { ReactNode } from "react";
 import { CampaignStatusChip } from "@/components/status/campaign-status-chip";
 import { formatSgt, formatWireMoney } from "@/lib/format";
 
-function Fact({ label, children }: { label: string; children: ReactNode }) {
+function Fact({
+  label,
+  wide = false,
+  children,
+}: {
+  label: string;
+  wide?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 border-t border-line pt-4">
+    <div
+      className={`flex min-w-0 flex-col gap-1.5 border-t border-line pt-4 ${wide ? "col-span-2 lg:col-span-1" : ""}`}
+    >
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="min-w-0 font-mono text-[15px] text-ink tabular-nums">{children}</dd>
     </div>
@@ -28,10 +38,12 @@ export function CampaignHeader({ campaign }: { campaign: CampaignView }) {
         {campaign.message}
       </p>
       <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
-        <Fact label="Deadline">{formatSgt(campaign.deadline)}</Fact>
+        <Fact label="Deadline" wide>
+          {formatSgt(campaign.deadline)}
+        </Fact>
         <Fact label="Physical budget">{formatWireMoney(campaign.budget)}</Fact>
         <Fact label="Approved spots">{campaign.spots.length}</Fact>
-        <Fact label="QR codes send people to">
+        <Fact label="QR codes send people to" wide>
           <a
             href={campaign.destinationUrl}
             target="_blank"
