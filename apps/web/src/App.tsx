@@ -1,7 +1,10 @@
+import { BrandMark } from "@/components/brand-mark";
+
 export function App() {
   return (
     <main className="flex min-h-dvh flex-col justify-center px-6 sm:px-16">
-      <p className="font-mono text-xs tracking-[0.2em] text-muted uppercase">
+      <BrandMark height={40} />
+      <p className="mt-10 font-mono text-xs tracking-[0.2em] text-muted uppercase">
         AI coworker for physical marketing campaigns
       </p>
       <h1 className="mt-6 max-w-3xl text-5xl font-light tracking-tight text-ink sm:text-7xl">
