@@ -20,16 +20,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const title =
     currentId === undefined ? "Create a campaign" : receipt ? "Campaign receipt" : "Your campaign";
   const items = [
-    { label: "New campaign", href: appRoutes.newCampaign, icon: Add01Icon },
+    { label: "New campaign", short: "New", href: appRoutes.newCampaign, icon: Add01Icon },
     ...(currentId === undefined
       ? []
       : [
           {
             label: "Campaign overview",
+            short: "Overview",
             href: campaignHref(currentId),
             icon: DashboardSquare01Icon,
           },
-          { label: "Campaign receipt", href: receiptHref(currentId), icon: Certificate01Icon },
+          {
+            label: "Campaign receipt",
+            short: "Receipt",
+            href: receiptHref(currentId),
+            icon: Certificate01Icon,
+          },
         ]),
   ];
 
@@ -47,7 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to={appRoutes.landing} aria-label="Datum home" className="mb-12 px-3">
             <BrandLockup />
           </Link>
-          <p className="eyebrow mb-4 px-3 text-faint">Your workspace</p>
+          <p className="eyebrow mb-4 px-3 text-muted">Your workspace</p>
           <nav aria-label="Workspace navigation" className="flex flex-col gap-2">
             {items.map((item) => (
               <Link
@@ -99,30 +105,29 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <span className="eyebrow text-muted sm:hidden">Workspace</span>
             {currentId !== undefined && (
-              <Link
-                to={appRoutes.newCampaign}
-                className={`${secondaryButton} hidden sm:inline-flex`}
-              >
+              <Link to={appRoutes.newCampaign} className={`${secondaryButton} max-sm:hidden`}>
                 <HugeiconsIcon icon={Add01Icon} size={16} aria-hidden />
                 New campaign
               </Link>
             )}
           </header>
-          <nav
-            aria-label="Mobile workspace navigation"
-            className="flex gap-2 overflow-x-auto border-y border-line px-4 py-3 lg:hidden print:hidden"
-          >
-            {items.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                aria-current={pathname === item.href ? "page" : undefined}
-                className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-xs font-medium ${pathname === item.href ? "bg-ink text-canvas" : "bg-raised text-muted"}`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          {items.length > 1 && (
+            <nav
+              aria-label="Mobile workspace navigation"
+              className="flex gap-2 overflow-x-auto border-y border-line px-4 py-3 lg:hidden print:hidden"
+            >
+              {items.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  aria-current={pathname === item.href ? "page" : undefined}
+                  className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-xs font-medium ${pathname === item.href ? "bg-ink text-canvas" : "bg-raised text-muted"}`}
+                >
+                  {item.short}
+                </Link>
+              ))}
+            </nav>
+          )}
           <main
             id="workspace-content"
             className="min-w-0 border-t border-line px-4 pt-7 pb-16 sm:px-8 lg:pt-8 xl:px-10 print:border-0 print:p-0"

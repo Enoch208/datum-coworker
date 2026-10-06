@@ -10,7 +10,7 @@ const toneClasses: Record<Tone, string> = {
   warn: "border-warn/35 bg-warn/5 text-warn",
   danger: "border-danger/35 bg-danger/5 text-danger",
   quiet: "border-line text-muted",
-  accent: "border-accent/40 bg-accent/5 text-accent",
+  accent: "border-ink/30 bg-ink/[0.07] text-ink",
 };
 
 export interface ChipSpec {
