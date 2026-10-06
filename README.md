@@ -86,3 +86,5 @@ pnpm db:migrate
 pnpm dev                                    # API and web
 pnpm test
 ```
+
+Open http://localhost:5180. As in production, the web server proxies `/api` (prefix stripped), `/c/`, `/assets/cmp_` and `/evidence/` to the API on port 8790, so `APP_BASE_URL` is the web origin, `http://localhost:5180`, and every QR code, card link and runner link works through it.

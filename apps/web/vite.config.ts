@@ -3,6 +3,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const api = "http://localhost:8790";
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -14,9 +16,12 @@ export default defineConfig({
     port: 5180,
     proxy: {
       "/api": {
-        target: "http://localhost:8790",
+        target: api,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
+      "/c/": { target: api },
+      "/assets/cmp_": { target: api },
+      "/evidence/": { target: api },
     },
   },
   build: {
