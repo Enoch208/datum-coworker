@@ -43,3 +43,13 @@ export const checkBudget = (input: BudgetCheckInput): BudgetDecision => {
     revisedMaximum,
   };
 };
+
+export const campaignBudgetLimits: Readonly<Record<Currency, number>> = { SGD: 10_000_000 };
+
+export const campaignBudgetLimit = (currency: Currency): Money => ({
+  amountMinor: campaignBudgetLimits[currency],
+  currency,
+});
+
+export const isWithinCampaignBudgetLimit = (budget: Money): boolean =>
+  compareMoney(budget, campaignBudgetLimit(budget.currency)) <= 0;

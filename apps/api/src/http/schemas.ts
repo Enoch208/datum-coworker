@@ -1,8 +1,11 @@
 import {
+  campaignBudgetLimit,
   currencies,
+  formatMoney,
   fromWireMoney,
   isMoneyText,
   isSpotCode,
+  isWithinCampaignBudgetLimit,
   type CreateCampaignRequest,
   type SpotDraft,
   type WireMoney,
@@ -26,7 +29,13 @@ const wireMoneySchema = z.strictObject({
 
 const budgetSchema = wireMoneySchema
   .transform(fromWireMoney)
-  .refine((money) => money.amountMinor > 0, "The budget must be more than zero");
+  .refine((money) => money.amountMinor > 0, "The budget must be more than zero")
+  .superRefine((money, ctx) => {
+    if (!isWithinCampaignBudgetLimit(money)) {
+      const limit = formatMoney(campaignBudgetLimit(money.currency));
+      ctx.addIssue({ code: "custom", message: `The budget can be at most ${limit}` });
+    }
+  });
 
 const spotsSchema = z
   .array(spotSchema)

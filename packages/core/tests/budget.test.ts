@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { checkBudget, confirmedSpend, remainingBudget, type LedgerExpense } from "../src/budget";
+import {
+  campaignBudgetLimit,
+  checkBudget,
+  confirmedSpend,
+  isWithinCampaignBudgetLimit,
+  remainingBudget,
+  type LedgerExpense,
+} from "../src/budget";
 import type { ExpenseStatus, Money } from "../src/contract";
+import { parseMoney } from "../src/money";
 
 const sgd = (amountMinor: number): Money => ({ amountMinor, currency: "SGD" });
 const expense = (amountMinor: number, status: ExpenseStatus): LedgerExpense => ({
@@ -96,5 +104,14 @@ describe("checkBudget", () => {
       estimatedActionCost: sgd(800),
     });
     expect(decision).toEqual({ decision: "PROCEED" });
+  });
+});
+
+describe("the campaign budget limit", () => {
+  it("allows a budget up to SGD 100000.00 and refuses anything above it", () => {
+    expect(campaignBudgetLimit("SGD")).toEqual({ amountMinor: 10_000_000, currency: "SGD" });
+    expect(isWithinCampaignBudgetLimit({ amountMinor: 10_000_000, currency: "SGD" })).toBe(true);
+    expect(isWithinCampaignBudgetLimit({ amountMinor: 10_000_001, currency: "SGD" })).toBe(false);
+    expect(isWithinCampaignBudgetLimit(parseMoney("99999999999.00", "SGD"))).toBe(false);
   });
 });

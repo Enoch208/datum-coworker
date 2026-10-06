@@ -88,6 +88,21 @@ describe("POST /campaigns", () => {
     expect(await db.select().from(campaigns)).toEqual([]);
   });
 
+  it("refuses a budget above SGD 100000.00 and says what the limit is", async () => {
+    for (const amount of ["99999999999.00", "100000.01"]) {
+      const reply = await call<ApiError>(
+        "POST",
+        "/campaigns",
+        briefBody({ budget: { amount, currency: "SGD" } }),
+      );
+      expect(reply.status).toBe(400);
+      expect(reply.body).toMatchObject({ error: "VALIDATION_FAILED" });
+      expect(reply.body.message).toContain("The budget can be at most SGD 100000.00");
+    }
+    const atLimit = await createCampaign({ budget: { amount: "100000.00", currency: "SGD" } });
+    expect(atLimit.budget).toEqual({ amount: "100000.00", currency: "SGD" });
+  });
+
   it("names the duplicated spot code in the validation message", async () => {
     const spot = { code: "C", name: "Board", instructions: "Pin it" };
     const reply = await call<ApiError>("POST", "/campaigns", briefBody({ spots: [spot, spot] }));
