@@ -195,6 +195,8 @@ export interface PhysicalTaskDraft {
   type: PhysicalTaskType;
   attempt: number;
   idempotencyKey: string;
+  copies: number | null;
+  assetVersion: number;
   instructions: string;
   assetUrls: string[];
   estimatedCost: Money;

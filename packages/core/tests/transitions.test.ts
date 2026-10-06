@@ -55,6 +55,7 @@ describe("campaignTransitions", () => {
     ["AWAITING_APPROVAL", "CANCELLED"],
     ["APPROVED", "EXECUTING"],
     ["APPROVED", "AWAITING_APPROVAL"],
+    ["APPROVED", "NEEDS_APPROVAL"],
     ["EXECUTING", "VERIFYING"],
     ["VERIFYING", "COMPLETED"],
     ["VERIFYING", "REMEDIATING"],

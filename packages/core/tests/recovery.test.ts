@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actionKey, nextAttempt, recoveryKey, type TaskCoverage } from "../src/recovery";
+import { actionKey, nextAttempt, printKey, recoveryKey, type TaskCoverage } from "../src/recovery";
 
 const campaignId = "cmp_7k2m9q4w8z1x3c5v";
 const key = (spotCode: string, attempt: number) => recoveryKey(campaignId, spotCode, attempt);
@@ -19,6 +19,24 @@ describe("recoveryKey", () => {
 
   it.each(["", "cmp:1", "cmp+1"])("refuses campaign id %j", (id) => {
     expect(() => recoveryKey(id, "C", 1)).toThrow(RangeError);
+  });
+});
+
+describe("printKey", () => {
+  it("formats campaign:<id>:print:attempt:<n>", () => {
+    expect(printKey(campaignId, 1)).toBe(`campaign:${campaignId}:print:attempt:1`);
+  });
+
+  it("never collides with a spot key", () => {
+    expect(printKey(campaignId, 1)).not.toBe(recoveryKey(campaignId, "A", 1));
+  });
+
+  it.each([0, 2.5])("refuses attempt %d", (attempt) => {
+    expect(() => printKey(campaignId, attempt)).toThrow(RangeError);
+  });
+
+  it("refuses a campaign id that cannot appear in a key", () => {
+    expect(() => printKey("cmp:1", 1)).toThrow(RangeError);
   });
 });
 
