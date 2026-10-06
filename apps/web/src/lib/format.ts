@@ -38,3 +38,17 @@ export function shortHash(hash: string): string {
   const bare = hash.replace(/^sha256:/, "");
   return bare.length > 12 ? `${bare.slice(0, 12)}…` : bare;
 }
+
+const sgtShortFormat = new Intl.DateTimeFormat("en-SG", {
+  timeZone: singaporeZone,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+export function formatSgtShort(iso: string): string {
+  return `${sgtShortFormat.format(new Date(iso))} SGT`;
+}

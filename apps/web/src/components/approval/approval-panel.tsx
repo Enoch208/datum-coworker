@@ -5,7 +5,8 @@ import { useState } from "react";
 import { FieldError, controlBorder, controlClass } from "@/components/campaign-form/field";
 import { primaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { ApiRequestError, approveCampaign } from "@/lib/api-client";
+import { approveCampaign } from "@/lib/api-client";
+import { ApiRequestError } from "@/lib/http";
 import { formatSgt, formatWireMoney, shortHash } from "@/lib/format";
 import { BoundsList, Mono, SpotCodes } from "./bounds-list";
 

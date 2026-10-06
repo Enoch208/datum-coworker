@@ -4,11 +4,12 @@ import { CampaignBody } from "@/components/campaign/campaign-body";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
 import { secondaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { ApiRequestError, getCampaign, getTimeline } from "@/lib/api-client";
+import { getCampaign, getTimeline } from "@/lib/api-client";
+import { ApiRequestError } from "@/lib/http";
 import { readPlanHandoff } from "@/lib/plan-handoff";
 import { appRoutes } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
-import { useRepeat, useResource } from "@/lib/use-resource";
+import { usePoll, useResource } from "@/lib/use-resource";
 
 function MissingCampaign({ message }: { message: string }) {
   return (
@@ -39,7 +40,7 @@ export function CampaignPage() {
     reloadTimeline();
   }, [reloadCampaign, reloadTimeline]);
   useDocumentTitle(campaign.data === null ? "Campaign" : `${campaign.data.brand.name} campaign`);
-  useRepeat(campaign.data?.status === "PLANNING", 3000, reload);
+  usePoll(campaign.data?.status === "PLANNING", 3000, !campaign.pending, reload);
 
   if (campaign.error instanceof ApiRequestError && campaign.error.status === 404) {
     return <MissingCampaign message={campaign.error.message} />;
