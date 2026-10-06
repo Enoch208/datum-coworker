@@ -75,4 +75,16 @@ export interface MasumiPaymentPayload {
 export type TaskEventBody =
   | { readonly status: "RUNNING" }
   | { readonly comment: string; readonly masumiPayment: MasumiPaymentPayload }
-  | { readonly status: "COMPLETED"; readonly comment: string };
+  | { readonly status: "COMPLETED"; readonly comment: string }
+  | { readonly comment: string }
+  | { readonly status: StoppedTaskStatus; readonly comment: string };
+
+export const stoppedTaskStatuses = ["INPUT_REQUIRED", "FAILED"] as const;
+export type StoppedTaskStatus = (typeof stoppedTaskStatuses)[number];
+
+export const taskPageSchema = z.object({
+  data: z.array(taskListItemSchema),
+  meta: z.object({
+    pagination: z.object({ nextCursor: z.string().nullable() }).optional(),
+  }),
+});

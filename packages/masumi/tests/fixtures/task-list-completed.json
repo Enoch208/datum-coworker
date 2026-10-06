@@ -1,0 +1,90 @@
+{
+  "data": [
+    {
+      "id": "01a1106d-fd53-74ce-bedd-07fbd75d136c",
+      "createdAt": "2026-10-06T08:56:46.163Z",
+      "updatedAt": "2026-10-06T09:00:46.931Z",
+      "ownerId": "01a11032-d355-73ca-8cb2-7268e35823a0",
+      "owner": {
+        "id": "01a11032-d355-73ca-8cb2-7268e35823a0",
+        "name": "Task owner",
+        "image": null
+      },
+      "userId": "01a11032-d355-73ca-8cb2-7268e35823a0",
+      "user": {
+        "id": "01a11032-d355-73ca-8cb2-7268e35823a0",
+        "name": "Task owner",
+        "image": null
+      },
+      "organizationId": null,
+      "organization": null,
+      "projectId": null,
+      "project": null,
+      "assigneeId": "01a11046-f8f8-7517-84db-61f655572ad9",
+      "assigneeSokoBotId": null,
+      "assigneeUserId": null,
+      "assignee": {
+        "type": "coworker",
+        "id": "01a11046-f8f8-7517-84db-61f655572ad9",
+        "coworker": {
+          "id": "01a11046-f8f8-7517-84db-61f655572ad9",
+          "name": "Datum",
+          "image": null,
+          "slug": "datum"
+        }
+      },
+      "participants": [],
+      "coworkerId": "01a11046-f8f8-7517-84db-61f655572ad9",
+      "coworker": {
+        "id": "01a11046-f8f8-7517-84db-61f655572ad9",
+        "name": "Datum",
+        "image": null,
+        "slug": "datum"
+      },
+      "creator": {
+        "type": "user",
+        "id": "01a11032-d355-73ca-8cb2-7268e35823a0",
+        "user": {
+          "id": "01a11032-d355-73ca-8cb2-7268e35823a0",
+          "name": "Task owner",
+          "image": null
+        }
+      },
+      "sokoBotId": null,
+      "sokoBot": null,
+      "tags": {
+        "automatic": [],
+        "manual": [],
+        "rejected": []
+      },
+      "number": null,
+      "identifier": null,
+      "name": "Datum payment check",
+      "description": "Reply with one sentence.",
+      "status": "COMPLETED",
+      "visibility": "PUBLIC",
+      "priority": "NONE",
+      "grantResumeStatus": null,
+      "pendingVendorGrantId": null,
+      "runAt": null,
+      "scheduleId": null,
+      "workspace": {
+        "id": "01a11033-073a-70de-93c4-8d9bfbd0648b",
+        "organizationId": null,
+        "organization": null
+      },
+      "jobsCount": 0,
+      "commentsCount": 2
+    }
+  ],
+  "meta": {
+    "timestamp": "2026-10-06T16:36:24.503Z",
+    "requestId": "recorded",
+    "pagination": {
+      "cursor": null,
+      "limit": 100,
+      "total": 1,
+      "nextCursor": null
+    }
+  }
+}
