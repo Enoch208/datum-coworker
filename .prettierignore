@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+*PRD*.md
+*TRD*.md
+CLAUDE.md
+AGENTS.md
+plans
+notes
+design
+video
+packages/db/drizzle
