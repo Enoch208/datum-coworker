@@ -8,3 +8,4 @@ export * from "./goal";
 export * from "./transitions";
 export * from "./recovery";
 export * from "./remediation";
+export * from "./receipt";
