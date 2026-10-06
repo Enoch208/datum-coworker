@@ -37,7 +37,7 @@ export function draftDifferences(stored: EvidenceDraft, draft: EvidenceDraft): s
   return draftKeys.filter((key) => stored[key] !== draft[key]);
 }
 
-export function createDbEvidenceStore(db: Db): EvidenceStore {
+export function createDbEvidenceStore(db: Db, campaignId: string | null = null): EvidenceStore {
   const forTask = (draft: EvidenceDraft) =>
     and(
       eq(masumiPaymentEvidence.sokosumiTaskId, draft.sokosumiTaskId),
@@ -48,7 +48,7 @@ export function createDbEvidenceStore(db: Db): EvidenceStore {
     async record(draft) {
       await db
         .insert(masumiPaymentEvidence)
-        .values(draft)
+        .values({ ...draft, campaignId })
         .onConflictDoNothing({ target: masumiPaymentEvidence.sokosumiTaskId });
       const [stored] = await db
         .select()
@@ -57,7 +57,10 @@ export function createDbEvidenceStore(db: Db): EvidenceStore {
       if (stored === undefined) {
         throw new Error(`Payment evidence for Task ${draft.sokosumiTaskId} was not stored`);
       }
-      const differences = draftDifferences(stored, draft);
+      const differences = [
+        ...draftDifferences(stored, draft),
+        ...(stored.campaignId === campaignId ? [] : ["campaignId"]),
+      ];
       if (differences.length > 0) {
         throw new TerminalLifecycleError(
           `Task ${draft.sokosumiTaskId} already has payment evidence that differs in ${differences.join(", ")}`,

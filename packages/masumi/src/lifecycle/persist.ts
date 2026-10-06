@@ -59,6 +59,7 @@ export function rejectedWrite(error: unknown, action: string): unknown {
     const guidance = error.kind === null ? undefined : grantGuidance[error.kind];
     return new TerminalLifecycleError(
       `${action} was rejected. ${error.message}${guidance === undefined ? "" : ` ${guidance}`}`,
+      { cause: error },
     );
   }
   return error;

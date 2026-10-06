@@ -62,7 +62,7 @@ export async function requestTerms(
     deps.log("Earlier terms request has no recorded answer; unattached terms are never funded");
   }
   const now = deps.clock.now();
-  const schedule = buildSchedule(now);
+  const schedule = deps.schedule?.(now) ?? buildSchedule(now);
   assertMpsTimingRules(schedule, now);
   const times = scheduleRequestTimes(schedule);
   const { config } = deps;

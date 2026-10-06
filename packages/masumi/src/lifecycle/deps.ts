@@ -2,6 +2,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import type { ChainReader } from "../chain/blockfrost";
 import type { EvidenceStore } from "../evidence-store";
 import type { PaymentNode } from "../mps/client";
+import type { PaymentSchedule } from "../schedule";
 import type { CoreClient } from "../sokosumi/client";
 import type { Journal } from "./journal";
 
@@ -41,6 +42,9 @@ export interface LifecycleDeps {
   readonly evidence: EvidenceStore;
   readonly clock: Clock;
   readonly config: LifecycleConfig;
-  readonly produceResult: (input: WorkInput) => string;
+  readonly produceResult: (input: WorkInput) => ResultText | Promise<ResultText>;
+  readonly schedule?: (nowMs: number) => PaymentSchedule;
   readonly log: (line: string) => void;
 }
+
+export type ResultText = string | null;

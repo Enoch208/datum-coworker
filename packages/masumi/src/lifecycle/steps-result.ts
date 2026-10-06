@@ -32,7 +32,7 @@ function assertSubmitWindow(state: StateAt<"funds_locked" | "result_saved">, dep
 async function durableResultText(
   state: StateAt<"funds_locked">,
   deps: LifecycleDeps,
-): Promise<string> {
+): Promise<string | null> {
   const saved = await deps.journal.loadResult(state.taskId);
   if (saved !== null) {
     if (saved.length === 0) {
@@ -41,12 +41,15 @@ async function durableResultText(
     deps.log("A result file was saved before the restart; adopting those exact bytes");
     return saved;
   }
-  const text = deps.produceResult({
+  const text = await deps.produceResult({
     taskId: state.taskId,
     name: state.task.name,
     description: state.task.description,
     inputHash: state.inputHash,
   });
+  if (text === null) {
+    return null;
+  }
   if (text.length === 0) {
     throw new TerminalLifecycleError("The work produced an empty result");
   }
@@ -60,6 +63,10 @@ export async function saveResult(
 ): Promise<LifecycleState> {
   assertSubmitWindow(state, deps);
   const text = await durableResultText(state, deps);
+  if (text === null) {
+    deps.log(`The work for Task ${state.taskId} has not finished; no result to save yet`);
+    return state;
+  }
   const hash = sokosumiResultHash(text, state.nonce);
   const next: StateAt<"result_saved"> = { ...state, step: "result_saved", result: { text, hash } };
   const saved = await persist(deps, next, "step:result_saved", hash);

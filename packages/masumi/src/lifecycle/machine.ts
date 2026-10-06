@@ -40,7 +40,10 @@ export interface RunOptions {
   readonly maxConsecutiveFailures: number;
 }
 
-async function loadOrCreate(taskId: string, deps: LifecycleDeps): Promise<LifecycleState> {
+export async function openLifecycle(
+  taskId: string,
+  deps: Pick<LifecycleDeps, "journal" | "clock" | "log">,
+): Promise<LifecycleState> {
   const saved = await deps.journal.load(taskId);
   if (saved !== null) {
     deps.log(`Resuming Task ${taskId} at step ${saved.step}`);
@@ -57,7 +60,7 @@ export async function runLifecycle(
   deps: LifecycleDeps,
   options: RunOptions,
 ): Promise<StateAt<"verified">> {
-  let state = await loadOrCreate(taskId, deps);
+  let state = await openLifecycle(taskId, deps);
   let failures = 0;
   for (;;) {
     if (state.step === "verified") {
