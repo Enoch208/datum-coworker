@@ -4,7 +4,7 @@ import { TerminalLifecycleError } from "../src/errors";
 import collection from "./fixtures/collection-tx-3837cb22.json";
 import { recordedSeller } from "./fixtures/mps-payment";
 import { ProcessKilled } from "./support/clock";
-import { recordedChain } from "./fixtures/chain";
+import { worldChain } from "./support/fakes";
 import { scenario } from "./support/scenario";
 
 describe("payment attach faults", () => {
@@ -105,7 +105,7 @@ describe("deadline and settlement faults", () => {
     expect(evidence.rows.get(world.taskId)?.collectionConfirmed).toBe(false);
   });
 
-  it("never confirms collection when the chain shows a different seller net", async () => {
+  it("never confirms collection when the chain shows a smaller seller net", async () => {
     const { world, evidence, deps, run } = await scenario();
     const shortChanged = structuredClone(collection.utxos);
     const sellerOutput = shortChanged.outputs[0]?.amount.find(
@@ -115,9 +115,9 @@ describe("deadline and settlement faults", () => {
       throw new Error("fixture lost its seller output");
     }
     sellerOutput.quantity = "999999";
-    await expect(run({ ...deps(), chain: recordedChain(shortChanged) })).rejects.toThrow(
-      TerminalLifecycleError,
-    );
+    const failure = run({ ...deps(), chain: worldChain(world, shortChanged) });
+    await expect(failure).rejects.toThrow(TerminalLifecycleError);
+    await expect(failure).rejects.toThrow("Seller net on chain is 999999");
     expect(evidence.rows.get(world.taskId)).toMatchObject({
       sellerAddress: recordedSeller.sellerAddress,
       collectionConfirmed: false,

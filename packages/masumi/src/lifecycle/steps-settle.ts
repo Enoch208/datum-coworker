@@ -113,9 +113,12 @@ export async function verifySettlement(
     {
       blockchainIdentifier: state.terms.blockchainIdentifier,
       collectionTxHash: state.collectionTxHash,
+      resultTxHash: state.resultTxHash,
+      resultHash: state.result.hash,
+      contractAddress: state.terms.smartContractAddress,
       sellerAddress: deps.config.sellerAddress,
       unit: deps.config.unit,
-      expectedNetAtomic: deps.config.amountAtomic,
+      amountAtomic: deps.config.amountAtomic,
     },
     receipt,
     payment,

@@ -1,16 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { sellerNetAtomic, txUtxosSchema, type TxUtxos } from "../src/chain/blockfrost";
-import { gate0AmountAtomic, tusdmUnit } from "../src/constants";
+import { tusdmUnit } from "../src/constants";
 import { TerminalLifecycleError } from "../src/errors";
-import { buildSchedule } from "../src/schedule";
 import type { TaskReceipt } from "../src/sokosumi/schemas";
 import { verifyCollection, type CollectionClaim } from "../src/verify";
+import { recordedChain } from "./fixtures/chain";
+import {
+  recordedClaim as claim,
+  recordedSchedule,
+  settledReceipt as receipt,
+  verifiedAt as now,
+  withdrawnPayment as withdrawn,
+} from "./fixtures/collection-claim";
 import collection from "./fixtures/collection-tx-3837cb22.json";
 import { payment, recordedSeller, recordedTxs } from "./fixtures/mps-payment";
-import { recordedChain } from "./fixtures/chain";
 
 const recorded: TxUtxos = txUtxosSchema.parse(collection.utxos);
-const blockchainIdentifier = "00E04C0860A60C61066056281180462D0B120001";
 
 describe("seller net from the recorded collection tx 3837cb22", () => {
   it("is exactly +1 tUSDM for the seller", () => {
@@ -29,14 +34,24 @@ describe("seller net from the recorded collection tx 3837cb22", () => {
   it("ignores collateral inputs, collateral outputs and reference inputs", () => {
     const token = (quantity: string) => [{ unit: tusdmUnit, quantity }];
     const seller = recordedSeller.sellerAddress;
+    const spent = { tx_hash: recordedTxs.escrow, output_index: 7 };
     const padded: TxUtxos = {
       ...recorded,
       inputs: [
         ...recorded.inputs,
-        { address: seller, amount: token("7"), collateral: true, reference: false },
-        { address: seller, amount: token("9"), collateral: false, reference: true },
+        { ...spent, address: seller, amount: token("7"), collateral: true, reference: false },
+        { ...spent, address: seller, amount: token("9"), collateral: false, reference: true },
       ],
-      outputs: [...recorded.outputs, { address: seller, amount: token("5"), collateral: true }],
+      outputs: [
+        ...recorded.outputs,
+        {
+          address: seller,
+          amount: token("5"),
+          output_index: 9,
+          inline_datum: null,
+          collateral: true,
+        },
+      ],
     };
     expect(sellerNetAtomic(padded, seller, tusdmUnit)).toBe(1_000_000n);
   });
@@ -47,36 +62,7 @@ describe("seller net from the recorded collection tx 3837cb22", () => {
 });
 
 describe("verifyCollection", () => {
-  const schedule = buildSchedule(Date.parse("2026-10-06T02:21:58.062Z"));
-  const withdrawn = payment({
-    blockchainIdentifier,
-    inputHash: "a".repeat(64),
-    schedule,
-    onChainState: "Withdrawn",
-    transactions: [
-      { txHash: recordedTxs.escrow, previous: null, next: "FundsLocked" },
-      { txHash: recordedTxs.result, previous: "FundsLocked", next: "ResultSubmitted" },
-      { txHash: recordedTxs.collection, previous: "ResultSubmitted", next: "Withdrawn" },
-    ],
-  });
-  const receipt: TaskReceipt = {
-    blockchainIdentifier: blockchainIdentifier.toLowerCase(),
-    claimStatus: "PURCHASED",
-    onChainState: "Withdrawn",
-    settled: true,
-    txHash: recordedTxs.collection,
-    withdrawnForSeller: [],
-  };
-  const claim: CollectionClaim = {
-    blockchainIdentifier,
-    collectionTxHash: recordedTxs.collection,
-    sellerAddress: recordedSeller.sellerAddress,
-    unit: tusdmUnit,
-    expectedNetAtomic: gate0AmountAtomic,
-  };
-  const now = new Date("2026-10-06T03:20:00.000Z");
-
-  it("proves the recorded collection with a measured net and confirmations", async () => {
+  it("proves the recorded collection spent this payment's escrow output", async () => {
     await expect(
       verifyCollection(claim, receipt, withdrawn, recordedChain(), now),
     ).resolves.toEqual({
@@ -97,15 +83,17 @@ describe("verifyCollection", () => {
       "no MPS Withdrawn tx",
       {
         mps: payment({
-          blockchainIdentifier,
+          blockchainIdentifier: claim.blockchainIdentifier,
           inputHash: "a".repeat(64),
-          schedule,
+          schedule: recordedSchedule,
           onChainState: "ResultSubmitted",
         }),
       },
     ],
     ["a seller that is not ours", { claim: { ...claim, sellerAddress: "addr_test1qnobody" } }],
-    ["a larger expected amount", { claim: { ...claim, expectedNetAtomic: "2000000" } }],
+    ["a larger expected amount", { claim: { ...claim, amountAtomic: "2000000" } }],
+    ["another payment's result hash", { claim: { ...claim, resultHash: "b".repeat(64) } }],
+    ["another contract address", { claim: { ...claim, contractAddress: "addr_test1wother" } }],
   ])(
     "refuses %s",
     async (

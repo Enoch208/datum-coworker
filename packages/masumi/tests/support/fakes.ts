@@ -10,7 +10,8 @@ import type { LifecycleDeps } from "../../src/lifecycle/deps";
 import { createFileJournal } from "../../src/lifecycle/journal";
 import type { PaymentNode } from "../../src/mps/client";
 import type { CoreClient } from "../../src/sokosumi/client";
-import { recordedChain } from "../fixtures/chain";
+import type { ChainReader } from "../../src/chain/blockfrost";
+import { recordedChain, recordedResultHash, resultUtxosNaming } from "../fixtures/chain";
 import { recordedSeller, recordedTxs } from "../fixtures/mps-payment";
 import type { World } from "./world";
 
@@ -130,6 +131,12 @@ export class MemoryEvidence implements EvidenceStore {
   };
 }
 
+export function worldChain(world: World, collectionUtxos?: unknown): ChainReader {
+  return recordedChain(collectionUtxos, () =>
+    resultUtxosNaming(world.submitted?.hash ?? recordedResultHash),
+  );
+}
+
 export const journalDirectory = () => mkdtemp(join(tmpdir(), "datum-masumi-"));
 
 export function lifecycleDeps(
@@ -141,7 +148,7 @@ export function lifecycleDeps(
   return {
     core: fakeCore(world),
     mps: fakeMps(world),
-    chain: recordedChain(),
+    chain: worldChain(world),
     journal: createFileJournal(directory),
     evidence,
     clock: world.clock,

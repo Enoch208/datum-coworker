@@ -6,18 +6,28 @@ import { parseShape } from "../parse";
 const quantity = z.string().regex(/^\d+$/);
 const assetAmount = z.object({ unit: z.string(), quantity });
 
+const outputIndex = z.number().int().nonnegative();
+
 export const txUtxosSchema = z.object({
   hash: z.string(),
   inputs: z.array(
     z.object({
       address: z.string(),
       amount: z.array(assetAmount),
+      tx_hash: z.string(),
+      output_index: outputIndex,
       collateral: z.boolean(),
       reference: z.boolean().optional(),
     }),
   ),
   outputs: z.array(
-    z.object({ address: z.string(), amount: z.array(assetAmount), collateral: z.boolean() }),
+    z.object({
+      address: z.string(),
+      amount: z.array(assetAmount),
+      output_index: outputIndex,
+      inline_datum: z.string().nullable(),
+      collateral: z.boolean(),
+    }),
   ),
 });
 export type TxUtxos = z.infer<typeof txUtxosSchema>;
@@ -66,19 +76,28 @@ export function createBlockfrostReader(connection: BlockfrostConnection): ChainR
   };
 }
 
+type AssetAmount = z.infer<typeof assetAmount>;
+
+export function unitQuantity(amounts: readonly AssetAmount[], unit: string): bigint {
+  return amounts
+    .filter((amount) => amount.unit === unit)
+    .reduce((sum, amount) => sum + BigInt(amount.quantity), 0n);
+}
+
 export function sellerNetAtomic(utxos: TxUtxos, sellerAddress: string, unit: string): bigint {
   const total = (
     entries: readonly {
       address: string;
-      amount: readonly { unit: string; quantity: string }[];
+      amount: readonly AssetAmount[];
       collateral: boolean;
       reference?: boolean | undefined;
     }[],
   ) =>
-    entries
-      .filter((entry) => entry.address === sellerAddress && !entry.collateral && !entry.reference)
-      .flatMap((entry) => entry.amount)
-      .filter((amount) => amount.unit === unit)
-      .reduce((sum, amount) => sum + BigInt(amount.quantity), 0n);
+    unitQuantity(
+      entries
+        .filter((entry) => entry.address === sellerAddress && !entry.collateral && !entry.reference)
+        .flatMap((entry) => entry.amount),
+      unit,
+    );
   return total(utxos.outputs) - total(utxos.inputs);
 }
