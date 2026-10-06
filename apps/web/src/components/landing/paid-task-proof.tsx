@@ -67,7 +67,9 @@ export function PaidTaskProof() {
         id="paid-heading"
         className="mt-5 text-3xl font-medium tracking-tight text-balance sm:text-5xl"
       >
-        A paid coworker. A verifiable record.
+        A paid coworker.
+        <br />
+        <span className="text-gradient-grey">A verifiable record.</span>
       </h2>
       <p className="mt-5 max-w-2xl text-base font-light text-muted">
         Masumi handles hiring and paying Datum; printers and runners are paid as ordinary expenses.

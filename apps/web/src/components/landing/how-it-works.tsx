@@ -48,7 +48,9 @@ export function HowItWorks() {
             id="how-heading"
             className="text-3xl font-medium tracking-tight text-balance sm:text-5xl"
           >
-            One brief. A campaign in motion.
+            One brief.
+            <br />
+            <span className="text-gradient-grey">A campaign in motion.</span>
           </h2>
           <p className="mt-4 max-w-xl text-base font-light text-muted">
             No chasing a printer, coordinating every task or asking where the photos went.
