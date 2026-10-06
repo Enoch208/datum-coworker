@@ -3,6 +3,8 @@ export * from "./errors";
 export * from "./hash";
 export * from "./schedule";
 export * from "./terms";
+export * from "./verify";
+export { confirmedTransition, sellerSettlement } from "./mps/states";
 export { createBlockfrostReader, sellerNetAtomic, type ChainReader } from "./chain/blockfrost";
 export { createMpsClient, type MpsClient, type PaymentNode } from "./mps/client";
 export { createCoreClient, type CoreClient } from "./sokosumi/client";
