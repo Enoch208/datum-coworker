@@ -1,0 +1,15 @@
+{
+  "name": "@datum/masumi",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "json-canonicalize": "3.0.1",
+    "zod": "4.6.5"
+  }
+}

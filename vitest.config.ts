@@ -13,6 +13,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "masumi",
+          root: "packages/masumi",
+          include: ["tests/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      {
+        test: {
           name: "api",
           root: "apps/api",
           include: ["tests/**/*.test.ts"],
