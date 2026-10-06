@@ -1,7 +1,7 @@
 import { and, asc, eq, gt } from "drizzle-orm";
 import type { EnrolledRunnerView, OperatorRunnerView } from "@datum/core";
 import { runners, type Executor, type RunnerRow } from "@datum/db";
-import { HttpError } from "../http/errors";
+import { HttpError, notFound } from "../http/errors";
 import type { EnrollRunnerInput } from "../http/operator-schemas";
 import { hashInboxToken, inboxUrl, isInboxToken, newInboxToken } from "./inbox-token";
 
@@ -34,6 +34,19 @@ export async function enrollRunner(
 export async function listRunners(db: Executor): Promise<OperatorRunnerView[]> {
   const rows = await db.select().from(runners).orderBy(asc(runners.createdAt), asc(runners.id));
   return rows.map(toOperatorView);
+}
+
+export async function deactivateRunner(
+  db: Executor,
+  runnerId: string,
+): Promise<OperatorRunnerView> {
+  const [runner] = await db
+    .update(runners)
+    .set({ active: false })
+    .where(eq(runners.id, runnerId))
+    .returning();
+  if (runner === undefined) throw notFound("Runner", runnerId);
+  return toOperatorView(runner);
 }
 
 const linkNotFound = (): HttpError =>

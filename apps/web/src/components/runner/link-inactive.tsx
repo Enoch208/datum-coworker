@@ -13,8 +13,8 @@ export function LinkInactive() {
       />
       <h1 className="mt-5 text-3xl font-light tracking-tight">This link is no longer active</h1>
       <p className="mt-4 text-lg font-light text-muted">
-        Task links stop working when they expire or when the campaign ends. If you still have work
-        to do, ask the person who sent you this link for a new one.
+        Task links stop working when they expire, when they are switched off or when the campaign
+        ends. If you still have work to do, ask the person who sent you this link for a new one.
       </p>
     </section>
   );
