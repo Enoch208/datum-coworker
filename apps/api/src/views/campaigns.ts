@@ -88,6 +88,7 @@ function toSpotView(
     qrTargetUrl: spot.qrTargetUrl,
     status: spot.status,
     firstPassStatus: spot.firstPassStatus,
+    inducedMiss: spot.inducedMiss,
     scanCount: scans,
     card: asset === null ? null : cardView(appBaseUrl, asset, spot.code),
     latestEvidence: latestEvidence(spot, parts.evidence, appBaseUrl),

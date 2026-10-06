@@ -9,12 +9,15 @@ import {
   brandPlaybooks,
   brands,
   campaignAssets,
+  campaignReceipts,
   campaigns,
   createDb,
   evidence,
   expenses,
+  interventions,
   masumiPaymentEvidence,
   physicalTasks,
+  remediationDecisions,
   runners,
   scanEvents,
   spots,
@@ -79,6 +82,9 @@ export type TestApp = ReturnType<typeof createApp>;
 export const app = createApp(testDeps());
 
 const allTables = [
+  campaignReceipts,
+  interventions,
+  remediationDecisions,
   masumiPaymentEvidence,
   scanEvents,
   auditEvents,
@@ -94,10 +100,12 @@ const allTables = [
   brands,
 ];
 
+export async function emptyDatabase(): Promise<void> {
+  await db.execute(sql`truncate ${sql.join(allTables, sql`, `)} cascade`);
+}
+
 export function resetDatabaseBetweenTests(): void {
-  beforeEach(async () => {
-    await db.execute(sql`truncate ${sql.join(allTables, sql`, `)} cascade`);
-  });
+  beforeEach(emptyDatabase);
   afterAll(async () => {
     await db.$client.end();
   });

@@ -1,4 +1,4 @@
-import type { EnrollRunnerRequest } from "@datum/core";
+import type { EnrollRunnerRequest, LabelInducedMissRequest } from "@datum/core";
 import { z } from "zod";
 
 export const enrollRunnerSchema = z.strictObject({
@@ -10,3 +10,7 @@ export const enrollRunnerSchema = z.strictObject({
 }) satisfies z.ZodType<unknown, EnrollRunnerRequest>;
 
 export type EnrollRunnerInput = z.output<typeof enrollRunnerSchema>;
+
+export const labelInducedMissSchema = z.strictObject({
+  inducedMiss: z.boolean(),
+}) satisfies z.ZodType<unknown, LabelInducedMissRequest>;

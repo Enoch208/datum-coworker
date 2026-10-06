@@ -107,6 +107,7 @@ export interface SpotView {
   qrTargetUrl: string;
   status: SpotOutcome;
   firstPassStatus: SpotOutcome;
+  inducedMiss?: boolean;
   scanCount: number;
   card: SpotCardView | null;
   latestEvidence: EvidenceView | null;
@@ -238,6 +239,10 @@ export interface RunnerTaskView {
 export interface RunnerInboxView {
   runner: { id: string; name: string };
   tasks: RunnerTaskView[];
+}
+
+export interface LabelInducedMissRequest {
+  inducedMiss: boolean;
 }
 
 export interface EnrollRunnerRequest {

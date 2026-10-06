@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { openTaskStatuses } from "@datum/core";
 import {
   evidence,
@@ -32,7 +32,8 @@ export const openTasks = async (db: Executor, campaignId: string): Promise<OpenT
         eq(physicalTasks.campaignId, campaignId),
         inArray(physicalTasks.status, [...openTaskStatuses]),
       ),
-    );
+    )
+    .orderBy(asc(physicalTasks.idempotencyKey));
 
 export type TaskFilter = (open: OpenTask) => boolean;
 

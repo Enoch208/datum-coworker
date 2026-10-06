@@ -10,7 +10,13 @@ import {
   refreshed,
   type FieldCampaign,
 } from "./field";
-import { loopDeps, passStoppedBeforeCreating, passStoppedMidway, runPass } from "./loop";
+import {
+  loopDeps,
+  passStoppedBeforeCreating,
+  passStoppedMidway,
+  runPass,
+  secondWorkerDb,
+} from "./loop";
 
 resetDatabaseBetweenTests();
 
@@ -176,5 +182,18 @@ describe("the Goal Loop on a real campaign (Gate 6)", () => {
     );
     const recoveries = (await timeline(id)).filter((event) => event.type === "RECOVERY_CREATED");
     expect(recoveries).toHaveLength(1);
+  });
+
+  it("creates exactly one Spot C attempt 2 when two workers pass at the same moment", async () => {
+    const field = await firstPassWithCMissed("60.00");
+    const other = secondWorkerDb();
+    const reports = await Promise.all([runPass(), runPass(loopDeps({ db: other }))]);
+    await other.$client.end();
+    expect(reports.flatMap((report) => report.failed)).toEqual([]);
+    const id = field.campaign.id;
+    expect(await placements(id)).toEqual(
+      [...firstAttempts(id), `campaign:${id}:spot:C:attempt:2`].sort(),
+    );
+    expect(await db.select().from(remediationDecisions)).toHaveLength(1);
   });
 });

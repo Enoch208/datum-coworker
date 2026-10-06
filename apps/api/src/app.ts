@@ -7,6 +7,7 @@ import { assetRoutes } from "./routes/assets";
 import { campaignRoutes } from "./routes/campaigns";
 import { evidenceFileRoutes } from "./routes/evidence-files";
 import { operatorRoutes } from "./routes/operator";
+import { operatorCampaignRoutes } from "./routes/operator-campaigns";
 import { runnerRoutes } from "./routes/runner";
 import { scanRoutes } from "./routes/scans";
 
@@ -20,6 +21,7 @@ export function createApp(deps: ApiDeps) {
     .route("/", assetRoutes(deps))
     .route("/", scanRoutes(deps.db))
     .route("/", operatorRoutes(deps))
+    .route("/", operatorCampaignRoutes(deps))
     .route("/", runnerRoutes(deps))
     .route("/", evidenceFileRoutes(deps))
     .route("/", agentRoutes())
