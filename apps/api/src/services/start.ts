@@ -8,7 +8,7 @@ import {
   type PhysicalTaskDraft,
 } from "@datum/core";
 import type { Executor } from "@datum/db";
-import type { ApiDeps } from "../deps";
+import type { CampaignServiceDeps } from "../deps";
 import { NoRunnerAvailableError } from "../executor/local-dispatch";
 import { localEnrolledRunner } from "../executor/local-runner";
 import { conflict } from "../http/errors";
@@ -40,7 +40,11 @@ async function stopForApproval(
   });
 }
 
-async function commission(deps: ApiDeps, db: Executor, drafts: readonly PhysicalTaskDraft[]) {
+async function commission(
+  deps: CampaignServiceDeps,
+  db: Executor,
+  drafts: readonly PhysicalTaskDraft[],
+) {
   const executor = localEnrolledRunner({
     db,
     appBaseUrl: deps.appBaseUrl,
@@ -59,7 +63,11 @@ async function commission(deps: ApiDeps, db: Executor, drafts: readonly Physical
   }
 }
 
-async function startLocked(deps: ApiDeps, db: Executor, campaignId: string): Promise<void> {
+async function startLocked(
+  deps: CampaignServiceDeps,
+  db: Executor,
+  campaignId: string,
+): Promise<void> {
   const campaign = await lockCampaign(db, campaignId);
   if (!notYetStarted.has(campaign.status)) return;
   const parts = await campaignParts(db, campaignId);
@@ -103,7 +111,10 @@ async function startLocked(deps: ApiDeps, db: Executor, campaignId: string): Pro
   await commission(deps, db, drafts.filter(isPrintDraft));
 }
 
-export async function startCampaign(deps: ApiDeps, campaignId: string): Promise<CampaignView> {
+export async function startCampaign(
+  deps: CampaignServiceDeps,
+  campaignId: string,
+): Promise<CampaignView> {
   requireRates(deps);
   await deps.db.transaction((tx) => startLocked(deps, tx, campaignId));
   return campaignDetail(deps.db, deps.appBaseUrl, campaignId);

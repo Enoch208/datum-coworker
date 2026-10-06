@@ -10,6 +10,7 @@ import {
   spots,
   type Db,
   type Executor,
+  type Tx,
 } from "@datum/db";
 import { notFound } from "../http/errors";
 import type { CreateCampaignInput } from "../http/schemas";
@@ -18,47 +19,55 @@ import { auditTrail, recordAudit } from "./audit";
 import { ensureBrand } from "./brands";
 import { campaignEvidence, campaignExpenses, campaignTasks } from "./execution-reads";
 
+export async function insertCampaign(
+  tx: Tx,
+  appBaseUrl: string,
+  input: CreateCampaignInput,
+  sokosumiTaskId: string | null,
+): Promise<string> {
+  const brand = await ensureBrand(tx, input.brandName, input.brandUrl);
+  const [campaign] = await tx
+    .insert(campaigns)
+    .values({
+      brandId: brand.id,
+      message: input.message,
+      destinationUrl: input.destinationUrl,
+      deadline: input.deadline,
+      budgetMinor: input.budget.amountMinor,
+      currency: input.budget.currency,
+      sokosumiTaskId,
+    })
+    .returning({ id: campaigns.id });
+  if (campaign === undefined) {
+    throw new Error("Inserting a campaign returned no row");
+  }
+  await tx.insert(spots).values(
+    input.spots.map((spot) => ({
+      campaignId: campaign.id,
+      code: spot.code,
+      name: spot.name,
+      instructions: spot.instructions,
+      qrTargetUrl: buildSpotQrUrl(appBaseUrl, { campaignId: campaign.id, spotCode: spot.code }),
+    })),
+  );
+  await recordAudit(tx, campaign.id, {
+    type: "CAMPAIGN_CREATED",
+    payload: {
+      brandId: brand.id,
+      spotCodes: input.spots.map((spot) => spot.code),
+      budget: input.budget,
+      deadline: input.deadline.toISOString(),
+    },
+  });
+  return campaign.id;
+}
+
 export async function createCampaign(
   db: Db,
   appBaseUrl: string,
   input: CreateCampaignInput,
 ): Promise<CampaignView> {
-  const campaignId = await db.transaction(async (tx) => {
-    const brand = await ensureBrand(tx, input.brandName, input.brandUrl);
-    const [campaign] = await tx
-      .insert(campaigns)
-      .values({
-        brandId: brand.id,
-        message: input.message,
-        destinationUrl: input.destinationUrl,
-        deadline: input.deadline,
-        budgetMinor: input.budget.amountMinor,
-        currency: input.budget.currency,
-      })
-      .returning({ id: campaigns.id });
-    if (campaign === undefined) {
-      throw new Error("Inserting a campaign returned no row");
-    }
-    await tx.insert(spots).values(
-      input.spots.map((spot) => ({
-        campaignId: campaign.id,
-        code: spot.code,
-        name: spot.name,
-        instructions: spot.instructions,
-        qrTargetUrl: buildSpotQrUrl(appBaseUrl, { campaignId: campaign.id, spotCode: spot.code }),
-      })),
-    );
-    await recordAudit(tx, campaign.id, {
-      type: "CAMPAIGN_CREATED",
-      payload: {
-        brandId: brand.id,
-        spotCodes: input.spots.map((spot) => spot.code),
-        budget: input.budget,
-        deadline: input.deadline.toISOString(),
-      },
-    });
-    return campaign.id;
-  });
+  const campaignId = await db.transaction((tx) => insertCampaign(tx, appBaseUrl, input, null));
   return campaignDetail(db, appBaseUrl, campaignId);
 }
 

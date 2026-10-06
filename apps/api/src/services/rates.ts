@@ -2,7 +2,7 @@ import type { CostRates } from "@datum/core";
 import type { ApiDeps } from "../deps";
 import { unavailable } from "../http/errors";
 
-export const requireRates = (deps: ApiDeps): CostRates => {
+export const requireRates = (deps: Pick<ApiDeps, "rates">): CostRates => {
   if (deps.rates.configured) return deps.rates.rates;
   throw unavailable(
     "COST_RATES_MISSING",

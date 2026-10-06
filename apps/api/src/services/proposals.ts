@@ -8,7 +8,7 @@ import {
   type Executor,
 } from "@datum/db";
 import { cardTemplateVersion } from "../cards/template";
-import type { ApiDeps } from "../deps";
+import type { CampaignServiceDeps } from "../deps";
 import type { PlannedProposal } from "../planner/pipeline";
 import type { CampaignParts } from "../views/campaigns";
 import { recordAudit } from "./audit";
@@ -110,7 +110,7 @@ export async function saveFirstProposal(
 }
 
 export async function publishCards(
-  deps: ApiDeps,
+  deps: CampaignServiceDeps,
   parts: CampaignParts,
   asset: CampaignAssetRow,
 ): Promise<void> {

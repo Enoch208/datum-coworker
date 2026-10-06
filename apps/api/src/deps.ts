@@ -15,3 +15,8 @@ export interface ApiDeps {
   readonly rates: RateSettings;
   readonly readBrandPage: BrandPageReader;
 }
+
+export type CampaignServiceDeps = Pick<
+  ApiDeps,
+  "db" | "appBaseUrl" | "assetDir" | "planner" | "rates" | "readBrandPage"
+>;

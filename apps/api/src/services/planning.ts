@@ -1,6 +1,6 @@
 import { brandPageWarning, type CampaignView } from "@datum/core";
 import type { CampaignAssetRow } from "@datum/db";
-import type { ApiDeps } from "../deps";
+import type { CampaignServiceDeps } from "../deps";
 import { conflict, unavailable, upstreamFailed } from "../http/errors";
 import { PlannerModelError, type PlannerModel } from "../planner/model";
 import { PlanRejectedError, planCampaign, type PlannedProposal } from "../planner/pipeline";
@@ -14,7 +14,7 @@ import { publishCards, saveFirstProposal } from "./proposals";
 import { requireRates } from "./rates";
 import { moveStatus } from "./status";
 
-const requirePlanner = (deps: ApiDeps): PlannerModel => {
+const requirePlanner = (deps: CampaignServiceDeps): PlannerModel => {
   if (deps.planner !== null) return deps.planner;
   throw unavailable(
     "PLANNER_UNAVAILABLE",
@@ -34,7 +34,7 @@ const plannerInput = (parts: CampaignParts, choice: PlaybookChoice): PlannerInpu
 });
 
 async function draftProposal(
-  deps: ApiDeps,
+  deps: CampaignServiceDeps,
   campaignId: string,
   input: PlannerInput,
   choice: PlaybookChoice,
@@ -70,7 +70,10 @@ const assertPlannable = (parts: CampaignParts): void => {
   }
 };
 
-export async function planProposal(deps: ApiDeps, campaignId: string): Promise<CampaignView> {
+export async function planProposal(
+  deps: CampaignServiceDeps,
+  campaignId: string,
+): Promise<CampaignView> {
   const parts = await campaignParts(deps.db, campaignId);
   if (parts.asset !== null) return toCampaignView(parts, deps.appBaseUrl);
   assertPlannable(parts);
