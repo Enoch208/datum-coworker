@@ -1,6 +1,7 @@
 import { Camera01Icon, Clock01Icon, Shield01Icon, RepeatIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import placement from "@/assets/landing/placement.webp";
+import { CroppedPhoto } from "./cropped-photo";
+import { crops } from "./landing-photos";
 
 const controls = [
   {
@@ -46,17 +47,14 @@ export function ControlSection() {
         </div>
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           <div className="photo-card flex flex-col md:col-span-2 lg:row-span-2 lg:min-h-[560px]">
-            <div className="relative h-64 overflow-hidden sm:h-80 lg:h-auto lg:flex-1">
-              <img
-                src={placement}
-                alt="Example runner photographing a bakery QR card at a nearby coworking reception"
-                width={1000}
-                height={667}
-                loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover opacity-75"
-              />
+            <CroppedPhoto
+              crop={crops.standAndSign}
+              frameAspect={16 / 10}
+              alt="Example Daybreak card on its stand at a coworking reception"
+              className="opacity-80"
+            >
               <div className="photo-fade absolute inset-0" />
-            </div>
+            </CroppedPhoto>
             <div className="relative px-7 pb-8 sm:px-10 sm:pb-10">
               <p className="eyebrow mb-3 text-muted">Physical work. Visible progress.</p>
               <h3 className="text-2xl font-medium tracking-tight text-balance sm:text-3xl">

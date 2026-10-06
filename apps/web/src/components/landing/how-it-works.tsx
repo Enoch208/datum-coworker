@@ -6,18 +6,17 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "react-router";
-import print from "@/assets/landing/print.webp";
-import placement from "@/assets/landing/placement.webp";
-import bakery from "@/assets/landing/bakery.webp";
 import { primaryButton } from "@/components/feedback/buttons";
 import { appRoutes } from "@/lib/routes";
+import { CroppedPhoto } from "./cropped-photo";
+import { crops } from "./landing-photos";
 
 const steps = [
   {
     number: "01",
     title: "Tell us what goes where.",
     text: "Add your message, the places you have permission to use, a deadline and a spending limit.",
-    image: bakery,
+    crop: crops.counterCard,
     icon: Location01Icon,
     label: "You set the brief",
   },
@@ -25,7 +24,7 @@ const steps = [
     number: "02",
     title: "Review it. Approve it.",
     text: "See the proposed copy, a QR card for every spot and the estimated cost before work starts.",
-    image: print,
+    crop: crops.cardInHand,
     icon: PrinterIcon,
     label: "You approve the plan",
   },
@@ -33,7 +32,7 @@ const steps = [
     number: "03",
     title: "We handle the follow-through.",
     text: "Datum coordinates a runner, checks each photo and arranges another attempt if a spot is missed and your limits allow it.",
-    image: placement,
+    crop: crops.phoneScreen,
     icon: CheckmarkCircle02Icon,
     label: "Datum manages the work",
   },
@@ -62,19 +61,11 @@ export function HowItWorks() {
       <div className="grid gap-6 md:grid-cols-3">
         {steps.map((step) => (
           <article key={step.number} className="photo-card">
-            <div className="relative aspect-[4/3] overflow-hidden">
-              <img
-                src={step.image}
-                alt=""
-                width={1000}
-                height={750}
-                loading="lazy"
-                className="h-full w-full object-cover opacity-75"
-              />
+            <CroppedPhoto crop={step.crop} frameAspect={4 / 3} alt="" className="opacity-80">
               <span className="absolute top-4 left-4 rounded-full border border-ink/15 bg-canvas/70 px-3 py-1.5 font-mono text-xs text-ink backdrop-blur-md">
                 {step.number}
               </span>
-            </div>
+            </CroppedPhoto>
             <div className="p-6">
               <div className="mb-4 flex items-center gap-2 text-muted">
                 <HugeiconsIcon icon={step.icon} size={16} aria-hidden />

@@ -1,12 +1,10 @@
 import { ArrowUpRight01Icon, Camera01Icon, PrinterIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import bakery from "@/assets/landing/bakery.webp";
-import print from "@/assets/landing/print.webp";
-import placement from "@/assets/landing/placement.webp";
+import { bakeryFocus, photos } from "./landing-photos";
 
 const stages = [
   {
-    image: print,
+    photo: photos.print,
     icon: PrinterIcon,
     title: "Print the approved card",
     caption: "One clear invitation: scan for Daybreak’s menu.",
@@ -14,7 +12,7 @@ const stages = [
     href: "#how-it-works",
   },
   {
-    image: placement,
+    photo: photos.placement,
     icon: Camera01Icon,
     title: "Place it. Photograph it.",
     caption: "At the permitted coworking reception, ready to scan.",
@@ -29,12 +27,13 @@ export function HeroShowcase() {
       <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
         <div className="photo-card group md:min-h-[500px] lg:col-span-8">
           <img
-            src={bakery}
+            src={photos.bakery.src}
             alt="Daybreak Bakery’s owner prepares pastries beside a sample card promoting the breakfast menu"
             fetchPriority="high"
-            width={1600}
-            height={901}
-            className="aspect-video w-full object-cover opacity-90 md:absolute md:inset-0 md:aspect-auto md:h-full md:object-[75%_50%]"
+            width={photos.bakery.width}
+            height={photos.bakery.height}
+            style={{ objectPosition: bakeryFocus }}
+            className="aspect-video w-full object-cover opacity-90 md:absolute md:inset-0 md:aspect-auto md:h-full"
           />
           <div className="photo-shade absolute inset-0 hidden md:block" />
           <div className="photo-shade-side absolute inset-0 hidden md:block" />
@@ -59,10 +58,10 @@ export function HeroShowcase() {
             >
               <div className="absolute inset-x-0 top-0 h-[68%] overflow-hidden">
                 <img
-                  src={item.image}
+                  src={item.photo.src}
                   alt={item.alt}
-                  width={1000}
-                  height={667}
+                  width={item.photo.width}
+                  height={item.photo.height}
                   loading="lazy"
                   className="h-full w-full object-cover opacity-70 group-hover:opacity-90"
                 />
