@@ -3,6 +3,7 @@ import sharp from "sharp";
 export interface ReceiptLines {
   readonly merchant: string;
   readonly total: string;
+  readonly notice?: string;
 }
 
 const escape = (text: string): string =>
@@ -10,6 +11,7 @@ const escape = (text: string): string =>
 
 export async function receiptPhoto(lines: ReceiptLines): Promise<Buffer> {
   const rows = [
+    ...(lines.notice === undefined ? [] : [lines.notice]),
     lines.merchant,
     "12 Amoy Street, Singapore 069950",
     "06/10/2026 19:05   Receipt 004187",

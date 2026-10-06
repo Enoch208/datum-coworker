@@ -4,5 +4,5 @@
   "total": "13.80",
   "currency": "SGD",
   "merchant": "PRINT HUB PTE LTD",
-  "concerns": []
+  "concerns": ["Printed \"NOT A REAL PURCHASE\"", "Marked \"LOCAL TEST\""]
 }

@@ -3,9 +3,11 @@ import { compareMoney, formatMoney, isMoneyText, parseMoney } from "./money";
 
 export interface ReceiptReading {
   readable: boolean;
+  isPurchaseReceipt: boolean;
   total: string | null;
   currency: string | null;
   merchant: string | null;
+  concerns: string[];
 }
 
 export type ReceiptCheck =
@@ -23,44 +25,61 @@ const decision = (status: ExpenseStatus, explanation: string): ExpenseDecision =
   explanation,
 });
 
-const receiptFrom = (reading: ReceiptReading): string =>
-  reading.merchant === null ? "The receipt" : `The receipt from ${reading.merchant}`;
+const needsReview = (reason: string, entered: Money): ExpenseDecision =>
+  decision("DISPUTED", `${reason}, so the entered ${formatMoney(entered)} needs review.`);
+
+const amountRead = (reading: ReceiptReading): string =>
+  reading.merchant === null
+    ? "The amount read from the receipt"
+    : `The amount read from the receipt from ${reading.merchant}`;
+
+const namedConcerns = (reading: ReceiptReading): string[] =>
+  reading.concerns.map((concern) => concern.trim()).filter((concern) => concern.length > 0);
+
+const listed = (concerns: readonly string[]): string =>
+  concerns.length === 0 ? "" : ` (${concerns.join("; ")})`;
+
+const doubtDecision = (entered: Money, reading: ReceiptReading): ExpenseDecision | null => {
+  const concerns = namedConcerns(reading);
+  if (!reading.isPurchaseReceipt) {
+    return needsReview(
+      `The receipt reader says this image is not a purchase receipt${listed(concerns)}`,
+      entered,
+    );
+  }
+  if (concerns.length > 0) {
+    return needsReview(`The receipt reader flagged this receipt${listed(concerns)}`, entered);
+  }
+  return null;
+};
 
 const comparedTotal = (entered: Money, reading: ReceiptReading, total: string): ExpenseDecision => {
   const shown = parseMoney(total, entered.currency);
   const enteredText = formatMoney(entered);
   if (compareMoney(shown, entered) === 0) {
-    return decision(
-      "CONFIRMED",
-      `${receiptFrom(reading)} shows ${formatMoney(shown)}, matching the entered ${enteredText}.`,
-    );
+    return decision("CONFIRMED", `${amountRead(reading)} matches the entered ${enteredText}.`);
   }
   return decision(
     "DISPUTED",
-    `${receiptFrom(reading)} shows ${formatMoney(shown)}, but ${enteredText} was entered, so it needs review.`,
+    `${amountRead(reading)} is ${formatMoney(shown)}, but ${enteredText} was entered, so it needs review.`,
   );
 };
 
 const readDecision = (entered: Money, reading: ReceiptReading): ExpenseDecision => {
-  const enteredText = formatMoney(entered);
+  const doubt = doubtDecision(entered, reading);
+  if (doubt !== null) return doubt;
   const total = reading.total;
   if (!reading.readable || total === null || !isMoneyText(total)) {
-    return decision(
-      "DISPUTED",
-      `The receipt total could not be read, so the entered ${enteredText} needs review.`,
-    );
+    return needsReview("The receipt total could not be read", entered);
   }
   const currency = reading.currency?.toUpperCase() ?? null;
   if (currency === null) {
-    return decision(
-      "DISPUTED",
-      `The receipt does not show its currency, so the entered ${enteredText} needs review.`,
-    );
+    return needsReview("The receipt does not show its currency", entered);
   }
   if (currency !== entered.currency) {
     return decision(
       "DISPUTED",
-      `${receiptFrom(reading)} is in ${currency} ${total}, but ${enteredText} was entered, so it needs review.`,
+      `${amountRead(reading)} is ${currency} ${total}, but ${formatMoney(entered)} was entered, so it needs review.`,
     );
   }
   return comparedTotal(entered, reading, total);

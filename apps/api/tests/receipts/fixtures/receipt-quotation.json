@@ -1,8 +1,8 @@
 {
   "readable": true,
-  "isPurchaseReceipt": true,
+  "isPurchaseReceipt": false,
   "total": "13.80",
   "currency": "SGD",
   "merchant": "PRINT HUB PTE LTD",
-  "concerns": []
+  "concerns": ["A quotation, not a record of a payment"]
 }

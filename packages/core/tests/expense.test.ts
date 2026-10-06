@@ -6,9 +6,11 @@ const entered: Money = { amountMinor: 1_380, currency: "SGD" };
 
 const reading = (overrides: Partial<ReceiptReading> = {}): ReceiptReading => ({
   readable: true,
+  isPurchaseReceipt: true,
   total: "13.80",
   currency: "SGD",
   merchant: "Print Hub",
+  concerns: [],
   ...overrides,
 });
 
@@ -16,19 +18,53 @@ const read = (overrides: Partial<ReceiptReading> = {}) =>
   decideExpense(entered, { kind: "READ", reading: reading(overrides) });
 
 describe("decideExpense", () => {
-  it("confirms only when the receipt total equals the entered amount", () => {
+  it("confirms only when the amount read from a purchase receipt equals the entered amount", () => {
     expect(read()).toEqual({
       status: "CONFIRMED",
-      explanation: "The receipt from Print Hub shows SGD 13.80, matching the entered SGD 13.80.",
+      explanation: "The amount read from the receipt from Print Hub matches the entered SGD 13.80.",
     });
-    expect(read({ total: "13.8", merchant: null }).status).toBe("CONFIRMED");
+    expect(read({ total: "13.8", merchant: null })).toEqual({
+      status: "CONFIRMED",
+      explanation: "The amount read from the receipt matches the entered SGD 13.80.",
+    });
+  });
+
+  it("never claims the receipt itself was verified", () => {
+    const { explanation } = read();
+    expect(explanation).not.toMatch(/verif|authentic|genuine/i);
+  });
+
+  it("disputes a matching amount when the reader names a concern, and names it", () => {
+    expect(read({ concerns: ['Printed "NOT A REAL PURCHASE"'] })).toEqual({
+      status: "DISPUTED",
+      explanation:
+        'The receipt reader flagged this receipt (Printed "NOT A REAL PURCHASE"), so the entered SGD 13.80 needs review.',
+    });
+    expect(read({ concerns: ["No date", "Handwritten total"] }).explanation).toBe(
+      "The receipt reader flagged this receipt (No date; Handwritten total), so the entered SGD 13.80 needs review.",
+    );
+  });
+
+  it("disputes a matching amount on an image that is not a purchase receipt", () => {
+    expect(read({ isPurchaseReceipt: false })).toEqual({
+      status: "DISPUTED",
+      explanation:
+        "The receipt reader says this image is not a purchase receipt, so the entered SGD 13.80 needs review.",
+    });
+    expect(read({ isPurchaseReceipt: false, concerns: ["A price list"] }).explanation).toBe(
+      "The receipt reader says this image is not a purchase receipt (A price list), so the entered SGD 13.80 needs review.",
+    );
+  });
+
+  it("ignores blank concerns rather than inventing a dispute", () => {
+    expect(read({ concerns: ["  "] }).status).toBe("CONFIRMED");
   });
 
   it("disputes a total that differs by a single cent and names both amounts", () => {
     expect(read({ total: "13.81" })).toEqual({
       status: "DISPUTED",
       explanation:
-        "The receipt from Print Hub shows SGD 13.81, but SGD 13.80 was entered, so it needs review.",
+        "The amount read from the receipt from Print Hub is SGD 13.81, but SGD 13.80 was entered, so it needs review.",
     });
   });
 
@@ -36,7 +72,7 @@ describe("decideExpense", () => {
     expect(read({ currency: "myr" })).toMatchObject({
       status: "DISPUTED",
       explanation:
-        "The receipt from Print Hub is in MYR 13.80, but SGD 13.80 was entered, so it needs review.",
+        "The amount read from the receipt from Print Hub is MYR 13.80, but SGD 13.80 was entered, so it needs review.",
     });
   });
 

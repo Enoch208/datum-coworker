@@ -44,7 +44,7 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
       merchant: "Print Hub",
       status: "CONFIRMED",
       explanation:
-        "The receipt from PRINT HUB PTE LTD shows SGD 13.80, matching the entered SGD 13.80.",
+        "The amount read from the receipt from PRINT HUB PTE LTD matches the entered SGD 13.80.",
     });
     expect(reply.body.receiptUrl).toMatch(/^https:\/\/datum\.test\/evidence\/[0-9a-f]{32}\.jpg$/);
     expect(reader.calls).toHaveLength(1);
@@ -63,7 +63,7 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
     expect(reply.body).toMatchObject({
       status: "DISPUTED",
       explanation:
-        "The receipt from PRINT HUB PTE LTD shows SGD 13.80, but SGD 12.00 was entered, so it needs review.",
+        "The amount read from the receipt from PRINT HUB PTE LTD is SGD 13.80, but SGD 12.00 was entered, so it needs review.",
     });
     expect(await ledger()).toMatchObject({
       confirmedSpend: { amount: "0.00" },
@@ -82,6 +82,41 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
     expect(reply.body).toMatchObject({ status: "DISPUTED", amount: { amount: "13.80" } });
     const [row] = await db.select().from(expenses);
     expect(row?.amountMinor).toBe(1_380);
+  });
+
+  it("disputes a matching amount on a receipt marked as not a real purchase", async () => {
+    const reader = fixtureReceiptReader(receiptFixture("receipt-not-a-real-purchase"));
+    const { send, ledger } = await printReady(reader);
+    const photo = await receiptPhoto({
+      notice: "UI LANE LOCAL TEST / NOT A REAL PURCHASE",
+      merchant: "PRINT HUB PTE LTD",
+      total: "13.80",
+    });
+    const reply = await send({ receipt: jpegFile(photo, "receipt.jpg"), amount: "13.80" });
+    expect(reply.body).toMatchObject({
+      status: "DISPUTED",
+      explanation:
+        'The receipt reader flagged this receipt (Printed "NOT A REAL PURCHASE"; Marked "LOCAL TEST"), so the entered SGD 13.80 needs review.',
+    });
+    expect(await ledger()).toMatchObject({ confirmedSpend: { amount: "0.00" } });
+  });
+
+  it("disputes a matching amount on an image that is not a purchase receipt", async () => {
+    const { send, ledger } = await printReady(
+      fixtureReceiptReader(receiptFixture("receipt-quotation")),
+    );
+    const photo = await receiptPhoto({
+      notice: "QUOTATION",
+      merchant: "PRINT HUB PTE LTD",
+      total: "13.80",
+    });
+    const reply = await send({ receipt: jpegFile(photo, "quote.jpg"), amount: "13.80" });
+    expect(reply.body).toMatchObject({
+      status: "DISPUTED",
+      explanation:
+        "The receipt reader says this image is not a purchase receipt (A quotation, not a record of a payment), so the entered SGD 13.80 needs review.",
+    });
+    expect(await ledger()).toMatchObject({ confirmedSpend: { amount: "0.00" } });
   });
 
   it("disputes a receipt the reader could not read", async () => {
@@ -179,7 +214,7 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
       ["RUNNER", "Ana submitted a SGD 13.80 receipt from Print Hub"],
       [
         "DATUM_RULES",
-        "Confirmed SGD 13.80 of spend: The receipt from PRINT HUB PTE LTD shows SGD 13.80, matching the entered SGD 13.80.",
+        "Confirmed SGD 13.80 of spend: The amount read from the receipt from PRINT HUB PTE LTD matches the entered SGD 13.80.",
       ],
     ]);
     const [row] = await db.select().from(expenses).where(eq(expenses.physicalTaskId, taskId));

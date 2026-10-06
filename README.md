@@ -22,7 +22,7 @@ brief → AI plan → rules check → one approval → physical tasks → eviden
 - **AI drafts, rules decide.** The planner proposes copy and steps. Deterministic code checks the spots, the copy, the budget and the deadline, prices every step from explicit rates, and decides every state change. The model never does money arithmetic and never decides whether a spot is live.
 - **One approval locks the bounds.** The approval stores the exact card version, the spot set, the budget, the deadline and the copy. Changing any of them needs a new approval.
 - **Evidence, not status.** Each spot has its own QR code. A spot counts only when a photo submitted through its open task, before the deadline, decodes to that spot's code. The server reads the QR and records every check and the reason for each verdict.
-- **Spend from receipts.** Physical costs enter a ledger from real receipts. A receipt is confirmed only when the amount read from it matches the amount entered; anything else is disputed, never silently counted.
+- **Spend from receipts.** Physical costs enter a ledger from real receipts. An expense is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it (no test or void marking, a merchant and a date, a printed total) and the amount read from it matches the amount entered in the same currency; anything else is disputed with the reason, never silently counted. The reader is advisory: it never writes an amount.
 - **Safe to retry.** Every external action has a deterministic key and is persisted before it runs, so a restart reconciles instead of repeating.
 
 ## Datum gets paid as a Coworker on Cardano

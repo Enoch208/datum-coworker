@@ -60,6 +60,25 @@ describe("the receipt reader's live path", () => {
     });
   });
 
+  it("asks whether the image is a purchase receipt and what casts doubt on it", async () => {
+    const { reader, sent } = fakeApi(200, apiMessage({}));
+    await reader.read(await receiptPhoto({ merchant: "PRINT HUB", total: "13.80" }));
+    expect(sent[0]?.body).toMatchObject({
+      system: expect.stringMatching(/isPurchaseReceipt[\s\S]*concerns/) as unknown,
+      output_config: {
+        format: {
+          schema: {
+            required: expect.arrayContaining(["isPurchaseReceipt", "concerns"]) as unknown,
+            properties: {
+              isPurchaseReceipt: { type: "boolean" },
+              concerns: { type: "array" },
+            },
+          },
+        },
+      },
+    });
+  });
+
   it.each([
     ["a refusal", apiMessage({ stop_reason: "refusal", content: [] }), "REFUSED"],
     ["a truncated answer", apiMessage({ stop_reason: "max_tokens" }), "TRUNCATED"],
@@ -68,6 +87,20 @@ describe("the receipt reader's live path", () => {
     [
       "JSON outside the schema",
       apiMessage({ content: text(JSON.stringify({ total: 13.8 })) }),
+      "INVALID_OUTPUT",
+    ],
+    [
+      "a reading without the purchase check",
+      apiMessage({
+        content: text(
+          JSON.stringify({
+            readable: true,
+            total: "13.80",
+            currency: "SGD",
+            merchant: "PRINT HUB",
+          }),
+        ),
+      }),
       "INVALID_OUTPUT",
     ],
   ])("turns %s into a typed failure", async (_label, body, code) => {

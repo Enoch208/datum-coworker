@@ -43,7 +43,7 @@ function LedgerBar({ ledger }: { ledger: LedgerView }) {
       <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-ink" aria-hidden />
-          Confirmed: a checked receipt backs it
+          Confirmed: the amount read from its receipt matches
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-muted/50" aria-hidden />

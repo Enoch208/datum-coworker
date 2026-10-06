@@ -1,6 +1,8 @@
 {
   "readable": false,
+  "isPurchaseReceipt": true,
   "total": null,
   "currency": null,
-  "merchant": null
+  "merchant": null,
+  "concerns": []
 }
