@@ -89,3 +89,26 @@ describe("GET /campaigns/:id/timeline", () => {
     );
   });
 });
+
+describe("the playbook line", () => {
+  it.each([
+    [
+      "an unreadable page",
+      { outcome: "FAILED", url: "https://kopilab.example", reason: "it is not an HTML page" },
+      "Drafted Brand Playbook v1 from the brand name and the message; the brand page could not be read",
+    ],
+    [
+      "no page",
+      { outcome: "NOT_GIVEN" },
+      "Drafted Brand Playbook v1 from the brand name and the message",
+    ],
+  ] as const)(
+    "says what the playbook was drafted from with %s",
+    async (_label, reading, summary) => {
+      const campaign = await createCampaign();
+      const target = createApp(testDeps({ readBrandPage: () => Promise.resolve(reading) }));
+      await callApp(target, "POST", `/campaigns/${campaign.id}/plan`);
+      expect((await timeline(campaign.id)).map((event) => event.summary)).toContain(summary);
+    },
+  );
+});

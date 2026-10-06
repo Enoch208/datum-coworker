@@ -30,10 +30,10 @@ const describe =
   ): Describer =>
   (payload) => ({ actor, summary: summarize(schema.parse(payload)) });
 
-const pageSources = {
-  READ: " and the brand page",
-  NOT_GIVEN: "",
-  FAILED: "; the brand page could not be read",
+const playbookSources = {
+  READ: "the brand name, the message and the brand page",
+  NOT_GIVEN: "the brand name and the message",
+  FAILED: "the brand name and the message; the brand page could not be read",
 };
 
 const describers: Partial<Record<AuditEventType, Describer>> = {
@@ -58,7 +58,7 @@ const describers: Partial<Record<AuditEventType, Describer>> = {
     (p) =>
       p.reused || p.brandPage === null
         ? `Reused Brand Playbook v${String(p.version)}`
-        : `Drafted Brand Playbook v${String(p.version)} from the brand name, the message${pageSources[p.brandPage]}`,
+        : `Drafted Brand Playbook v${String(p.version)} from ${playbookSources[p.brandPage]}`,
   ),
   PLAN_REJECTED: describe(
     z.object({ model: z.string(), reason: z.string(), detail: z.string() }),
