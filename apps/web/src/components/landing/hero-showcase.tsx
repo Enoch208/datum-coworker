@@ -9,7 +9,7 @@ export function HeroShowcase() {
         <div className="photo-card group sm:min-h-[500px] lg:col-span-8">
           <img
             src={bakery}
-            alt="Example bakery owner preparing pastries while QR campaign cards are ready on the counter"
+            alt="Daybreak Bakery’s owner prepares pastries beside a sample card promoting the breakfast menu"
             fetchPriority="high"
             width={1600}
             height={901}
@@ -17,13 +17,14 @@ export function HeroShowcase() {
           />
           <div className="photo-shade absolute inset-0 hidden sm:block" />
           <div className="relative p-6 sm:absolute sm:inset-x-0 sm:bottom-0 sm:p-8">
-            <p className="eyebrow mb-3 text-accent">An example: a neighborhood bakery</p>
+            <p className="eyebrow mb-3 text-accent">Example campaign · Daybreak Bakery</p>
             <h2 className="text-2xl font-normal tracking-tight text-ink sm:text-3xl">
-              More time for your business. Less time chasing flyers.
+              Bring the breakfast menu to the neighborhood.
             </h2>
             <p className="mt-3 max-w-md text-sm text-muted">
-              A bakery owner has customers to serve. Datum coordinates the QR cards for nearby,
-              permitted spots, then checks the photos.
+              Daybreak wants nearby workers to discover its coffee and fresh bakes. The owner
+              approves a menu card for a coworking reception. Datum coordinates printing and
+              placement, then checks the photo—while the owner keeps baking.
             </p>
           </div>
         </div>
@@ -31,14 +32,16 @@ export function HeroShowcase() {
           {[
             {
               image: print,
-              title: "From a brief to print",
-              caption: "The bakery’s menu, one scan away",
+              title: "Print the approved card",
+              caption: "One clear invitation: scan for Daybreak’s menu.",
+              alt: "A print worker holds the Daybreak breakfast-menu card beside a printer",
               href: "#how-it-works",
             },
             {
               image: placement,
-              title: "Every spot needs proof",
-              caption: "A nearby spot, a runner’s photo, a QR check",
+              title: "Place it. Photograph it.",
+              caption: "At the permitted coworking reception, ready to scan.",
+              alt: "A runner’s camera screen frames the same Daybreak card at coworking reception",
               href: "#your-control",
             },
           ].map((item) => (
@@ -49,7 +52,7 @@ export function HeroShowcase() {
             >
               <img
                 src={item.image}
-                alt=""
+                alt={item.alt}
                 width={1000}
                 height={667}
                 loading="lazy"
@@ -70,8 +73,8 @@ export function HeroShowcase() {
         </div>
       </div>
       <p className="mt-3 text-right text-[10px] text-faint">
-        Daybreak Bakery is an illustrative example, not a customer result. Actual evidence comes
-        from runner uploads.
+        Daybreak Bakery is a fictional brand. These generated scenes illustrate a campaign; they are
+        not customer results or placement evidence.
       </p>
     </section>
   );
