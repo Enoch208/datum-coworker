@@ -118,6 +118,15 @@ importers:
 
   packages/masumi:
     dependencies:
+      '@datum/core':
+        specifier: workspace:*
+        version: link:../core
+      '@datum/db':
+        specifier: workspace:*
+        version: link:../db
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(postgres@3.4.9)
       json-canonicalize:
         specifier: 3.0.1
         version: 3.0.1
