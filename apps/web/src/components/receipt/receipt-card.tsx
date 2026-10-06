@@ -114,7 +114,9 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
     >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-          <BrandMark height={22} />
+          <span className="print:brightness-0">
+            <BrandMark height={22} />
+          </span>
           <span className="font-mono text-xs tracking-[0.2em] text-muted uppercase">
             Campaign Receipt
           </span>
@@ -149,7 +151,7 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
             />
           </dl>
         </div>
-        <ul className="grid grid-cols-2 content-start gap-3">
+        <ul className="grid grid-cols-2 content-start gap-3 print:grid-cols-4">
           {receipt.spots.map((spot) => (
             <Thumb key={spot.spotCode} spot={spot} />
           ))}
