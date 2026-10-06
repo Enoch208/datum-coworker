@@ -11,10 +11,10 @@ export function ProposalCopy({ proposal, action }: { proposal: ProposalView; act
         {action}
       </SectionHeading>
       <blockquote className="mt-6 border-l-2 border-line-strong pl-5">
-        <p className="text-2xl font-light tracking-tight break-words text-ink sm:text-3xl">
+        <p className="text-2xl font-normal tracking-tight text-balance break-words text-ink sm:text-3xl">
           {proposal.copy.headline}
         </p>
-        <p className="mt-3 text-base font-light break-words text-muted sm:text-lg">
+        <p className="mt-3 max-w-2xl text-base text-pretty break-words text-muted sm:text-lg">
           {proposal.copy.subcopy}
         </p>
       </blockquote>

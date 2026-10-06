@@ -108,7 +108,7 @@ export function Timeline({
   return (
     <section aria-labelledby="timeline-heading">
       <SectionHeading id="timeline-heading" title="Timeline" />
-      <p className="mt-2 max-w-2xl text-[15px] font-light text-muted">
+      <p className="mt-2 max-w-2xl text-[15px] text-pretty text-muted">
         Every step on record, oldest first, with who took it. Datum AI proposes; Datum rules check
         and decide; the runner does the physical work.
       </p>

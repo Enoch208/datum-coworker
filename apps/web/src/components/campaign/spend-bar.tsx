@@ -12,7 +12,7 @@ export function SpendBar({ estimate, budget }: { estimate: WireMoney; budget: Wi
   return (
     <div>
       <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="font-mono text-3xl font-light tracking-tight text-accent tabular-nums">
+        <span className="font-mono text-3xl font-light tracking-tight text-ink tabular-nums">
           {formatWireMoney(estimate)}
         </span>
         <span className="text-sm text-muted">

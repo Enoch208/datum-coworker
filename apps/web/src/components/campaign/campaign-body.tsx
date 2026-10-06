@@ -4,11 +4,14 @@ import {
   type ProposalView,
   type TimelineEventView,
 } from "@datum/core";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { ApprovalPanel } from "@/components/approval/approval-panel";
 import { approvalState, isFinal } from "@/components/approval/approval-state";
 import { LaunchPanel } from "@/components/approval/launch-panel";
 import { LockedPanel } from "@/components/approval/locked-panel";
+import { secondaryButton } from "@/components/feedback/buttons";
 import { CampaignHeader } from "./campaign-header";
 import { CopySection } from "./copy-section";
 import { NoProposal } from "./no-proposal";
@@ -73,16 +76,14 @@ export function CampaignBody({
     <>
       <CampaignHeader campaign={campaign} />
       {proposal !== null && approvalState(campaign) !== "current" && !isFinal(campaign) && (
-        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-xl text-sm text-muted">
+        <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-line-strong bg-raised/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl text-sm leading-relaxed text-pretty text-muted">
             <span className="font-medium text-ink">Your next step: review and approve.</span> Check
             the copy, each card and the costs below. Nothing starts until you approve.
           </p>
-          <a
-            href="#campaign-approval"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-accent/30 px-4 text-sm text-accent hover:bg-accent/10"
-          >
-            Review approval ↓
+          <a href="#campaign-approval" className={`${secondaryButton} self-start sm:self-auto`}>
+            Review and approve
+            <HugeiconsIcon icon={ArrowDown01Icon} size={16} aria-hidden />
           </a>
         </div>
       )}

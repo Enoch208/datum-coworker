@@ -24,7 +24,7 @@ export function PlanPanel({
       <SectionHeading id="plan-heading" title="Plan">
         <AiProposed model={proposal.plannedBy.model} />
       </SectionHeading>
-      <p className="mt-2 text-[15px] font-light text-muted">
+      <p className="mt-2 text-[15px] text-muted">
         Print format <span className="font-mono text-ink">{proposal.printFormat}</span>
       </p>
       <div className="mt-6 flex items-center justify-between gap-3 border-b border-line pb-3 text-xs text-muted">

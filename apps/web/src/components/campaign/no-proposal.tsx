@@ -55,10 +55,10 @@ export function NoProposal({
       aria-labelledby="no-proposal-heading"
       className="rounded-2xl border border-line bg-surface p-6 sm:p-8"
     >
-      <h2 id="no-proposal-heading" className="text-2xl font-light tracking-tight">
+      <h2 id="no-proposal-heading" className="text-2xl font-normal tracking-tight text-ink">
         No proposal yet
       </h2>
-      <p className="mt-3 max-w-2xl text-[15px] font-light text-muted">
+      <p className="mt-3 max-w-2xl text-[15px] text-pretty text-muted">
         Datum has not drafted the copy, the plan and the cards for this campaign. Nothing can be
         approved until it has.
       </p>

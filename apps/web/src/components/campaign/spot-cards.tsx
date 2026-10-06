@@ -67,10 +67,10 @@ function SpotCard({ spot }: { spot: SpotView }) {
 export function SpotCards({ spots }: { spots: readonly SpotView[] }) {
   return (
     <section aria-labelledby="cards-heading">
-      <h2 id="cards-heading" className="text-2xl font-light tracking-tight">
+      <h2 id="cards-heading" className="text-2xl font-normal tracking-tight text-ink">
         One card per spot
       </h2>
-      <p className="mt-2 max-w-2xl text-[15px] font-light text-muted">
+      <p className="mt-2 max-w-2xl text-[15px] text-pretty text-muted">
         Every card carries its own QR code. A photo from a spot only counts when it shows that
         spot&apos;s code.
       </p>

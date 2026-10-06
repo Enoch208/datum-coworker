@@ -14,7 +14,7 @@ import { useDocumentTitle } from "@/lib/use-document-title";
 function MissingCampaign({ message }: { message: string }) {
   return (
     <section className="max-w-xl">
-      <h1 className="text-4xl font-light tracking-tight">No campaign here</h1>
+      <h1 className="text-4xl font-medium tracking-tight">No campaign here</h1>
       <p className="mt-4 text-lg font-light text-muted">{message}</p>
       <Link to={appRoutes.newCampaign} className={`${secondaryButton} mt-8`}>
         Create a campaign

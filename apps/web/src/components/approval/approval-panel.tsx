@@ -110,7 +110,7 @@ export function ApprovalPanel({
       className="rounded-2xl border border-line bg-surface p-6 min-[1200px]:flex min-[1200px]:min-h-0 min-[1200px]:flex-col"
     >
       {stale && <NewApprovalNotice version={proposal.assetVersion} />}
-      <h2 id="approve-heading" className="text-xl font-light tracking-tight">
+      <h2 id="approve-heading" className="text-xl font-normal tracking-tight text-ink">
         What you approve
       </h2>
       <p className="mt-1.5 text-sm text-muted">

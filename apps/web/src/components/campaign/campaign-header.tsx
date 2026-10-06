@@ -21,10 +21,10 @@ export function CampaignHeader({ campaign }: { campaign: CampaignView }) {
         <CampaignStatusChip status={campaign.status} />
         <span className="font-mono text-xs text-muted">{campaign.id}</span>
       </div>
-      <h1 className="mt-6 text-3xl font-medium tracking-tight break-words sm:text-5xl">
+      <h1 className="mt-6 text-3xl font-medium tracking-tight text-balance break-words sm:text-5xl">
         {campaign.brand.name}
       </h1>
-      <p className="mt-4 max-w-3xl text-lg font-light break-words text-muted sm:text-xl">
+      <p className="mt-4 max-w-3xl text-lg font-light text-pretty break-words text-muted sm:text-xl">
         {campaign.message}
       </p>
       <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
