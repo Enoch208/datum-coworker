@@ -50,7 +50,10 @@ export function fakeCore(world: World): LifecycleDeps["core"] {
         const point = body.status === "RUNNING" ? "start" : "complete";
         world.calls[point] += 1;
         world.taskStatus = body.status;
-        const event = world.pushEvent(body.status, "comment" in body ? body.comment : null);
+        const event = world.pushEvent(
+          body.status,
+          "comment" in body ? world.storeComment(body.comment) : null,
+        );
         if (world.fault(point) === "lost-response") throw lostResponse();
         return event;
       }),

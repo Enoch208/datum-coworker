@@ -29,6 +29,7 @@ export class World {
   submitted: { readonly hash: string; readonly at: number } | null = null;
   collectionLagMs = 11 * minuteMs;
   escrowDelayMs = 2 * minuteMs;
+  storeComment: (comment: string) => string = (comment) => comment;
   readonly clock: FakeClock;
 
   constructor(clock: FakeClock) {

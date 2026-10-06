@@ -15,9 +15,13 @@ function completed(
   completionEventId: string,
   storedComment: string | null | undefined,
 ) {
-  const matches = storedComment === state.result.text;
+  if (storedComment !== state.result.text) {
+    throw new TerminalLifecycleError(
+      `Core completed the Task with a different result than the one hashed on chain (event ${completionEventId})`,
+    );
+  }
   deps.log(
-    `Task ${state.taskId} COMPLETED in event ${completionEventId}; stored comment ${matches ? "equals" : "DIFFERS FROM"} the saved result`,
+    `Task ${state.taskId} COMPLETED in event ${completionEventId}; stored comment equals the saved result`,
   );
   const next: StateAt<"task_completed"> = {
     ...state,
@@ -25,7 +29,7 @@ function completed(
     outbound: null,
     completionEventId,
   };
-  return persist(deps, next, "step:task_completed", `comment matches result: ${String(matches)}`);
+  return persist(deps, next, "step:task_completed", "comment matches result");
 }
 
 function latestCompletion(task: Task) {

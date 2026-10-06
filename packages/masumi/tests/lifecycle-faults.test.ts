@@ -46,6 +46,49 @@ describe("payment attach faults", () => {
   });
 });
 
+describe("completion reconciliation", () => {
+  const killAfterCompletion = async () => {
+    const setup = await scenario();
+    setup.world.faults.set("complete", "lost-response");
+    setup.clock.killWhen = () => setup.world.calls.complete > 0;
+    await expect(setup.run()).rejects.toThrow(ProcessKilled);
+    setup.clock.killWhen = () => false;
+    return setup;
+  };
+  const journaledStep = async ({ deps, world }: Awaited<ReturnType<typeof scenario>>) =>
+    (await deps().journal.load(world.taskId))?.step;
+
+  it("adopts a lost completion whose stored comment is the hashed result", async () => {
+    const setup = await killAfterCompletion();
+    expect(await journaledStep(setup)).toBe("result_confirmed");
+    await expect(setup.run()).resolves.toMatchObject({ step: "verified" });
+    expect(setup.world.calls.complete).toBe(1);
+  });
+
+  it("stops on a lost completion whose stored comment differs from the hashed result", async () => {
+    const setup = await scenario();
+    setup.world.storeComment = (comment) => `${comment} `;
+    setup.world.faults.set("complete", "lost-response");
+    setup.clock.killWhen = () => setup.world.calls.complete > 0;
+    await expect(setup.run()).rejects.toThrow(ProcessKilled);
+    setup.clock.killWhen = () => false;
+
+    const restarted = setup.run();
+    await expect(restarted).rejects.toThrow(TerminalLifecycleError);
+    await expect(restarted).rejects.toThrow("different result than the one hashed on chain");
+    expect(await journaledStep(setup)).toBe("result_confirmed");
+    expect(setup.world.calls.complete).toBe(1);
+    expect(setup.evidence.rows.get(setup.world.taskId)?.collectionConfirmed).toBe(false);
+  });
+
+  it("stops when Core answers the completion with a different comment", async () => {
+    const setup = await scenario();
+    setup.world.storeComment = (comment) => comment.toUpperCase();
+    await expect(setup.run()).rejects.toThrow("different result than the one hashed on chain");
+    expect(await journaledStep(setup)).toBe("result_confirmed");
+  });
+});
+
 describe("deadline and settlement faults", () => {
   it("gives up when escrow locks too late to submit the result", async () => {
     const { world, evidence, run } = await scenario();
