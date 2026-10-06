@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
-import type { CampaignStatus, Money } from "@datum/core";
+import type { CampaignStatus, Money, TimelineEventView } from "@datum/core";
 import { auditEvents, type Executor } from "@datum/db";
-import { toAuditEventView } from "../views/timeline";
+import { toTimelineEvent } from "../views/timeline";
 
 export type AuditEvent =
   | {
@@ -56,11 +56,11 @@ export async function recordAudit(
   await db.insert(auditEvents).values({ campaignId, type: event.type, payload: event.payload });
 }
 
-export async function auditTrail(db: Executor, campaignId: string) {
+export async function auditTrail(db: Executor, campaignId: string): Promise<TimelineEventView[]> {
   const rows = await db
     .select()
     .from(auditEvents)
     .where(eq(auditEvents.campaignId, campaignId))
     .orderBy(asc(auditEvents.sequence));
-  return rows.map(toAuditEventView);
+  return rows.map(toTimelineEvent);
 }

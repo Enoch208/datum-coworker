@@ -1,4 +1,4 @@
-import type { ApiError, CampaignView } from "@datum/core";
+import type { ApiError, CampaignView, TimelineEventView } from "@datum/core";
 import { brands, campaigns } from "@datum/db";
 import { describe, expect, it } from "vitest";
 import { createCampaign as createCampaignDirectly } from "../src/services/campaigns";
@@ -163,22 +163,18 @@ describe("GET /campaigns/:id", () => {
 });
 
 describe("GET /campaigns/:id/timeline", () => {
-  it("starts with CAMPAIGN_CREATED", async () => {
+  it("starts with the customer creating the campaign", async () => {
     const created = await createCampaign();
-    const reply = await call<{ type: string; payload: unknown; createdAt: string }[]>(
-      "GET",
-      `/campaigns/${created.id}/timeline`,
-    );
+    const reply = await call<TimelineEventView[]>("GET", `/campaigns/${created.id}/timeline`);
     expect(reply.status).toBe(200);
-    expect(reply.body).toHaveLength(1);
-    expect(reply.body[0]).toMatchObject({
-      type: "CAMPAIGN_CREATED",
-      payload: {
-        brandId: created.brand.id,
-        spotCodes: ["B", "A"],
-        budget: { amountMinor: 5_000, currency: "SGD" },
-        deadline: created.deadline,
+    expect(reply.body).toEqual([
+      {
+        id: expect.stringMatching(/^evt_/) as unknown,
+        type: "CAMPAIGN_CREATED",
+        actor: "CUSTOMER",
+        summary: `Campaign created for 2 spots (B, A) with a SGD 50.00 budget, due ${created.deadline}`,
+        at: expect.any(String) as unknown,
       },
-    });
+    ]);
   });
 });
