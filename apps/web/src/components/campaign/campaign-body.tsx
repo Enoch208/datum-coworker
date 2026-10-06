@@ -1,4 +1,9 @@
-import type { CampaignView, ProposalView, TimelineEventView } from "@datum/core";
+import {
+  isCopyEditable,
+  type CampaignView,
+  type ProposalView,
+  type TimelineEventView,
+} from "@datum/core";
 import { useState } from "react";
 import { ApprovalPanel } from "@/components/approval/approval-panel";
 import { approvalState, isFinal } from "@/components/approval/approval-state";
@@ -78,7 +83,7 @@ export function CampaignBody({
               campaign={campaign}
               proposal={proposal}
               approved={approvalState(campaign) === "current"}
-              editable={!isFinal(campaign)}
+              editable={isCopyEditable(campaign.status)}
               onSaved={reload}
             />
           )}

@@ -89,15 +89,18 @@ describe("PATCH /campaigns/:id/copy (Gate 2)", () => {
     expect(await db.select().from(campaignAssets)).toHaveLength(1);
   });
 
-  it("refuses an edit once execution has started", async () => {
-    const planned = await plannedCampaign();
-    await approve(planned.id, 1);
-    await db.update(campaigns).set({ status: "EXECUTING" }).where(eq(campaigns.id, planned.id));
-    expect(await editCopy(planned.id, newCopy)).toMatchObject({
-      status: 409,
-      body: { error: "COPY_LOCKED" },
-    });
-  });
+  it.each(["EXECUTING", "VERIFYING", "REMEDIATING", "NEEDS_APPROVAL", "FAILED"] as const)(
+    "refuses an edit once the campaign is %s",
+    async (status) => {
+      const planned = await plannedCampaign();
+      await approve(planned.id, 1);
+      await db.update(campaigns).set({ status }).where(eq(campaigns.id, planned.id));
+      expect(await editCopy(planned.id, newCopy)).toMatchObject({
+        status: 409,
+        body: { error: "COPY_LOCKED" },
+      });
+    },
+  );
 
   it("refuses an edit before there is a proposal", async () => {
     const draft = await createCampaign();

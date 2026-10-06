@@ -57,7 +57,7 @@ export function CopySection({
   return (
     <div>
       <ProposalCopy proposal={proposal} {...(editable && !editing ? { action: edit } : {})} />
-      {editing && (
+      {editable && editing && (
         <CopyEditor
           campaignId={campaign.id}
           initial={proposal.copy}

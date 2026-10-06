@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { assertExecutable, ExecutionBlockedError, isApprovalCurrent } from "../src/approval";
-import type { ApprovalLock } from "../src/contract";
+import {
+  assertExecutable,
+  ExecutionBlockedError,
+  isApprovalCurrent,
+  isCopyEditable,
+} from "../src/approval";
+import { campaignStatuses, type ApprovalLock } from "../src/contract";
 
 const approval: ApprovalLock = {
   campaignId: "cmp_7k2m9q4w8z1x3c5v",
@@ -36,5 +41,26 @@ describe("assertExecutable", () => {
         message: "The approval covers asset version 2, but version 3 is current",
       }),
     );
+  });
+});
+
+describe("isCopyEditable", () => {
+  it("allows a copy edit only while the campaign waits for or holds its approval", () => {
+    expect(campaignStatuses.filter(isCopyEditable)).toEqual(["AWAITING_APPROVAL", "APPROVED"]);
+  });
+
+  it("locks the copy from execution onwards", () => {
+    for (const status of [
+      "EXECUTING",
+      "VERIFYING",
+      "REMEDIATING",
+      "NEEDS_APPROVAL",
+      "COMPLETED",
+      "EXPIRED_INCOMPLETE",
+      "FAILED",
+      "CANCELLED",
+    ] as const) {
+      expect(isCopyEditable(status)).toBe(false);
+    }
   });
 });

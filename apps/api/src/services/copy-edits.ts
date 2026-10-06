@@ -1,5 +1,6 @@
 import {
   copyRejection,
+  isCopyEditable,
   normalizeCopy,
   type CampaignStatus,
   type CampaignView,
@@ -15,10 +16,8 @@ import { campaignDetail, campaignParts, currentAsset, latestApproval } from "./c
 import { hashOfAsset, publishCards } from "./proposals";
 import { lockCampaign, moveStatus } from "./status";
 
-const editableStatuses: ReadonlySet<CampaignStatus> = new Set(["AWAITING_APPROVAL", "APPROVED"]);
-
 const assertEditable = (status: CampaignStatus): void => {
-  if (!editableStatuses.has(status)) {
+  if (!isCopyEditable(status)) {
     throw conflict("COPY_LOCKED", `The copy of a ${status} campaign can no longer change`);
   }
 };

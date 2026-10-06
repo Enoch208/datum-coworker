@@ -1,4 +1,4 @@
-import type { ApprovalLock } from "./contract";
+import type { ApprovalLock, CampaignStatus } from "./contract";
 
 export type ExecutionBlock = "NO_APPROVAL" | "APPROVAL_NOT_CURRENT";
 
@@ -33,3 +33,11 @@ export const assertExecutable = (
   }
   return approval;
 };
+
+export const copyEditableStatuses = [
+  "AWAITING_APPROVAL",
+  "APPROVED",
+] as const satisfies readonly CampaignStatus[];
+
+export const isCopyEditable = (status: CampaignStatus): boolean =>
+  copyEditableStatuses.some((editable) => editable === status);
