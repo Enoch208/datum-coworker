@@ -21,8 +21,18 @@ const input: PlannerInput = {
     page: { outcome: "NOT_GIVEN" },
   }),
   spots: [
-    { code: "A", name: "Amoy Street cafe window", instructions: "Tape inside the glass" },
-    { code: "B", name: "Telok Ayer notice board", instructions: "Pin at eye level" },
+    {
+      code: "A",
+      name: "Amoy Street cafe window",
+      instructions: "Tape inside the glass",
+      qrTargetUrl: "https://datum.test/c/cmp_0000000000000000/A",
+    },
+    {
+      code: "B",
+      name: "Telok Ayer notice board",
+      instructions: "Pin at eye level",
+      qrTargetUrl: "https://datum.test/c/cmp_0000000000000000/B",
+    },
   ],
   budget: sgd(5_000),
   deadline: "2026-10-07T17:00:00+08:00",
@@ -80,6 +90,7 @@ describe("planCampaign", () => {
     ["plan-forbidden-claim", "FORBIDDEN_CLAIM"],
     ["plan-headline-too-long", "HEADLINE_TOO_LONG"],
     ["plan-unknown-format", "MALFORMED_OUTPUT"],
+    ["plan-unprintable", "UNPRINTABLE_COPY"],
     ["plan-with-costs", "MALFORMED_OUTPUT"],
   ])("rejects the %s output as %s", async (fixture, reason) => {
     const rejected = plan(fixture);

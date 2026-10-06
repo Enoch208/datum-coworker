@@ -12,6 +12,7 @@ import {
   type PublicCopy,
 } from "@datum/core";
 import { z } from "zod";
+import { printRejection } from "../cards/check";
 import type { PlannerModel } from "./model";
 import { plannerPrompt, type PlannerInput } from "./prompt";
 import { plannerOutputSchema } from "./schema";
@@ -31,7 +32,8 @@ export interface PlanningRules {
   readonly ruleWarnings: readonly string[];
 }
 
-export type PlanRejectionReason = PlanRejectionCode | "MALFORMED_OUTPUT";
+export type PlanRejectionReason =
+  PlanRejectionCode | "MALFORMED_OUTPUT" | "UNPRINTABLE_COPY" | "COPY_DOES_NOT_FIT";
 
 export class PlanRejectedError extends Error {
   readonly reason: PlanRejectionReason;
@@ -59,6 +61,14 @@ const checkedDraft = (output: unknown, model: string, input: PlannerInput): Plan
     forbiddenClaims: input.playbook.forbiddenClaims,
   });
   if (rejection !== null) throw new PlanRejectedError(rejection.reason, rejection.detail, model);
+  const unprintable = printRejection(draft, {
+    brandName: input.brandName,
+    printFormat: draft.printFormat,
+    spots: input.spots,
+  });
+  if (unprintable !== null) {
+    throw new PlanRejectedError(unprintable.reason, unprintable.detail, model);
+  }
   return draft;
 };
 

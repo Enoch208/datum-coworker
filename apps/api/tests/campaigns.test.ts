@@ -80,6 +80,7 @@ describe("POST /campaigns", () => {
     ["a non-web destination", { destinationUrl: "javascript:alert(1)" }],
     ["a deadline without an offset", { deadline: "2099-01-01T10:00:00" }],
     ["an unknown field", { approvedBy: "someone" }],
+    ["a brand name the card cannot print", { brandName: "咖啡 Lab" }],
   ])("rejects %s with 400 and stores nothing", async (_label, overrides) => {
     const reply = await call<ApiError>("POST", "/campaigns", { ...briefBody(), ...overrides });
     expect(reply.status).toBe(400);

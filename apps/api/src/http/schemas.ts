@@ -8,6 +8,7 @@ import {
   type WireMoney,
 } from "@datum/core";
 import { z } from "zod";
+import { unprintableCharacters } from "../cards/fonts";
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 const httpUrl = z.url({ protocol: /^https?$/ }).max(2000);
@@ -50,8 +51,13 @@ const futureDeadline = z.iso
   .transform((value) => new Date(value))
   .refine((deadline) => deadline.getTime() > Date.now(), "The deadline must be in the future");
 
+const printableName = text(120).refine(
+  (name) => unprintableCharacters(name).length === 0,
+  "The brand name uses characters the card font cannot print",
+);
+
 export const createCampaignSchema = z.strictObject({
-  brandName: text(120),
+  brandName: printableName,
   brandUrl: httpUrl.nullable(),
   message: text(280),
   destinationUrl: httpUrl,

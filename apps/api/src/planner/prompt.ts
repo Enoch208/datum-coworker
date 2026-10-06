@@ -8,12 +8,16 @@ import {
   type SpotDraft,
 } from "@datum/core";
 
+export interface PlannerSpot extends SpotDraft {
+  readonly qrTargetUrl: string;
+}
+
 export interface PlannerInput {
   readonly brandName: string;
   readonly message: string;
   readonly destinationUrl: string;
   readonly playbook: BrandPlaybook;
-  readonly spots: readonly SpotDraft[];
+  readonly spots: readonly PlannerSpot[];
   readonly budget: Money;
   readonly deadline: IsoTimestamp;
   readonly now: IsoTimestamp;
