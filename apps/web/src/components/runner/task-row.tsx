@@ -1,6 +1,7 @@
-import { Clock01Icon, PrinterIcon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, Clock01Icon, PrinterIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { RunnerTaskView } from "@datum/core";
+import { Link } from "react-router";
 import { RecoveryChip, TaskStatusChip } from "@/components/status/task-status-chip";
 import { formatSgtShort } from "@/lib/format";
 import { taskTitle } from "./task-facts";
@@ -29,9 +30,12 @@ export function DueLine({ dueBy }: { dueBy: string }) {
   );
 }
 
-export function TaskRow({ task }: { task: RunnerTaskView }) {
+export function TaskRow({ task, href }: { task: RunnerTaskView; href: string }) {
   return (
-    <div className="flex gap-4 rounded-2xl border border-line bg-surface p-4">
+    <Link
+      to={href}
+      className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 active:bg-raised"
+    >
       <TaskBadge task={task} />
       <div className="min-w-0 flex-1">
         <p className="text-[17px] leading-snug font-medium break-words text-ink">
@@ -48,6 +52,13 @@ export function TaskRow({ task }: { task: RunnerTaskView }) {
           <DueLine dueBy={task.dueBy} />
         </div>
       </div>
-    </div>
+      <HugeiconsIcon
+        icon={ArrowRight01Icon}
+        size={20}
+        strokeWidth={1.8}
+        className="shrink-0 text-muted"
+        aria-hidden
+      />
+    </Link>
   );
 }

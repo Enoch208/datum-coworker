@@ -1,10 +1,14 @@
-import type { RunnerInboxView } from "@datum/core";
-import { runnerInboxSchema } from "./execution-schemas";
+import type { EvidenceView, RunnerInboxView } from "@datum/core";
+import { evidenceSchema, runnerInboxSchema } from "./execution-schemas";
 import { ApiRequestError, expectShape, send } from "./http";
+import { postForm } from "./upload";
 
 const inactiveStatuses: readonly number[] = [401, 403, 404, 410];
 
 const runnerPath = (token: string): string => `/runner/${encodeURIComponent(token)}`;
+
+const runnerTaskPath = (token: string, taskId: string): string =>
+  `${runnerPath(token)}/tasks/${encodeURIComponent(taskId)}`;
 
 function withoutToken(token: string, cause: unknown): Error {
   if (!(cause instanceof Error)) return new Error(String(cause));
@@ -28,5 +32,31 @@ export function getRunnerInbox(token: string, signal: AbortSignal): Promise<Runn
   return tokenSafe(token, async () => {
     const body = await send(runnerPath(token), { method: "GET", signal });
     return expectShape(runnerInboxSchema, body, "your tasks");
+  });
+}
+
+export function acceptTask(token: string, taskId: string): Promise<void> {
+  return tokenSafe(token, async () => {
+    await send(`${runnerTaskPath(token, taskId)}/accept`, { method: "POST" });
+  });
+}
+
+export function completeTask(token: string, taskId: string): Promise<void> {
+  return tokenSafe(token, async () => {
+    await send(`${runnerTaskPath(token, taskId)}/complete`, { method: "POST" });
+  });
+}
+
+export function uploadEvidence(
+  token: string,
+  taskId: string,
+  photo: File,
+  onProgress: (fraction: number) => void,
+): Promise<EvidenceView> {
+  return tokenSafe(token, async () => {
+    const form = new FormData();
+    form.append("photo", photo, photo.name.length > 0 ? photo.name : "evidence.jpg");
+    const body = await postForm(`${runnerTaskPath(token, taskId)}/evidence`, form, onProgress);
+    return expectShape(evidenceSchema, body, "the photo check");
   });
 }

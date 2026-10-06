@@ -6,15 +6,18 @@ import { LinkInactive } from "@/components/runner/link-inactive";
 import { RunnerSkeleton } from "@/components/runner/runner-skeleton";
 import { inRunOrder, isHandedIn } from "@/components/runner/task-facts";
 import { TaskRow } from "@/components/runner/task-row";
+import { runnerTaskHref } from "@/lib/routes";
 import { isInactiveLink } from "@/lib/runner-client";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { useRunnerInbox } from "@/lib/use-runner-inbox";
 
 function TaskGroup({
+  token,
   title,
   tasks,
   empty,
 }: {
+  token: string;
   title: string;
   tasks: readonly RunnerTaskView[];
   empty?: string;
@@ -34,7 +37,7 @@ function TaskGroup({
         <ul className="mt-4 flex flex-col gap-3">
           {tasks.map((task) => (
             <li key={task.id}>
-              <TaskRow task={task} />
+              <TaskRow task={task} href={runnerTaskHref(token, task.id)} />
             </li>
           ))}
         </ul>
@@ -72,11 +75,16 @@ export function RunnerInboxPage() {
         </div>
       </header>
       <TaskGroup
+        token={token}
         title="To do"
         tasks={ordered.filter((task) => !isHandedIn(task.status))}
         empty="Nothing to do right now. New tasks appear here on their own."
       />
-      <TaskGroup title="Finished" tasks={ordered.filter((task) => isHandedIn(task.status))} />
+      <TaskGroup
+        token={token}
+        title="Finished"
+        tasks={ordered.filter((task) => isHandedIn(task.status))}
+      />
     </>
   );
 }

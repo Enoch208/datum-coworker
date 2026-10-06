@@ -6,6 +6,7 @@ import { LandingPage } from "./routes/landing-page";
 import { NewCampaignPage } from "./routes/new-campaign-page";
 import { NotFoundPage } from "./routes/not-found-page";
 import { RunnerInboxPage } from "./routes/runner-inbox-page";
+import { RunnerTaskPage } from "./routes/runner-task-page";
 
 export function App() {
   return (
@@ -13,6 +14,7 @@ export function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/r/:token" element={<RunnerShell />}>
         <Route index element={<RunnerInboxPage />} />
+        <Route path="tasks/:taskId" element={<RunnerTaskPage />} />
       </Route>
       <Route
         path="*"
