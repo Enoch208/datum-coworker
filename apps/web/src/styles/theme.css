@@ -1,0 +1,12 @@
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  --color-canvas: #050505;
+  --color-surface: #0c0c0d;
+  --color-line: #1f1f22;
+  --color-ink: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-faint: #52525b;
+  --color-accent: #c6f432;
+}
