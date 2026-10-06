@@ -8,13 +8,13 @@ import { appRoutes } from "@/lib/routes";
 export function SiteFooter() {
   return (
     <footer className="border-t border-line">
-      <div className="landing-glow px-5 py-20 text-center sm:py-28">
-        <h2 className="text-3xl font-medium tracking-tight sm:text-5xl">
+      <div className="landing-glow px-5 py-24 text-center sm:py-32">
+        <h2 className="text-3xl font-medium tracking-tight text-balance sm:text-5xl">
           Give the campaign a goal.
           <br />
-          <span className="text-faint">Get back to yours.</span>
+          <span className="text-gradient-grey">Get back to yours.</span>
         </h2>
-        <p className="mx-auto mt-5 max-w-md text-sm text-muted">
+        <p className="mx-auto mt-5 max-w-md text-sm text-balance text-muted">
           Start with a brief. Review the plan before anything is printed, placed or spent.
         </p>
         <Link to={appRoutes.newCampaign} className={`${primaryButton} mt-8`}>
@@ -55,7 +55,7 @@ export function SiteFooter() {
             </a>
           </nav>
         </div>
-        <div className="mt-10 flex flex-col justify-between gap-3 border-t border-line pt-6 text-[11px] text-faint sm:flex-row">
+        <div className="mt-10 flex flex-col justify-between gap-3 border-t border-line pt-6 text-xs text-muted sm:flex-row">
           <span>© 2026 Datum</span>
           <span>Local enrolled runners · Masumi payments on Cardano Preprod</span>
         </div>

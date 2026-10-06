@@ -53,7 +53,7 @@ const steps: { label: string; evidence: ReactNode }[] = [
     evidence: (
       <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <Tx hash={firstPaidTask.collectionTx} />
-        <span className="font-mono text-sm text-accent">+1 tUSDM</span>
+        <span className="font-mono text-sm font-medium text-ink">+1 tUSDM</span>
       </span>
     ),
   },
@@ -61,11 +61,12 @@ const steps: { label: string; evidence: ReactNode }[] = [
 
 export function PaidTaskProof() {
   return (
-    <section aria-labelledby="paid-heading" className="py-20 sm:py-28">
-      <p className="font-mono text-xs tracking-[0.2em] text-muted uppercase">
-        Cardano Preprod · 6 October 2026
-      </p>
-      <h2 id="paid-heading" className="mt-5 text-3xl font-medium tracking-tight sm:text-5xl">
+    <section aria-labelledby="paid-heading" className="py-24 sm:py-32">
+      <p className="eyebrow text-muted">Cardano Preprod · 6 October 2026</p>
+      <h2
+        id="paid-heading"
+        className="mt-5 text-3xl font-medium tracking-tight text-balance sm:text-5xl"
+      >
         A paid coworker. A verifiable record.
       </h2>
       <p className="mt-5 max-w-2xl text-base font-light text-muted">
@@ -76,7 +77,7 @@ export function PaidTaskProof() {
         {steps.map((step, index) => (
           <li
             key={step.label}
-            className="grid gap-2 py-5 sm:grid-cols-[2.5rem_minmax(0,18rem)_minmax(0,1fr)] sm:items-baseline sm:gap-6"
+            className="grid gap-2 py-5 sm:grid-cols-[2.5rem_minmax(0,21rem)_minmax(0,1fr)] sm:items-baseline sm:gap-6"
           >
             <span className="font-mono text-xs text-muted tabular-nums">
               {String(index + 1).padStart(2, "0")}

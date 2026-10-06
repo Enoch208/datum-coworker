@@ -44,11 +44,14 @@ export function HowItWorks() {
     <section id="how-it-works" aria-labelledby="how-heading" className="pb-24 sm:pb-32">
       <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
-          <p className="eyebrow mb-4 text-accent">From your desk to the real world</p>
-          <h2 id="how-heading" className="text-3xl font-medium tracking-tight sm:text-4xl">
+          <p className="eyebrow mb-4 text-muted">From your desk to the real world</p>
+          <h2
+            id="how-heading"
+            className="text-3xl font-medium tracking-tight text-balance sm:text-5xl"
+          >
             One brief. A campaign in motion.
           </h2>
-          <p className="mt-3 max-w-xl text-sm text-muted">
+          <p className="mt-4 max-w-xl text-base font-light text-muted">
             No chasing a printer, coordinating every task or asking where the photos went.
           </p>
         </div>
@@ -73,12 +76,12 @@ export function HowItWorks() {
               </span>
             </div>
             <div className="p-6">
-              <div className="mb-4 flex items-center gap-2 text-accent">
+              <div className="mb-4 flex items-center gap-2 text-muted">
                 <HugeiconsIcon icon={step.icon} size={16} aria-hidden />
                 <span className="eyebrow">{step.label}</span>
               </div>
-              <h3 className="text-xl font-medium tracking-tight">{step.title}</h3>
-              <p className="mt-3 text-sm text-muted">{step.text}</p>
+              <h3 className="text-xl font-medium tracking-tight text-balance">{step.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted">{step.text}</p>
             </div>
           </article>
         ))}
