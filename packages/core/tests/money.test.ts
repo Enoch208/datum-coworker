@@ -13,6 +13,7 @@ import {
   sumMoney,
   toWireMoney,
   zeroMoney,
+  evenShare,
 } from "../src/money";
 
 const sgd = (amountMinor: number): Money => ({ amountMinor, currency: "SGD" });
@@ -150,5 +151,19 @@ describe("wire money", () => {
 
   it("refuses a malformed wire amount", () => {
     expect(() => fromWireMoney({ amount: "37.805", currency: "SGD" })).toThrow(MoneyError);
+  });
+});
+
+describe("evenShare", () => {
+  it("splits a trip's cost into equal per-spot shares", () => {
+    expect(evenShare({ amountMinor: 1_500, currency: "SGD" }, 3)).toEqual({
+      amountMinor: 500,
+      currency: "SGD",
+    });
+  });
+
+  it("refuses a split that would need fractions of a cent", () => {
+    expect(() => evenShare({ amountMinor: 1_000, currency: "SGD" }, 3)).toThrow(RangeError);
+    expect(() => evenShare({ amountMinor: 1_000, currency: "SGD" }, 0)).toThrow(RangeError);
   });
 });

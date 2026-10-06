@@ -3,6 +3,7 @@ import type { AuditEventRow } from "@datum/db";
 import { z } from "zod";
 import { describe, moneyPayload as money, plural, type Describers } from "./describe";
 import { executionDescribers } from "./timeline-execution";
+import { loopDescribers } from "./timeline-loop";
 
 const status = z.enum(campaignStatuses);
 
@@ -87,7 +88,7 @@ const planningDescribers: Describers = {
   ),
 };
 
-const describers: Describers = { ...planningDescribers, ...executionDescribers };
+const describers: Describers = { ...planningDescribers, ...executionDescribers, ...loopDescribers };
 
 export function toTimelineEvent(event: AuditEventRow): TimelineEventView {
   const describer = describers[event.type];

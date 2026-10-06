@@ -1,4 +1,9 @@
-import { localEnrolledRunner, runLoopPass, type PassReport } from "@datum/api/goal-loop";
+import {
+  createAnthropicRecoveryPlanner,
+  localEnrolledRunner,
+  runLoopPass,
+  type PassReport,
+} from "@datum/api/goal-loop";
 import { createDb } from "@datum/db";
 import { loadWorkerEnv } from "./env";
 import { runUntilAborted } from "./loop";
@@ -10,6 +15,10 @@ const deps = {
   appBaseUrl: env.appBaseUrl,
   rates: env.rates,
   executor: localEnrolledRunner({ db, appBaseUrl: env.appBaseUrl, rates: env.rates }),
+  planner:
+    env.anthropicApiKey === null
+      ? null
+      : createAnthropicRecoveryPlanner({ apiKey: env.anthropicApiKey }),
   now: () => new Date(),
 };
 

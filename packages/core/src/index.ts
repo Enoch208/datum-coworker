@@ -11,6 +11,7 @@ export * from "./goal";
 export * from "./transitions";
 export * from "./recovery";
 export * from "./remediation";
+export * from "./recovery-plan";
 export * from "./receipt";
 export * from "./playbook";
 export * from "./estimate";

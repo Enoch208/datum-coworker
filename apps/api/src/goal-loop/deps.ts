@@ -1,10 +1,12 @@
 import type { CostRates, PhysicalExecutor } from "@datum/core";
 import type { Db } from "@datum/db";
+import type { PlannerModel } from "../planner/model";
 
 export interface LoopDeps {
   readonly db: Db;
   readonly appBaseUrl: string;
   readonly rates: CostRates;
   readonly executor: PhysicalExecutor;
+  readonly planner: PlannerModel | null;
   readonly now: () => Date;
 }

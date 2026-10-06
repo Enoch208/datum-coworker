@@ -3,6 +3,7 @@ import type { CampaignStatus, Money, TimelineEventView } from "@datum/core";
 import { auditEvents, type Executor } from "@datum/db";
 import { toTimelineEvent } from "../views/timeline";
 import type { ExecutionAuditEvent } from "./execution-audit";
+import type { LoopAuditEvent } from "./loop-audit";
 
 type PlanningAuditEvent =
   | {
@@ -49,7 +50,7 @@ type PlanningAuditEvent =
       };
     };
 
-export type AuditEvent = PlanningAuditEvent | ExecutionAuditEvent;
+export type AuditEvent = PlanningAuditEvent | ExecutionAuditEvent | LoopAuditEvent;
 
 export async function recordAudit(
   db: Executor,

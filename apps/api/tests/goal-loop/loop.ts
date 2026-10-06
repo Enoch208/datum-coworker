@@ -12,6 +12,7 @@ export function loopDeps(overrides: Partial<LoopDeps> = {}): LoopDeps {
     appBaseUrl,
     rates: testCostRates,
     executor: localEnrolledRunner({ db: target, appBaseUrl, rates: testCostRates }),
+    planner: null,
     now: () => new Date(),
     ...overrides,
   };
@@ -52,6 +53,31 @@ export async function passStoppedMidway(creations: number): Promise<unknown> {
   const controller = new AbortController();
   const deps = loopDeps();
   const stopping = { ...deps, executor: abortingAfter(creations, controller, deps) };
+  return runLoopPass(stopping, controller.signal).then(
+    () => new Error("the pass finished instead of stopping"),
+    (thrown: unknown) => thrown,
+  );
+}
+
+export function abortingBeforeCreate(
+  controller: AbortController,
+  deps: LoopDeps = loopDeps(),
+): PhysicalExecutor {
+  const real = deps.executor;
+  return {
+    ...abortingAfter(Number.POSITIVE_INFINITY, controller, deps),
+    createTask: (draft) => {
+      controller.abort();
+      controller.signal.throwIfAborted();
+      return real.createTask(draft);
+    },
+  };
+}
+
+export async function passStoppedBeforeCreating(): Promise<unknown> {
+  const controller = new AbortController();
+  const deps = loopDeps();
+  const stopping = { ...deps, executor: abortingBeforeCreate(controller, deps) };
   return runLoopPass(stopping, controller.signal).then(
     () => new Error("the pass finished instead of stopping"),
     (thrown: unknown) => thrown,

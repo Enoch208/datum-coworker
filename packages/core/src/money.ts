@@ -85,6 +85,17 @@ export const multiplyMoney = (money: Money, factor: number): Money => {
   return { amountMinor, currency: money.currency };
 };
 
+const formatMinor = (money: Money): string => `${String(money.amountMinor)} minor units`;
+
+export const evenShare = (money: Money, parts: number): Money => {
+  assertMinorUnits(money);
+  const amountMinor = money.amountMinor / parts;
+  if (!Number.isSafeInteger(parts) || parts < 1 || !Number.isSafeInteger(amountMinor)) {
+    throw new RangeError(`${formatMinor(money)} does not split evenly into ${String(parts)}`);
+  }
+  return { amountMinor, currency: money.currency };
+};
+
 export const compareMoney = (left: Money, right: Money): -1 | 0 | 1 => {
   checkedPair(left, right);
   if (left.amountMinor < right.amountMinor) return -1;

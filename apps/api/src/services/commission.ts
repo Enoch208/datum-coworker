@@ -21,13 +21,17 @@ export interface CommissionSource {
 
 const firstAttempt = 1;
 
-const sentence = (text: string): string => (/[.!?]$/.test(text) ? text : `${text}.`);
+export const sentence = (text: string): string => (/[.!?]$/.test(text) ? text : `${text}.`);
+
+export const placementCardUrl = (
+  appBaseUrl: string,
+  campaignId: string,
+  assetVersion: number,
+  spotCode: string,
+): string => cardAssetUrl(appBaseUrl, cardAssetKey(campaignId, assetVersion, spotCode, "pdf"));
 
 const cardPdf = (source: CommissionSource, spotCode: string): string =>
-  cardAssetUrl(
-    source.appBaseUrl,
-    cardAssetKey(source.campaignId, source.assetVersion, spotCode, "pdf"),
-  );
+  placementCardUrl(source.appBaseUrl, source.campaignId, source.assetVersion, spotCode);
 
 const printInstructions = (source: CommissionSource, copies: number): string => {
   const codes = source.spots.map((spot) => spot.code);
@@ -42,7 +46,7 @@ const printInstructions = (source: CommissionSource, copies: number): string => 
     .join(" ");
 };
 
-const placeInstructions = (spot: SpotRow): string =>
+export const placeInstructions = (spot: SpotRow): string =>
   [
     `Place Spot ${spot.code}'s card at ${sentence(spot.name)}`,
     sentence(spot.instructions),

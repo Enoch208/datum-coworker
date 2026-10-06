@@ -26,7 +26,7 @@ export class PlannerModelError extends Error {
   }
 }
 
-const outputSchema = betaZodOutputFormat(plannerOutputSchema).schema;
+export type OutputSchema = ReturnType<typeof betaZodOutputFormat>["schema"];
 
 const parsedJson = (text: string): unknown => {
   try {
@@ -39,7 +39,7 @@ const parsedJson = (text: string): unknown => {
   }
 };
 
-const askModel = async (client: Anthropic, prompt: PlannerPrompt) => {
+const askModel = async (client: Anthropic, prompt: PlannerPrompt, outputSchema: OutputSchema) => {
   try {
     return await client.beta.messages.create({
       model: plannerModelId,
@@ -65,16 +65,27 @@ export interface AnthropicPlannerOptions {
   readonly fetch?: typeof fetch;
 }
 
-export function createAnthropicPlannerModel(options: AnthropicPlannerOptions): PlannerModel {
+export interface CallLimits {
+  readonly timeoutMs: number;
+  readonly maxRetries: number;
+}
+
+const planningLimits: CallLimits = { timeoutMs: 120_000, maxRetries: 2 };
+
+export function createStructuredModel(
+  options: AnthropicPlannerOptions,
+  outputSchema: OutputSchema,
+  limits: CallLimits = planningLimits,
+): PlannerModel {
   const client = new Anthropic({
     apiKey: options.apiKey,
-    timeout: 120_000,
-    maxRetries: 2,
+    timeout: limits.timeoutMs,
+    maxRetries: limits.maxRetries,
     ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
   });
   return {
     async propose(prompt) {
-      const response = await askModel(client, prompt);
+      const response = await askModel(client, prompt, outputSchema);
       if (response.stop_reason === "refusal") {
         throw new PlannerModelError("REFUSED", "The planner declined to plan this campaign");
       }
@@ -89,3 +100,6 @@ export function createAnthropicPlannerModel(options: AnthropicPlannerOptions): P
     },
   };
 }
+
+export const createAnthropicPlannerModel = (options: AnthropicPlannerOptions): PlannerModel =>
+  createStructuredModel(options, betaZodOutputFormat(plannerOutputSchema).schema);

@@ -5,6 +5,7 @@ import type {
   Money,
   PhysicalTaskType,
 } from "@datum/core";
+import type { RecoveryOverBudget } from "./loop-audit";
 
 interface TaskSubject {
   taskId: string;
@@ -25,7 +26,8 @@ export interface BudgetFacts {
 
 export type ApprovalRequest =
   | { reason: "OVER_BUDGET"; estimated: Money; budget: Money; shortfall: Money }
-  | (Omit<BudgetFacts, "stage"> & { reason: "PLACEMENTS_OVER_BUDGET"; shortfall: Money });
+  | (Omit<BudgetFacts, "stage"> & { reason: "PLACEMENTS_OVER_BUDGET"; shortfall: Money })
+  | RecoveryOverBudget;
 
 interface ExpenseDecided {
   expenseId: string;
@@ -50,7 +52,10 @@ export type ExecutionAuditEvent =
       payload: TaskSubject & { adapter: ExecutorAdapter; runnerId: string; runnerName: string };
     }
   | { type: "TASK_ACCEPTED"; payload: TaskSubject & { runnerName: string } }
-  | { type: "TASK_COMPLETED"; payload: TaskSubject & { runnerName: string } }
+  | {
+      type: "TASK_COMPLETED";
+      payload: TaskSubject & ({ runnerName: string } | { closedBy: "DATUM"; evidenceId: string });
+    }
   | { type: "TASK_CANCELLED"; payload: TaskSubject }
   | { type: "TASK_EXPIRED"; payload: TaskSubject & { attempt: number; released: Money } }
   | { type: "BUDGET_CHECKED"; payload: BudgetFacts }

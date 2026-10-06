@@ -1,6 +1,6 @@
 import { confirmedSpend, type LedgerExpense } from "./budget";
 import {
-  openTaskStatuses,
+  isOpenTaskStatus,
   type EvidenceFailure,
   type EvidenceVerdict,
   type GoalLoopStopStatus,
@@ -72,10 +72,8 @@ export interface GoalEvaluation {
   stop: GoalLoopStopStatus | null;
 }
 
-const openStatuses: ReadonlySet<PhysicalTaskStatus> = new Set(openTaskStatuses);
-
 export const attemptStateOf = (status: PhysicalTaskStatus): AttemptState => {
-  if (openStatuses.has(status)) return "OPEN";
+  if (isOpenTaskStatus(status)) return "OPEN";
   if (status === "COMPLETED" || status === "EXPIRED" || status === "CANCELLED") return status;
   throw new RangeError(`Task status ${status} is neither open nor closed`);
 };

@@ -7,6 +7,7 @@ import {
 } from "@datum/core";
 import { z } from "zod";
 import { describe, moneyPayload as money, plural, type Describers } from "./describe";
+import { recoveryOverBudget, recoveryOverBudgetWords } from "./timeline-loop";
 
 const task = z.object({
   taskId: z.string(),
@@ -18,6 +19,8 @@ const taskName = (subject: z.output<typeof task>): string =>
   subject.spotCode === null ? "the print run" : `the Spot ${subject.spotCode} placement`;
 
 const decided = z.object({ amount: money, explanation: z.string() });
+
+const closedByDatum = task.extend({ closedBy: z.literal("DATUM"), evidenceId: z.string() });
 
 const budgetFacts = z.object({
   tasks: z.int(),
@@ -39,7 +42,11 @@ const placementsOverBudget = budgetFacts.extend({
   shortfall: money,
 });
 
-const approvalRequest = z.discriminatedUnion("reason", [planOverBudget, placementsOverBudget]);
+const approvalRequest = z.discriminatedUnion("reason", [
+  planOverBudget,
+  placementsOverBudget,
+  recoveryOverBudget,
+]);
 
 const spare = (facts: z.output<typeof budgetFacts>) =>
   formatMoney(
@@ -56,10 +63,12 @@ const budgetCheckSummary = (
     ? `Checked the approved plan's ${formatMoney(p.estimated)} estimate against the ${formatMoney(p.budget)} budget: it fits, so the print run goes first and the placements follow once its spend is confirmed`
     : `Print spend is confirmed at ${formatMoney(p.confirmedSpend)}; the ${plural(p.tasks, "placement")} need ${formatMoney(p.estimated)}, which fits the ${formatMoney(p.budget)} budget with ${spare(p)} to spare, so they go out now`;
 
-const approvalSummary = (p: z.output<typeof approvalRequest>): string =>
-  p.reason === "OVER_BUDGET"
+const approvalSummary = (p: z.output<typeof approvalRequest>): string => {
+  if (p.reason === "RECOVERY_OVER_BUDGET") return recoveryOverBudgetWords(p);
+  return p.reason === "OVER_BUDGET"
     ? `Stopped before commissioning anything: the approved plan needs ${formatMoney(p.estimated)}, ${formatMoney(p.shortfall)} more than the ${formatMoney(p.budget)} budget, so it needs the customer's approval`
     : `Stopped before sending the placements: ${formatMoney(p.confirmedSpend)} is confirmed for printing and the ${plural(p.tasks, "placement")} need ${formatMoney(p.estimated)}, ${formatMoney(p.shortfall)} over the ${formatMoney(p.budget)} budget, so they need the customer's approval`;
+};
 
 export const executionDescribers: Describers = {
   TASK_CREATED: describe(
@@ -78,11 +87,20 @@ export const executionDescribers: Describers = {
     "RUNNER",
     (p) => `${p.runnerName} accepted ${taskName(p)}`,
   ),
-  TASK_COMPLETED: describe(
-    task.extend({ runnerName: z.string() }),
-    "RUNNER",
-    (p) => `${p.runnerName} marked ${taskName(p)} done`,
-  ),
+  TASK_COMPLETED: (payload) => {
+    const closed = closedByDatum.safeParse(payload);
+    if (closed.success) {
+      return {
+        actor: "DATUM_RULES",
+        summary: `Closed ${taskName(closed.data)}: its photo passed, so the placement is accepted and its agreed fee is owed`,
+      };
+    }
+    return describe(
+      task.extend({ runnerName: z.string() }),
+      "RUNNER",
+      (p) => `${p.runnerName} marked ${taskName(p)} done`,
+    )(payload);
+  },
   TASK_CANCELLED: describe(task, "DATUM_RULES", (p) => `Cancelled ${taskName(p)}`),
   TASK_EXPIRED: describe(
     task.extend({ attempt: z.int(), released: money }),

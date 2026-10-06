@@ -6,6 +6,7 @@ import { recordAudit } from "./audit";
 
 export interface StatusSideEffects {
   readonly approvedAt?: Date | null;
+  readonly completedAt?: Date;
 }
 
 export async function moveStatus(
@@ -35,4 +36,17 @@ export async function lockCampaign(db: Executor, campaignId: string): Promise<Ca
     .for("update");
   if (campaign === undefined) throw notFound("Campaign", campaignId);
   return campaign;
+}
+
+export async function moveThrough(
+  db: Executor,
+  campaignId: string,
+  path: readonly CampaignStatus[],
+  sideEffects: StatusSideEffects = {},
+): Promise<void> {
+  for (const [index, from] of path.slice(0, -1).entries()) {
+    const to = path[index + 1];
+    if (to === undefined) break;
+    await moveStatus(db, campaignId, from, to, index === path.length - 2 ? sideEffects : {});
+  }
 }

@@ -70,6 +70,11 @@ export const openTaskStatuses = [
   "SUBMITTED",
 ] as const satisfies readonly PhysicalTaskStatus[];
 
+const openTaskStatusSet: ReadonlySet<PhysicalTaskStatus> = new Set(openTaskStatuses);
+
+export const isOpenTaskStatus = (status: PhysicalTaskStatus): boolean =>
+  openTaskStatusSet.has(status);
+
 export const executorAdapters = ["LOCAL_ENROLLED_RUNNER", "RENTAHUMAN"] as const;
 export type ExecutorAdapter = (typeof executorAdapters)[number];
 
@@ -107,6 +112,8 @@ export const auditEventTypes = [
   "BUDGET_CHECKED",
   "GOAL_EVALUATED",
   "GAP_DETECTED",
+  "REMEDIATION_PROPOSED",
+  "REMEDIATION_FALLBACK",
   "RECOVERY_CREATED",
   "APPROVAL_REQUESTED",
   "RECEIPT_PUBLISHED",

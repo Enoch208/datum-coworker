@@ -50,6 +50,13 @@
       "when": 1791288166695,
       "tag": "0006_agreed_fees",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791288704194,
+      "tag": "0007_remediation_decisions",
+      "breakpoints": true
     }
   ]
 }
