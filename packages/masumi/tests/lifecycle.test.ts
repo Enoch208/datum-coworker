@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { minuteMs } from "../src/constants";
 import { isAsciiSafeResult, sokosumiResultHash } from "../src/hash";
+import type { LifecycleDeps } from "../src/lifecycle/deps";
 import { recordedSeller, recordedTxs } from "./fixtures/mps-payment";
 import { ProcessKilled } from "./support/clock";
 import { scenario } from "./support/scenario";
@@ -115,6 +116,42 @@ describe("restart after a kill", () => {
     await run();
     expect(world.calls).toEqual({ start: 1, terms: 1, attach: 1, submit: 1, complete: 1 });
     expect(evidence.rows.get(world.taskId)?.collectionConfirmed).toBe(true);
+  });
+
+  it("adopts the saved result bytes after a crash between the file write and result_saved", async () => {
+    const { clock, world, directory, deps, run } = await scenario();
+    const firstText = "Datum result from the first process.";
+    let produced = 0;
+    const producing = (base: LifecycleDeps): LifecycleDeps => ({
+      ...base,
+      produceResult: () => {
+        produced += 1;
+        return produced === 1 ? firstText : "Datum result from a second, different run.";
+      },
+    });
+    const first = producing(deps());
+    const crashing: LifecycleDeps = {
+      ...first,
+      journal: {
+        ...first.journal,
+        saveResult: async (taskId, text) => {
+          await first.journal.saveResult(taskId, text);
+          clock.killWhen = () => true;
+          throw new Error("process died after writing the result file");
+        },
+      },
+    };
+    await expect(run(crashing)).rejects.toThrow(ProcessKilled);
+    expect((await first.journal.load(world.taskId))?.step).toBe("funds_locked");
+    expect(produced).toBe(1);
+
+    clock.killWhen = () => false;
+    const verified = await run(producing(deps()));
+    expect(produced).toBe(1);
+    expect(verified.result.text).toBe(firstText);
+    expect(verified.result.hash).toBe(sokosumiResultHash(firstText, verified.nonce));
+    expect(await readFile(join(directory, `${world.taskId}.result.txt`), "utf8")).toBe(firstText);
+    expect(world.submitted?.hash).toBe(verified.result.hash);
   });
 
   it("never requests new terms once terms are attached", async () => {

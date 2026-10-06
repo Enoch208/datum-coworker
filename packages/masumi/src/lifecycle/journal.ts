@@ -8,6 +8,7 @@ export interface Journal {
   load(taskId: string): Promise<LifecycleState | null>;
   save(state: LifecycleState): Promise<void>;
   saveResult(taskId: string, text: string): Promise<void>;
+  loadResult(taskId: string): Promise<string | null>;
   lock(taskId: string): Promise<() => Promise<void>>;
 }
 
@@ -46,6 +47,7 @@ export function createFileJournal(directory: string): Journal {
     save: (state) =>
       writePrivateFile(directory, fileFor(state.taskId, ".json"), JSON.stringify(state, null, 2)),
     saveResult: (taskId, text) => writePrivateFile(directory, fileFor(taskId, ".result.txt"), text),
+    loadResult: (taskId) => readIfExists(fileFor(taskId, ".result.txt")),
     async lock(taskId) {
       await mkdir(directory, { recursive: true, mode: 0o700 });
       const path = fileFor(taskId, ".lock");
