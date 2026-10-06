@@ -15,7 +15,9 @@ import { advanceExecution } from "./execution";
 import { completeCampaign, expireCampaign } from "./finish";
 import { needsRecovery, recordGaps } from "./gaps";
 import { evaluateCampaign } from "./goal";
-import { closeVerifiedPlacements, expireOverdueTasks } from "./reconcile";
+import { closeDeliveredTasks, overdueAt } from "./delivered";
+import { expireOverdueTasks } from "./reconcile";
+import { releaseStrandedTasks } from "./stranded";
 
 type Judged = "EXECUTING" | "VERIFYING" | "REMEDIATING";
 
@@ -93,6 +95,10 @@ async function step(
         await judge(deps, campaignId, status, signal);
         return;
       }
+      if (await deadlinePassed(deps, campaignId)) {
+        await expireCampaign(deps, campaignId, signal, pending.id);
+        return;
+      }
       const target = executableOf(await campaignParts(deps.db, campaignId));
       await applyDecision(
         deps,
@@ -121,8 +127,9 @@ export async function tickCampaign(
     .where(eq(campaigns.id, campaignId));
   if (campaign === undefined || !isLoopStatus(campaign.status)) return;
   const now = deps.now();
-  await closeVerifiedPlacements(deps.db, campaignId, now, now);
+  await closeDeliveredTasks(deps.db, campaignId, now, overdueAt(now));
   await expireOverdueTasks(deps.db, campaignId, now);
+  await releaseStrandedTasks(deps, campaignId, now, signal);
   await settleCompletedPlacements(deps.db, campaignId);
   await refreshCampaignSpots(deps.db, campaignId);
   signal.throwIfAborted();

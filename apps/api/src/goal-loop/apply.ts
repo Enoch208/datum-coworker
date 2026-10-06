@@ -5,6 +5,7 @@ import { recordAudit } from "../services/audit";
 import { refreshSpotOutcome } from "../services/spot-outcomes";
 import { placeInstructions, placementCardUrl, sentence } from "../services/commission";
 import { lockCampaign, moveStatus } from "../services/status";
+import { commissionTask } from "./commission";
 import type { LoopDeps } from "./deps";
 import { markApplied } from "./decisions";
 import { expireCampaign } from "./finish";
@@ -66,7 +67,7 @@ async function dispatchAccepted(
   for (const action of decision.actions) {
     for (const draft of await recoveryDrafts(deps, campaignId, assetVersion, action)) {
       signal.throwIfAborted();
-      await deps.executor.createTask(draft);
+      if (!(await commissionTask(deps, draft))) return;
     }
   }
   signal.throwIfAborted();

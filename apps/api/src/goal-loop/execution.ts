@@ -1,11 +1,14 @@
 import {
   checkBudget,
   confirmedSpend,
+  isOpenTaskStatus,
+  printKey,
   sumMoney,
   type Money,
   type PhysicalTaskDraft,
 } from "@datum/core";
 import { recordAudit } from "../services/audit";
+import { recordUnlessRepeated } from "./once";
 import { campaignParts } from "../services/campaigns";
 import type { BudgetStage } from "../services/execution-audit";
 import {
@@ -17,10 +20,11 @@ import {
 } from "../services/execution-plan";
 import { moveStatus } from "../services/status";
 import type { CampaignParts } from "../views/campaigns";
+import { commissionTask } from "./commission";
 import type { LoopDeps } from "./deps";
 
 export type ExecutionProgress =
-  "AWAITING_PRINT" | "COMMISSIONED" | "PLACEMENTS_OUT" | "NEEDS_APPROVAL";
+  "AWAITING_PRINT" | "AWAITING_RUNNER" | "COMMISSIONED" | "PLACEMENTS_OUT" | "NEEDS_APPROVAL";
 
 interface Stage {
   readonly name: BudgetStage;
@@ -49,7 +53,12 @@ async function requestApproval(
       payload:
         stage === "PLAN"
           ? { reason: "OVER_BUDGET", estimated: facts.estimated, budget, shortfall }
-          : { reason: "PLACEMENTS_OVER_BUDGET", ...facts, budget, shortfall },
+          : {
+              reason: stage === "PRINT_RETRY" ? "REPRINT_OVER_BUDGET" : "PLACEMENTS_OVER_BUDGET",
+              ...facts,
+              budget,
+              shortfall,
+            },
     });
   });
 }
@@ -75,26 +84,33 @@ async function commissionStage(
     await requestApproval(deps, campaignId, facts, budget, decision.shortfall, stage.name);
     return "NEEDS_APPROVAL";
   }
-  await recordAudit(deps.db, campaignId, {
+  await recordUnlessRepeated(deps.db, campaignId, {
     type: "BUDGET_CHECKED",
     payload: { stage: stage.name, ...facts, budget },
   });
   for (const draft of stage.create) {
-    await deps.executor.createTask(draft);
+    if (!(await commissionTask(deps, draft))) return "AWAITING_RUNNER";
     signal.throwIfAborted();
   }
   return "COMMISSIONED";
 }
 
+const printTasks = (parts: CampaignParts) =>
+  parts.tasks.filter(({ task }) => task.type === "PRINT_AND_COLLECT").map(({ task }) => task);
+
 const printSettled = (parts: CampaignParts): boolean =>
-  parts.tasks.some(
-    ({ task }) =>
-      task.type === "PRINT_AND_COLLECT" &&
+  printTasks(parts).some(
+    (task) =>
       task.status === "COMPLETED" &&
       parts.expenses.some(
         (expense) => expense.physicalTaskId === task.id && expense.status === "CONFIRMED",
       ),
   );
+
+const nextPrint = (parts: CampaignParts, print: PhysicalTaskDraft): PhysicalTaskDraft => {
+  const attempt = printTasks(parts).length + 1;
+  return { ...print, attempt, idempotencyKey: printKey(parts.campaign.id, attempt) };
+};
 
 export async function advanceExecution(
   deps: LoopDeps,
@@ -105,18 +121,24 @@ export async function advanceExecution(
   const target = executableOf(parts);
   const keys = new Set(parts.tasks.map(({ task }) => task.idempotencyKey));
   const drafts = plannedDrafts(parts, target, deps.appBaseUrl);
-  const unsent = drafts.filter((draft) => !keys.has(draft.idempotencyKey));
-  const print = unsent.filter(isPrintDraft);
-  if (print.length > 0) {
+  const unsent = drafts.filter((draft) => !isPrintDraft(draft) && !keys.has(draft.idempotencyKey));
+  if (!printSettled(parts)) {
+    if (printTasks(parts).some((task) => isOpenTaskStatus(task.status))) return "AWAITING_PRINT";
+    const [print] = drafts.filter(isPrintDraft);
+    if (print === undefined) throw new Error(`Campaign ${campaignId} has no print step`);
+    const reprint = nextPrint(parts, print);
     return commissionStage(
       deps,
       parts,
       target,
-      { name: "PLAN", estimate: unsent, create: print },
+      {
+        name: reprint.attempt === 1 ? "PLAN" : "PRINT_RETRY",
+        estimate: [reprint, ...unsent],
+        create: [reprint],
+      },
       signal,
     );
   }
-  if (!printSettled(parts)) return "AWAITING_PRINT";
   if (unsent.length === 0) return "PLACEMENTS_OUT";
   return commissionStage(
     deps,

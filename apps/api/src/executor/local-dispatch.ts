@@ -1,4 +1,4 @@
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, gte } from "drizzle-orm";
 import type { ExecutorTaskRef, PhysicalTaskDraft } from "@datum/core";
 import {
   physicalTasks,
@@ -13,20 +13,29 @@ import { recordAudit } from "../services/audit";
 export const localAdapter = "LOCAL_ENROLLED_RUNNER" as const;
 
 export class NoRunnerAvailableError extends Error {
-  constructor() {
-    super("No enrolled runner has an active, unexpired inbox link");
+  readonly dueBy: string;
+
+  constructor(dueBy: string) {
+    super(`No enrolled runner has an active inbox link that lasts until ${dueBy}`);
     this.name = "NoRunnerAvailableError";
+    this.dueBy = dueBy;
   }
 }
 
-async function availableRunner(db: Executor): Promise<RunnerRow> {
+async function availableRunner(db: Executor, dueBy: string): Promise<RunnerRow> {
   const [runner] = await db
     .select()
     .from(runners)
-    .where(and(eq(runners.active, true), gt(runners.tokenExpiresAt, new Date())))
+    .where(
+      and(
+        eq(runners.active, true),
+        gt(runners.tokenExpiresAt, new Date()),
+        gte(runners.tokenExpiresAt, new Date(dueBy)),
+      ),
+    )
     .orderBy(desc(runners.createdAt), desc(runners.id))
     .limit(1);
-  if (runner === undefined) throw new NoRunnerAvailableError();
+  if (runner === undefined) throw new NoRunnerAvailableError(dueBy);
   return runner;
 }
 
@@ -54,7 +63,7 @@ async function taskByKey(db: Executor, idempotencyKey: string): Promise<Physical
 }
 
 async function insertTask(db: Executor, draft: PhysicalTaskDraft): Promise<void> {
-  const runner = await availableRunner(db);
+  const runner = await availableRunner(db, draft.dueBy);
   const [task] = await db
     .insert(physicalTasks)
     .values({

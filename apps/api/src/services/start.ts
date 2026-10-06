@@ -49,7 +49,10 @@ async function commission(deps: ApiDeps, db: Executor, drafts: readonly Physical
     for (const draft of drafts) await executor.createTask(draft);
   } catch (error) {
     if (error instanceof NoRunnerAvailableError) {
-      throw conflict("NO_RUNNER", "Enroll a runner with an active link before starting");
+      throw conflict(
+        "NO_RUNNER",
+        "Enroll a runner whose link stays active until the campaign deadline before starting",
+      );
     }
     throw error;
   }

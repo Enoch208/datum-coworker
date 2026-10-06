@@ -1,13 +1,7 @@
-import {
-  evidenceFailures,
-  evidenceVerdicts,
-  formatMoney,
-  physicalTaskTypes,
-  subtractMoney,
-} from "@datum/core";
+import { evidenceFailures, evidenceVerdicts, formatMoney, physicalTaskTypes } from "@datum/core";
 import { z } from "zod";
-import { describe, moneyPayload as money, plural, type Describers } from "./describe";
-import { recoveryOverBudget, recoveryOverBudgetWords } from "./timeline-loop";
+import { budgetDescribers } from "./timeline-budget";
+import { describe, moneyPayload as money, type Describers } from "./describe";
 
 const task = z.object({
   taskId: z.string(),
@@ -15,62 +9,35 @@ const task = z.object({
   spotCode: z.string().nullable(),
 });
 
-const taskName = (subject: z.output<typeof task>): string =>
+const taskName = (subject: Pick<z.output<typeof task>, "spotCode">): string =>
   subject.spotCode === null ? "the print run" : `the Spot ${subject.spotCode} placement`;
 
 const decided = z.object({ amount: money, explanation: z.string() });
 
-const closedByDatum = task.extend({ closedBy: z.literal("DATUM"), evidenceId: z.string() });
+const closedByDatum = task.extend({ closedBy: z.literal("DATUM"), proofId: z.string() });
 
-const budgetFacts = z.object({
-  tasks: z.int(),
-  estimated: money,
-  confirmedSpend: money,
-  committedSpend: money,
-  budget: money,
-});
+const proofWords = (subject: z.output<typeof task>): string =>
+  subject.type === "PLACE_SPOT"
+    ? "its photo passed, so the placement is accepted and its agreed fee is owed"
+    : "its receipt is confirmed, so the cards are printed and paid for";
 
-const planOverBudget = z.object({
-  reason: z.literal("OVER_BUDGET"),
-  estimated: money,
-  budget: money,
-  shortfall: money,
-});
-
-const placementsOverBudget = budgetFacts.extend({
-  reason: z.literal("PLACEMENTS_OVER_BUDGET"),
-  shortfall: money,
-});
-
-const approvalRequest = z.discriminatedUnion("reason", [
-  planOverBudget,
-  placementsOverBudget,
-  recoveryOverBudget,
+const runnerUnavailable = z.discriminatedUnion("kind", [
+  task.extend({ kind: z.literal("LINK_CLOSED"), attempt: z.int(), runnerName: z.string() }),
+  task.omit({ taskId: true }).extend({
+    kind: z.literal("NONE_AVAILABLE"),
+    attempt: z.int(),
+    idempotencyKey: z.string(),
+    dueBy: z.string(),
+  }),
 ]);
 
-const spare = (facts: z.output<typeof budgetFacts>) =>
-  formatMoney(
-    subtractMoney(
-      subtractMoney(subtractMoney(facts.budget, facts.confirmedSpend), facts.committedSpend),
-      facts.estimated,
-    ),
-  );
-
-const budgetCheckSummary = (
-  p: z.output<typeof budgetFacts> & { stage: "PLAN" | "PLACEMENTS" },
-): string =>
-  p.stage === "PLAN"
-    ? `Checked the approved plan's ${formatMoney(p.estimated)} estimate against the ${formatMoney(p.budget)} budget: it fits, so the print run goes first and the placements follow once its spend is confirmed`
-    : `Print spend is confirmed at ${formatMoney(p.confirmedSpend)}; the ${plural(p.tasks, "placement")} need ${formatMoney(p.estimated)}, which fits the ${formatMoney(p.budget)} budget with ${spare(p)} to spare, so they go out now`;
-
-const approvalSummary = (p: z.output<typeof approvalRequest>): string => {
-  if (p.reason === "RECOVERY_OVER_BUDGET") return recoveryOverBudgetWords(p);
-  return p.reason === "OVER_BUDGET"
-    ? `Stopped before commissioning anything: the approved plan needs ${formatMoney(p.estimated)}, ${formatMoney(p.shortfall)} more than the ${formatMoney(p.budget)} budget, so it needs the customer's approval`
-    : `Stopped before sending the placements: ${formatMoney(p.confirmedSpend)} is confirmed for printing and the ${plural(p.tasks, "placement")} need ${formatMoney(p.estimated)}, ${formatMoney(p.shortfall)} over the ${formatMoney(p.budget)} budget, so they need the customer's approval`;
-};
+const runnerUnavailableWords = (p: z.output<typeof runnerUnavailable>): string =>
+  p.kind === "LINK_CLOSED"
+    ? `${p.runnerName}'s link is no longer active, so Datum cancelled ${taskName(p)} (attempt ${String(p.attempt)}) to commission it again for another runner`
+    : `No enrolled runner has an active link that lasts until ${p.dueBy}, so ${taskName(p)} (attempt ${String(p.attempt)}) waits for one`;
 
 export const executionDescribers: Describers = {
+  ...budgetDescribers,
   TASK_CREATED: describe(
     task.extend({ attempt: z.int(), copies: z.int().nullable(), estimatedCost: money }),
     "DATUM_RULES",
@@ -92,7 +59,7 @@ export const executionDescribers: Describers = {
     if (closed.success) {
       return {
         actor: "DATUM_RULES",
-        summary: `Closed ${taskName(closed.data)}: its photo passed, so the placement is accepted and its agreed fee is owed`,
+        summary: `Closed ${taskName(closed.data)}: ${proofWords(closed.data)}`,
       };
     }
     return describe(
@@ -102,18 +69,13 @@ export const executionDescribers: Describers = {
     )(payload);
   },
   TASK_CANCELLED: describe(task, "DATUM_RULES", (p) => `Cancelled ${taskName(p)}`),
+  RUNNER_UNAVAILABLE: describe(runnerUnavailable, "DATUM_RULES", runnerUnavailableWords),
   TASK_EXPIRED: describe(
     task.extend({ attempt: z.int(), released: money }),
     "DATUM_RULES",
     (p) =>
       `Closed ${taskName(p)} (attempt ${String(p.attempt)}) as expired: it passed its due time${p.released.amountMinor > 0 ? `, so its ${formatMoney(p.released)} hold on the budget is released` : ""}`,
   ),
-  BUDGET_CHECKED: describe(
-    budgetFacts.extend({ stage: z.enum(["PLAN", "PLACEMENTS"]) }),
-    "DATUM_RULES",
-    budgetCheckSummary,
-  ),
-  APPROVAL_REQUESTED: describe(approvalRequest, "DATUM_RULES", approvalSummary),
   EVIDENCE_RECEIVED: describe(
     z.object({ spotCode: z.string(), runnerName: z.string() }),
     "RUNNER",

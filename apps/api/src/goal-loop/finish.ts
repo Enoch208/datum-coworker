@@ -8,7 +8,7 @@ import type { LoopDeps } from "./deps";
 import { markApplied } from "./decisions";
 import { goalEvaluated } from "./gaps";
 import { evaluateCampaign } from "./goal";
-import { closeVerifiedPlacements, openTasks } from "./reconcile";
+import { closeDeliveredTasks, everyTask, openTasks } from "./delivered";
 
 const pathToCompleted: Partial<Record<CampaignStatus, CampaignStatus[]>> = {
   EXECUTING: ["EXECUTING", "VERIFYING", "COMPLETED"],
@@ -17,7 +17,7 @@ const pathToCompleted: Partial<Record<CampaignStatus, CampaignStatus[]>> = {
 };
 
 async function cancelOpenTasks(deps: LoopDeps, campaignId: string, signal: AbortSignal) {
-  for (const task of await openTasks(deps.db, campaignId)) {
+  for (const { task } of await openTasks(deps.db, campaignId)) {
     signal.throwIfAborted();
     await deps.executor.cancelTask({ adapter: task.adapter, externalRef: task.id });
   }
@@ -28,7 +28,7 @@ export async function completeCampaign(
   campaignId: string,
   signal: AbortSignal,
 ): Promise<boolean> {
-  await closeVerifiedPlacements(deps.db, campaignId, deps.now(), null);
+  await closeDeliveredTasks(deps.db, campaignId, deps.now(), everyTask);
   await cancelOpenTasks(deps, campaignId, signal);
   signal.throwIfAborted();
   return deps.db.transaction(async (tx) => {

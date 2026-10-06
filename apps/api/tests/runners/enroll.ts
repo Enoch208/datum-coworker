@@ -34,10 +34,12 @@ export interface EnrolledRunner {
   readonly token: string;
 }
 
+export const runnerLinkLifetimeMs = 2 * 86_400_000;
+
 export async function enrollTestRunner(name = "Ana"): Promise<EnrolledRunner> {
   const reply = await asOperator<EnrolledRunnerView>("POST", "/operator/runners", {
     name,
-    expiresAt: inFuture(),
+    expiresAt: inFuture(runnerLinkLifetimeMs),
   });
   expect(reply.status).toBe(201);
   const prefix = `${appBaseUrl}/r/`;
