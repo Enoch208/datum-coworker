@@ -92,7 +92,7 @@ export function BudgetRaise({
         submit();
       }}
     >
-      <h3 className="text-xl font-light tracking-tight text-ink">Raise the budget cap</h3>
+      <h3 className="text-xl font-normal tracking-tight text-ink">Raise the budget cap</h3>
       <dl className="grid grid-cols-3 gap-4">
         <Figure label="Approved cap" money={current} />
         <Figure label="Shortfall" money={verdict?.shortfall ?? null} />

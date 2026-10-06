@@ -31,7 +31,7 @@ function BudgetBar({ ledger }: { ledger: LedgerView }) {
   const confirmed = share(ledger.confirmedSpend, ledger.approvedBudget);
   const committed = Math.min(1 - confirmed, share(ledger.committedSpend, ledger.approvedBudget));
   return (
-    <div className="mt-6 flex h-2.5 overflow-hidden rounded-full bg-line" aria-hidden>
+    <div className="mt-6 flex h-2.5 overflow-hidden rounded-full bg-line-strong" aria-hidden>
       <div className="h-full bg-ink" style={{ width: percent(confirmed) }} />
       <div className="h-full bg-muted/45" style={{ width: percent(committed) }} />
     </div>
@@ -46,7 +46,7 @@ function LedgerBody({ ledger, tasks }: { ledger: LedgerView; tasks: readonly Tas
         <span
           className={cx(
             "font-mono text-4xl font-light tracking-tight tabular-nums",
-            over ? "text-danger" : "text-accent",
+            over ? "text-danger" : "text-ink",
           )}
         >
           {formatWireMoney(ledger.remaining)}
@@ -65,10 +65,14 @@ function LedgerBody({ ledger, tasks }: { ledger: LedgerView; tasks: readonly Tas
       )}
       <BudgetBar ledger={ledger} />
       <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
-        <Figure label="Approved" money={ledger.approvedBudget} swatch="bg-line-strong" />
+        <Figure
+          label="Approved"
+          money={ledger.approvedBudget}
+          swatch="ring-1 ring-muted ring-inset"
+        />
         <Figure label="Confirmed" money={ledger.confirmedSpend} swatch="bg-ink" />
         <Figure label="Committed" money={ledger.committedSpend} swatch="bg-muted/45" />
-        <Figure label="Remaining" money={ledger.remaining} swatch="bg-accent" />
+        <Figure label="Remaining" money={ledger.remaining} swatch="bg-line-strong" />
       </dl>
       <p className="mt-4 text-xs text-muted">
         Confirmed: backed by a checked receipt or an agreed fee. Committed: held for work that is
@@ -100,7 +104,7 @@ export function BudgetPanel({
       <SectionHeading id="budget-heading" title="Budget">
         <ByRules label="Ledger kept by rules" />
       </SectionHeading>
-      <p className="mt-2 max-w-2xl text-[15px] font-light text-muted">
+      <p className="mt-2 max-w-2xl text-[15px] text-pretty text-muted">
         Physical costs only. Money counts as spent when a receipt is checked or a runner&apos;s
         agreed fee is owed, never from an estimate.
       </p>

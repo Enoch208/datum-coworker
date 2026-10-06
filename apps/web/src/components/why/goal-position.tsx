@@ -53,7 +53,7 @@ export function GoalPosition({ goal }: { goal: GoalStateView }) {
         <Figure label="Committed">{formatWireMoney(goal.committedSpend)}</Figure>
         <Figure label="Minutes to deadline">{goal.minutesToDeadline}</Figure>
       </dl>
-      <p className="text-xs text-muted">
+      <p className="max-w-3xl text-xs leading-relaxed text-muted">
         Read from the server at {formatSgtMoment(goal.evaluatedAt)} SGT against an approved budget
         of {formatWireMoney(goal.approvedBudget)}. The time left (
         {formatMinutes(goal.minutesToDeadline)}) is the server&apos;s figure, not a countdown in

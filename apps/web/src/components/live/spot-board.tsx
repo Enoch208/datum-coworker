@@ -11,7 +11,7 @@ export function SpotBoard({ campaign }: { campaign: CampaignView }) {
       <SectionHeading id="spots-heading" title="Spots">
         <ByRules label="Checked by rules" />
       </SectionHeading>
-      <p className="mt-2 max-w-2xl text-[15px] font-light text-muted">
+      <p className="mt-2 max-w-2xl text-[15px] text-pretty text-muted">
         A spot counts only when a photo sent through its open task, before the deadline, shows that
         spot&apos;s own QR code. QR scans are reported, never used to decide.
       </p>

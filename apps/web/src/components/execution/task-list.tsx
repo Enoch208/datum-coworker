@@ -49,7 +49,7 @@ export function TaskList({ tasks }: { tasks: readonly TaskSummaryView[] }) {
   return (
     <section aria-labelledby="tasks-heading">
       <SectionHeading id="tasks-heading" title="Physical tasks" />
-      <p className="mt-2 max-w-2xl text-[15px] font-light text-muted">
+      <p className="mt-2 max-w-2xl text-[15px] text-pretty text-muted">
         The work Datum commissioned and who holds it. Re-attempts at a spot are marked as recovery.
       </p>
       {ordered.length === 0 ? (

@@ -86,7 +86,7 @@ export function DisputeReview({
         submit();
       }}
     >
-      <h3 className="text-xl font-light tracking-tight text-ink">Review a disputed receipt</h3>
+      <h3 className="text-xl font-normal tracking-tight text-ink">Review a disputed receipt</h3>
       <ReceiptFacts expense={expense} />
       <div className="grid gap-4 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
         <div className="flex flex-col gap-2">

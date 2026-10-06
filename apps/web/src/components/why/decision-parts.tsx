@@ -61,7 +61,7 @@ function ActionCard({ action }: { action: DispatchedActionView }) {
   return (
     <li className="rounded-xl border border-line p-4">
       <p className="text-xs text-muted">Idempotency key</p>
-      <p className="mt-1 font-mono text-[13px] text-accent">
+      <p className="mt-1 font-mono text-[13px] text-ink">
         <KeyText value={action.idempotencyKey} />
       </p>
       <ul className="mt-3 flex flex-col gap-1.5">

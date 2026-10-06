@@ -25,7 +25,7 @@ function LiveMark({ fetchedAt, stale }: { fetchedAt: number | null; stale: boole
         aria-hidden
         className={cx(
           "size-1.5 rounded-full",
-          stale ? "bg-warn" : "bg-accent motion-safe:animate-pulse",
+          stale ? "bg-warn" : "bg-ink motion-safe:animate-pulse",
         )}
       />
       {stale ? "Not updating · last read" : "Live · read"} {formatSgtClock(fetchedAt)}
@@ -77,7 +77,7 @@ export function StatusHero({
       >
         {heroHeadline(campaign.status)}
       </h1>
-      <p className="mt-4 max-w-2xl text-base font-light text-muted sm:text-lg">
+      <p className="mt-4 max-w-2xl text-base font-light text-pretty text-muted sm:text-lg">
         {heroDetail(campaign, goal)}
       </p>
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end lg:gap-16">

@@ -19,8 +19,8 @@ function Fact({
       <dt className="text-xs text-muted">{label}</dt>
       <dd
         className={cx(
-          "font-mono text-xl font-light tabular-nums sm:text-2xl",
-          strong === true ? "text-accent" : "text-ink",
+          "font-mono text-lg tabular-nums text-ink sm:text-2xl",
+          strong === true ? "font-normal" : "font-light",
         )}
       >
         {value}

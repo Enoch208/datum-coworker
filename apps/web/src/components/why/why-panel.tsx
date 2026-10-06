@@ -12,7 +12,7 @@ import { RequirementsTable } from "./requirements-table";
 function Part({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <h3 className="font-mono text-xs tracking-[0.16em] text-muted uppercase">{title}</h3>
+      <h3 className="eyebrow text-muted">{title}</h3>
       <div className="mt-4">{children}</div>
     </div>
   );
@@ -74,10 +74,10 @@ export function WhyPanel({ goal }: { goal: Resource<GoalStateView | null> }) {
           className="flex w-full items-start justify-between gap-4 rounded-2xl p-5 text-left hover:bg-raised/60 sm:p-6"
         >
           <span>
-            <span className="block text-2xl font-light tracking-tight text-ink">
+            <span className="block text-2xl font-normal tracking-tight text-ink">
               Why Datum did that
             </span>
-            <span className="mt-1.5 block text-[15px] font-light text-muted">
+            <span className="mt-1.5 block text-[15px] text-pretty text-muted">
               The requirements, the gaps and the latest recovery decision, read from Datum&apos;s
               own records.
             </span>

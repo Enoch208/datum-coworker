@@ -2,6 +2,7 @@ import { Cancel01Icon, HourglassIcon, RepairIcon, Tick02Icon } from "@hugeicons/
 import type { IconSvgElement } from "@hugeicons/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { SpotOutcome, SpotView } from "@datum/core";
+import type { CSSProperties } from "react";
 import { cx } from "@/lib/cx";
 
 const segmentTone: Record<SpotOutcome, string> = {
@@ -57,12 +58,14 @@ export function GoalProgress({
   required: number;
   spots: readonly SpotView[];
 }) {
-  const complete = required > 0 && passed === required;
+  const columns: CSSProperties & Record<"--spots", string> = {
+    "--spots": String(Math.max(spots.length, 1)),
+  };
   return (
     <div>
       <p className="flex items-baseline gap-4">
         <span className="font-mono text-7xl leading-none font-extralight tracking-tighter tabular-nums sm:text-8xl">
-          <span className={complete ? "text-accent" : "text-ink"}>{passed}</span>
+          <span className="text-ink">{passed}</span>
           <span className="mx-1 text-faint">/</span>
           <span className="text-faint">{required}</span>
         </span>
@@ -70,10 +73,8 @@ export function GoalProgress({
       <p className="mt-3 text-base text-muted">spots verified with their own photo</p>
       <ol
         aria-label="Spot by spot"
-        className="mt-6 grid gap-2"
-        style={{
-          gridTemplateColumns: `repeat(${String(Math.max(spots.length, 1))}, minmax(0, 1fr))`,
-        }}
+        className="mt-6 grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(var(--spots),minmax(0,1fr))] sm:gap-y-2"
+        style={columns}
       >
         {spots.map((spot) => (
           <Segment key={spot.id} spot={spot} />

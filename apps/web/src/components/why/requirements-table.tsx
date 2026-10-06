@@ -13,7 +13,7 @@ const reasonText = (requirement: GoalRequirementView): string => {
 };
 
 function Key({ value }: { value: string | null }) {
-  if (value === null) return <span className="text-faint">none open</span>;
+  if (value === null) return <span className="text-muted">none open</span>;
   return (
     <span className="font-mono text-[12px] text-ink">
       <KeyText value={value} />
