@@ -2,8 +2,14 @@ import type {
   AuditEventType,
   CampaignStatus,
   Currency,
+  EvidenceFailure,
   EvidencePolicy,
+  EvidenceVerdict,
+  ExecutorAdapter,
+  ExpenseStatus,
   IsoTimestamp,
+  PhysicalTaskStatus,
+  PhysicalTaskType,
   PrintFormat,
   PublicCopy,
   SpotCode,
@@ -87,6 +93,7 @@ export interface SpotView {
   firstPassStatus: SpotOutcome;
   scanCount: number;
   card: SpotCardView | null;
+  latestEvidence: EvidenceView | null;
 }
 
 export interface ApprovalView {
@@ -118,6 +125,8 @@ export interface CampaignView {
   proposal: ProposalView | null;
   approval: ApprovalView | null;
   spots: SpotView[];
+  tasks: TaskSummaryView[];
+  ledger: LedgerView | null;
 }
 
 export const timelineActors = ["CUSTOMER", "DATUM_AI", "DATUM_RULES", "RUNNER", "MASUMI"] as const;
@@ -129,4 +138,65 @@ export interface TimelineEventView {
   actor: TimelineActor;
   summary: string;
   at: IsoTimestamp;
+}
+
+export interface EvidenceView {
+  id: string;
+  taskId: string;
+  spotCode: SpotCode | null;
+  photoUrl: string;
+  submittedAt: IsoTimestamp;
+  verdict: EvidenceVerdict | null;
+  failure: EvidenceFailure | null;
+  explanation: string;
+}
+
+export interface ExpenseView {
+  id: string;
+  taskId: string;
+  amount: WireMoney;
+  merchant: string | null;
+  status: ExpenseStatus;
+  receiptUrl: string;
+  explanation: string;
+}
+
+export interface LedgerView {
+  approvedBudget: WireMoney;
+  confirmedSpend: WireMoney;
+  committedSpend: WireMoney;
+  remaining: WireMoney;
+  expenses: ExpenseView[];
+}
+
+export interface TaskSummaryView {
+  id: string;
+  type: PhysicalTaskType;
+  spotCode: SpotCode | null;
+  attempt: number;
+  status: PhysicalTaskStatus;
+  adapter: ExecutorAdapter;
+  dueBy: IsoTimestamp;
+  createdAt: IsoTimestamp;
+}
+
+export interface RunnerTaskView {
+  id: string;
+  campaignId: string;
+  brandName: string;
+  type: PhysicalTaskType;
+  attempt: number;
+  status: PhysicalTaskStatus;
+  spot: { code: SpotCode; name: string; instructions: string } | null;
+  instructions: string;
+  cards: SpotCardView[];
+  dueBy: IsoTimestamp;
+  estimatedCost: WireMoney;
+  evidence: EvidenceView[];
+  expense: ExpenseView | null;
+}
+
+export interface RunnerInboxView {
+  runner: { id: string; name: string };
+  tasks: RunnerTaskView[];
 }

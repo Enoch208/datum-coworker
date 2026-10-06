@@ -72,6 +72,7 @@ function toSpotView(
     firstPassStatus: spot.firstPassStatus,
     scanCount: scans,
     card: asset === null ? null : cardView(appBaseUrl, asset, spot.code),
+    latestEvidence: null,
   };
 }
 
@@ -100,5 +101,7 @@ export function toCampaignView(parts: CampaignParts, appBaseUrl: string): Campai
     proposal: proposalOf(parts),
     approval: approval === null || asset === null ? null : toApprovalView(approval, asset.version),
     spots: spots.map((spot) => toSpotView(spot, asset, appBaseUrl)),
+    tasks: [],
+    ledger: null,
   };
 }

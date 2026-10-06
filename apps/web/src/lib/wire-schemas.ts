@@ -18,6 +18,7 @@ import {
   type WireMoney,
 } from "@datum/core";
 import { z } from "zod";
+import { evidenceSchema, ledgerSchema, taskSummarySchema } from "./execution-schemas";
 
 const instant = z.iso.datetime({ offset: true });
 
@@ -73,6 +74,7 @@ const spot: z.ZodType<SpotView> = z.object({
   firstPassStatus: z.enum(spotOutcomes),
   scanCount: z.int().nonnegative(),
   card: z.object({ pngUrl: z.string(), pdfUrl: z.string() }).nullable(),
+  latestEvidence: evidenceSchema.nullable(),
 });
 
 const approval: z.ZodType<ApprovalView> = z.object({
@@ -104,6 +106,8 @@ export const campaignViewSchema: z.ZodType<CampaignView> = z.object({
   proposal: proposal.nullable(),
   approval: approval.nullable(),
   spots: z.array(spot),
+  tasks: z.array(taskSummarySchema),
+  ledger: ledgerSchema.nullable(),
 });
 
 export const timelineSchema: z.ZodType<TimelineEventView[]> = z.array(
