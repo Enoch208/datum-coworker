@@ -48,6 +48,16 @@ export interface EditCopyRequest {
   copy: PublicCopy;
 }
 
+export interface RaiseBudgetRequest {
+  budget: WireMoney;
+  approvedBy: string;
+}
+
+export interface AcceptExpenseRequest {
+  acceptedBy: string;
+  reason: string;
+}
+
 export type PlanStep =
   | { type: "PRINT_AND_COLLECT"; quantity: number; estimatedCost: WireMoney }
   | { type: "PLACE_SPOT"; spotCode: SpotCode; estimatedCost: WireMoney };

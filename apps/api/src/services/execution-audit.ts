@@ -5,7 +5,7 @@ import type {
   Money,
   PhysicalTaskType,
 } from "@datum/core";
-import type { RecoveryOverBudget } from "./loop-audit";
+import type { ExpenseDisputed, RecoveryOverBudget } from "./loop-audit";
 
 interface TaskSubject {
   taskId: string;
@@ -30,7 +30,8 @@ export type ApprovalRequest =
       reason: "PLACEMENTS_OVER_BUDGET" | "REPRINT_OVER_BUDGET";
       shortfall: Money;
     })
-  | RecoveryOverBudget;
+  | RecoveryOverBudget
+  | ExpenseDisputed;
 
 export type RunnerUnavailable = Omit<TaskSubject, "taskId"> & { attempt: number } & (
     | { kind: "LINK_CLOSED"; taskId: string; runnerName: string }

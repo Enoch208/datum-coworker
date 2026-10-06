@@ -1,4 +1,9 @@
-import { formatMoney, remediationRejections, type UnresolvedReason } from "@datum/core";
+import {
+  formatMoney,
+  interventionActors,
+  remediationRejections,
+  type UnresolvedReason,
+} from "@datum/core";
 import { z } from "zod";
 import { describe, moneyPayload as money, plural, type Describers } from "./describe";
 import { gapWords } from "./reasons";
@@ -39,6 +44,16 @@ const tripWords = (value: z.output<typeof trip>): string =>
   `${spotList(value.spotCodes)} within ${plural(value.dueInMinutes, "minute")}`;
 
 export const loopDescribers: Describers = {
+  INTERVENTION_RECORDED: describe(
+    z.object({
+      actor: z.enum(interventionActors),
+      actorName: z.string(),
+      reason: z.string(),
+    }),
+    "DATUM_RULES",
+    (p) =>
+      `Counted a post-approval intervention: ${p.actorName} (${p.actor === "CUSTOMER" ? "customer" : "operator"}) ${p.reason}`,
+  ),
   GOAL_EVALUATED: describe(
     z.object({ passed: z.int(), required: z.int() }),
     "DATUM_RULES",

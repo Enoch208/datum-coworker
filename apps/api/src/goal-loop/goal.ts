@@ -5,12 +5,13 @@ import {
   type GoalEvaluation,
   type RemediationAuthority,
 } from "@datum/core";
+import { budgetAffecting } from "../services/disputes";
 import { budgetPositionOf, type Executable } from "../services/execution-plan";
 import { spotHistory } from "../services/spot-outcomes";
 import type { CampaignParts } from "../views/campaigns";
 
-const budgetAffecting = (parts: CampaignParts) =>
-  parts.expenses.map((expense) => ({
+const ledgerExpenses = (parts: CampaignParts) =>
+  budgetAffecting(parts.expenses).map((expense) => ({
     amount: { amountMinor: expense.amountMinor, currency: expense.currency },
     status: expense.status,
   }));
@@ -27,7 +28,7 @@ export function evaluateCampaign(
     now: now.toISOString(),
     deadline: target.lock.deadline,
     approvedBudget: target.lock.budget,
-    expenses: budgetAffecting(parts),
+    expenses: ledgerExpenses(parts),
   });
 }
 

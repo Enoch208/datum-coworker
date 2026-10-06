@@ -9,6 +9,7 @@ import { moveStatus } from "../services/status";
 import { applyDecision } from "./apply";
 import { isLoopStatus } from "./claim";
 import { decideRecovery } from "./decide";
+import { resumeAfterDispute, stopForDispute } from "./disputes";
 import { pendingDecision } from "./decisions";
 import type { LoopDeps } from "./deps";
 import { advanceExecution } from "./execution";
@@ -79,6 +80,7 @@ async function step(
 ): Promise<void> {
   switch (status) {
     case "EXECUTING": {
+      if (await stopForDispute(deps.db, campaignId)) return;
       if (!(await deadlinePassed(deps, campaignId))) {
         const progress = await advanceExecution(deps, campaignId, signal);
         if (progress !== "PLACEMENTS_OUT") return;
@@ -109,7 +111,11 @@ async function step(
       return;
     }
     case "NEEDS_APPROVAL":
-      if (await deadlinePassed(deps, campaignId)) await expireCampaign(deps, campaignId, signal);
+      if (await deadlinePassed(deps, campaignId)) {
+        await expireCampaign(deps, campaignId, signal);
+        return;
+      }
+      await resumeAfterDispute(deps.db, campaignId);
       return;
     default:
       return;

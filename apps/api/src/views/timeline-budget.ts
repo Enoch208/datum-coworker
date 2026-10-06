@@ -23,7 +23,18 @@ const stageOverBudget = budgetFacts.extend({
   shortfall: money,
 });
 
-const approvalRequest = z.union([planOverBudget, stageOverBudget, recoveryOverBudget]);
+const expenseDisputed = z.object({
+  reason: z.literal("EXPENSE_DISPUTED"),
+  amount: money,
+  explanation: z.string(),
+});
+
+const approvalRequest = z.union([
+  planOverBudget,
+  stageOverBudget,
+  recoveryOverBudget,
+  expenseDisputed,
+]);
 
 const spare = (facts: z.output<typeof budgetFacts>) =>
   formatMoney(
@@ -53,6 +64,9 @@ const stageWords = (p: z.output<typeof stageOverBudget>): string =>
 
 const approvalSummary = (p: z.output<typeof approvalRequest>): string => {
   if (p.reason === "RECOVERY_OVER_BUDGET") return recoveryOverBudgetWords(p);
+  if (p.reason === "EXPENSE_DISPUTED") {
+    return `Stopped until a person reviews a ${formatMoney(p.amount)} receipt: ${p.explanation}`;
+  }
   if (p.reason === "OVER_BUDGET") {
     return `Stopped before commissioning anything: the approved plan needs ${formatMoney(p.estimated)}, ${formatMoney(p.shortfall)} more than the ${formatMoney(p.budget)} budget, so it needs the customer's approval`;
   }

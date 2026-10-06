@@ -6,9 +6,11 @@ import {
   isMoneyText,
   isSpotCode,
   isWithinCampaignBudgetLimit,
+  type AcceptExpenseRequest,
   type ApproveCampaignRequest,
   type CreateCampaignRequest,
   type EditCopyRequest,
+  type RaiseBudgetRequest,
   type SpotDraft,
   type WireMoney,
 } from "@datum/core";
@@ -89,3 +91,13 @@ export const approveCampaignSchema = z.strictObject({
   assetVersion: z.int().positive(),
   approvedBy: text(120),
 }) satisfies z.ZodType<unknown, ApproveCampaignRequest>;
+
+export const raiseBudgetSchema = z.strictObject({
+  budget: budgetSchema,
+  approvedBy: text(120),
+}) satisfies z.ZodType<unknown, RaiseBudgetRequest>;
+
+export const acceptExpenseSchema = z.strictObject({
+  acceptedBy: text(120),
+  reason: text(280),
+}) satisfies z.ZodType<unknown, AcceptExpenseRequest>;

@@ -31,12 +31,13 @@ export async function sendPrintReceipt(
   started: StartedCampaign,
   amount: string,
   reading: ReceiptReading = purchaseReading(amount),
+  printedMerchant = "PRINT HUB PTE LTD",
 ) {
   const print = taskFor(started.campaign, null).id;
   const { token } = started.runner;
   await runnerCall<RunnerTaskView>("POST", taskPath(token, print, "accept"));
   const reader = createApp(testDeps({ receiptReader: fixedReader(reading) }));
-  const photo = await receiptPhoto({ merchant: "PRINT HUB PTE LTD", total: amount });
+  const photo = await receiptPhoto({ merchant: printedMerchant, total: amount });
   return postForm<ExpenseView>(
     taskPath(token, print, "expense"),
     { receipt: jpegFile(photo, "receipt.jpg"), amount, merchant: "Print Hub" },

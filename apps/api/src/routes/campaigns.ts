@@ -1,7 +1,15 @@
 import { Hono, type Context } from "hono";
 import type { ApiDeps } from "../deps";
 import { pathId, readBody } from "../http/input";
-import { approveCampaignSchema, createCampaignSchema, editCopySchema } from "../http/schemas";
+import {
+  acceptExpenseSchema,
+  approveCampaignSchema,
+  createCampaignSchema,
+  editCopySchema,
+  raiseBudgetSchema,
+} from "../http/schemas";
+import { raiseBudget } from "../services/budget-raise";
+import { acceptDisputedExpense } from "../services/disputes";
 import { approveProposal } from "../services/approvals";
 import { campaignDetail, campaignTimeline, createCampaign } from "../services/campaigns";
 import { editCopy } from "../services/copy-edits";
@@ -30,5 +38,15 @@ export function campaignRoutes(deps: ApiDeps) {
       const request = await readBody(c, approveCampaignSchema);
       return c.json(await approveProposal(deps, id, request));
     })
-    .post("/campaigns/:id/start", async (c) => c.json(await startCampaign(deps, campaignId(c))));
+    .post("/campaigns/:id/start", async (c) => c.json(await startCampaign(deps, campaignId(c))))
+    .post("/campaigns/:id/budget", async (c) => {
+      const id = campaignId(c);
+      const input = await readBody(c, raiseBudgetSchema);
+      return c.json(await raiseBudget(deps, id, input));
+    })
+    .post("/campaigns/:id/expenses/:expenseId/accept", async (c) => {
+      const id = campaignId(c);
+      const input = await readBody(c, acceptExpenseSchema);
+      return c.json(await acceptDisputedExpense(deps, id, c.req.param("expenseId"), input));
+    });
 }

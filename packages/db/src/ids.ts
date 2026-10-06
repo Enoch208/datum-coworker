@@ -18,6 +18,7 @@ export const idPrefixes = {
   masumiPayment: "pay",
   runner: "rnr",
   remediationDecision: "rmd",
+  intervention: "itv",
 } as const;
 
 export type IdPrefix = (typeof idPrefixes)[keyof typeof idPrefixes];

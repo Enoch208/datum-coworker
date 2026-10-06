@@ -84,6 +84,12 @@ export type ExpenseStatus = (typeof expenseStatuses)[number];
 export const expenseKinds = ["RECEIPT", "AGREED_FEE"] as const;
 export type ExpenseKind = (typeof expenseKinds)[number];
 
+export const interventionActors = ["CUSTOMER", "OPERATOR"] as const;
+export type InterventionActor = (typeof interventionActors)[number];
+
+export const interventionActions = ["BUDGET_RAISED", "EXPENSE_ACCEPTED"] as const;
+export type InterventionAction = (typeof interventionActions)[number];
+
 export const currencies = ["SGD"] as const;
 export type Currency = (typeof currencies)[number];
 
@@ -117,6 +123,7 @@ export const auditEventTypes = [
   "REMEDIATION_FALLBACK",
   "RECOVERY_CREATED",
   "APPROVAL_REQUESTED",
+  "INTERVENTION_RECORDED",
   "RECEIPT_PUBLISHED",
   "PLAYBOOK_DRAFTED",
   "PLAN_REJECTED",

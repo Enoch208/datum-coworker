@@ -12,6 +12,7 @@ import { conflict } from "../http/errors";
 import type { CampaignParts } from "../views/campaigns";
 import { toApprovalLock } from "../views/proposal";
 import { commissionDrafts } from "./commission";
+import { budgetAffecting } from "./disputes";
 
 export interface Executable {
   readonly lock: ApprovalLock;
@@ -41,7 +42,7 @@ export function budgetPositionOf(parts: CampaignParts, budget: Money): BudgetPos
   );
   return {
     approvedBudget: budget,
-    expenses: parts.expenses.map((expense) => ({
+    expenses: budgetAffecting(parts.expenses).map((expense) => ({
       amount: { amountMinor: expense.amountMinor, currency: expense.currency },
       status: expense.status,
     })),

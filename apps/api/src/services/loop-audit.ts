@@ -1,4 +1,6 @@
 import type {
+  InterventionAction,
+  InterventionActor,
   Money,
   RecoveryTask,
   RemediationRejection,
@@ -23,7 +25,25 @@ export interface RecoveryOverBudget {
   revisedMaximum: Money;
 }
 
+export interface ExpenseDisputed {
+  reason: "EXPENSE_DISPUTED";
+  expenseId: string;
+  taskId: string;
+  amount: Money;
+  explanation: string;
+}
+
 export type LoopAuditEvent =
+  | {
+      type: "INTERVENTION_RECORDED";
+      payload: {
+        interventionId: string;
+        actor: InterventionActor;
+        actorName: string;
+        action: InterventionAction;
+        reason: string;
+      };
+    }
   | {
       type: "GOAL_EVALUATED";
       payload: {
