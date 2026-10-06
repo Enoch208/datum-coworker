@@ -1,16 +1,15 @@
-import { useCallback } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import { CampaignBody } from "@/components/campaign/campaign-body";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
 import { secondaryButton } from "@/components/feedback/buttons";
-import { liveStatuses } from "@/components/execution/execution-sections";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { getCampaign, getTimeline } from "@/lib/api-client";
+import { LiveCampaign } from "@/components/live/live-campaign";
+import { hasStarted } from "@/lib/campaign-phase";
 import { ApiRequestError } from "@/lib/http";
 import { readPlanHandoff } from "@/lib/plan-handoff";
 import { appRoutes } from "@/lib/routes";
+import { useCampaignScreen } from "@/lib/use-campaign-screen";
 import { useDocumentTitle } from "@/lib/use-document-title";
-import { usePoll, useResource } from "@/lib/use-resource";
 
 function MissingCampaign({ message }: { message: string }) {
   return (
@@ -27,23 +26,8 @@ function MissingCampaign({ message }: { message: string }) {
 export function CampaignPage() {
   const { campaignId = "" } = useParams();
   const location = useLocation();
-  const load = useCallback((signal: AbortSignal) => getCampaign(campaignId, signal), [campaignId]);
-  const loadTimeline = useCallback(
-    (signal: AbortSignal) => getTimeline(campaignId, signal),
-    [campaignId],
-  );
-  const campaign = useResource(`campaign:${campaignId}`, load);
-  const timeline = useResource(`timeline:${campaignId}`, loadTimeline);
-  const { reload: reloadCampaign } = campaign;
-  const { reload: reloadTimeline } = timeline;
-  const reload = useCallback(() => {
-    reloadCampaign();
-    reloadTimeline();
-  }, [reloadCampaign, reloadTimeline]);
+  const { campaign, timeline, goal, reload } = useCampaignScreen(campaignId);
   useDocumentTitle(campaign.data === null ? "Campaign" : `${campaign.data.brand.name} campaign`);
-  const status = campaign.data?.status;
-  const live = status !== undefined && liveStatuses.includes(status);
-  usePoll(status === "PLANNING" || live, live ? 5000 : 3000, !campaign.pending, reload);
 
   if (campaign.error instanceof ApiRequestError && campaign.error.status === 404) {
     return <MissingCampaign message={campaign.error.message} />;
@@ -58,6 +42,17 @@ export function CampaignPage() {
     );
   }
   if (campaign.data === null) return <CampaignSkeleton />;
+  if (hasStarted(campaign.data)) {
+    return (
+      <LiveCampaign
+        campaign={campaign.data}
+        fetchedAt={campaign.updatedAt}
+        stale={campaign.error !== null}
+        timeline={timeline}
+        goal={goal}
+      />
+    );
+  }
   return (
     <CampaignBody
       campaign={campaign.data}

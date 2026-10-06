@@ -1,28 +1,20 @@
 import {
-  currencies,
   evidenceFailures,
   evidenceVerdicts,
   executorAdapters,
   expenseStatuses,
-  isMoneyText,
   physicalTaskStatuses,
   physicalTaskTypes,
+  type AgreedFeeView,
   type EvidenceView,
   type ExpenseView,
   type LedgerView,
   type RunnerInboxView,
   type RunnerTaskView,
   type TaskSummaryView,
-  type WireMoney,
 } from "@datum/core";
 import { z } from "zod";
-
-const instant = z.iso.datetime({ offset: true });
-
-const wireMoney: z.ZodType<WireMoney> = z.object({
-  amount: z.string().refine(isMoneyText, "Not a decimal money amount"),
-  currency: z.enum(currencies),
-});
+import { instant, wireMoney } from "./wire-primitives";
 
 export const evidenceSchema: z.ZodType<EvidenceView> = z.object({
   id: z.string(),
@@ -53,12 +45,25 @@ export const expenseSchema: z.ZodType<ExpenseView> = z.object({
   explanation: z.string(),
 });
 
+const agreedFeeSchema: z.ZodType<AgreedFeeView> = z.object({
+  id: z.string(),
+  taskId: z.string(),
+  spotCode: z.string(),
+  attempt: z.int().positive(),
+  amount: wireMoney,
+  merchant: z.string(),
+  status: z.enum(expenseStatuses),
+  explanation: z.string(),
+  recordedAt: instant,
+});
+
 export const ledgerSchema: z.ZodType<LedgerView> = z.object({
   approvedBudget: wireMoney,
   confirmedSpend: wireMoney,
   committedSpend: wireMoney,
   remaining: wireMoney,
   expenses: z.array(expenseSchema),
+  agreedFees: z.array(agreedFeeSchema).exactOptional(),
 });
 
 export const taskSummarySchema: z.ZodType<TaskSummaryView> = z.object({

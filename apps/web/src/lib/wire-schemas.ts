@@ -1,9 +1,7 @@
 import {
   auditEventTypes,
   campaignStatuses,
-  currencies,
   evidencePolicies,
-  isMoneyText,
   printFormats,
   spotOutcomes,
   timelineActors,
@@ -15,17 +13,10 @@ import {
   type ProposalView,
   type SpotView,
   type TimelineEventView,
-  type WireMoney,
 } from "@datum/core";
 import { z } from "zod";
 import { evidenceSchema, ledgerSchema, taskSummarySchema } from "./execution-schemas";
-
-const instant = z.iso.datetime({ offset: true });
-
-const wireMoney: z.ZodType<WireMoney> = z.object({
-  amount: z.string().refine(isMoneyText, "Not a decimal money amount"),
-  currency: z.enum(currencies),
-});
+import { instant, wireMoney } from "./wire-primitives";
 
 const publicCopy = z.object({ headline: z.string(), subcopy: z.string() });
 
@@ -72,6 +63,7 @@ const spot: z.ZodType<SpotView> = z.object({
   qrTargetUrl: z.string(),
   status: z.enum(spotOutcomes),
   firstPassStatus: z.enum(spotOutcomes),
+  inducedMiss: z.boolean().exactOptional(),
   scanCount: z.int().nonnegative(),
   card: z.object({ pngUrl: z.string(), pdfUrl: z.string() }).nullable(),
   latestEvidence: evidenceSchema.nullable(),

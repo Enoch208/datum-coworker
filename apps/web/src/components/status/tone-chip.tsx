@@ -2,7 +2,7 @@ import type { IconSvgElement } from "@hugeicons/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cx } from "@/lib/cx";
 
-export type Tone = "neutral" | "ok" | "warn" | "danger" | "quiet";
+export type Tone = "neutral" | "ok" | "warn" | "danger" | "quiet" | "accent";
 
 const toneClasses: Record<Tone, string> = {
   neutral: "border-line-strong text-ink",
@@ -10,6 +10,7 @@ const toneClasses: Record<Tone, string> = {
   warn: "border-warn/35 bg-warn/5 text-warn",
   danger: "border-danger/35 bg-danger/5 text-danger",
   quiet: "border-line text-muted",
+  accent: "border-accent/40 bg-accent/5 text-accent",
 };
 
 export interface ChipSpec {

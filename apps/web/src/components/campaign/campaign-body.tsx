@@ -9,7 +9,6 @@ import { ApprovalPanel } from "@/components/approval/approval-panel";
 import { approvalState, isFinal } from "@/components/approval/approval-state";
 import { LaunchPanel } from "@/components/approval/launch-panel";
 import { LockedPanel } from "@/components/approval/locked-panel";
-import { ExecutionSections, hasStarted } from "@/components/execution/execution-sections";
 import { CampaignHeader } from "./campaign-header";
 import { CopySection } from "./copy-section";
 import { NoProposal } from "./no-proposal";
@@ -75,7 +74,6 @@ export function CampaignBody({
       <CampaignHeader campaign={campaign} />
       <div className="mt-16 grid items-start gap-16 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_23rem] xl:gap-16">
         <div className="flex min-w-0 flex-col gap-16">
-          {hasStarted(campaign) && <ExecutionSections campaign={campaign} />}
           {proposal === null ? (
             <NoProposal campaign={campaign} earlierFailure={planFailure} onPlanned={reload} />
           ) : (

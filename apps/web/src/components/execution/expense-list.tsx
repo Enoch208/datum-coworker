@@ -45,10 +45,10 @@ export function ExpenseList({
   tasks: readonly TaskSummaryView[];
 }) {
   if (expenses.length === 0) {
-    return <p className="mt-6 text-sm text-muted">No receipts yet.</p>;
+    return <p className="mt-4 text-sm text-muted">No print receipt yet.</p>;
   }
   return (
-    <ul className="mt-6 divide-y divide-line border-y border-line">
+    <ul className="mt-4 divide-y divide-line border-y border-line">
       {expenses.map((expense) => (
         <ExpenseRow
           key={expense.id}

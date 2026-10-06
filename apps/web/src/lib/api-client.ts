@@ -3,8 +3,10 @@ import type {
   CampaignView,
   CreateCampaignRequest,
   EditCopyRequest,
+  GoalStateView,
   TimelineEventView,
 } from "@datum/core";
+import { goalStateSchema } from "./goal-schemas";
 import { expectShape, send } from "./http";
 import { campaignViewSchema, createdCampaignSchema, timelineSchema } from "./wire-schemas";
 
@@ -41,4 +43,9 @@ export async function editCopy(id: string, request: EditCopyRequest): Promise<vo
 
 export async function startCampaign(id: string): Promise<void> {
   await send(`${campaignPath(id)}/start`, { method: "POST" });
+}
+
+export async function getGoal(id: string, signal: AbortSignal): Promise<GoalStateView> {
+  const body = await send(`${campaignPath(id)}/goal`, { method: "GET", signal });
+  return expectShape(goalStateSchema, body, "the goal state");
 }
