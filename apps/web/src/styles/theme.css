@@ -1,17 +1,18 @@
 @theme {
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --font-display: "Manrope Variable", "Geist Variable", sans-serif;
 
-  --color-canvas: #060608;
-  --color-surface: #0c0c0d;
-  --color-raised: #131315;
-  --color-line: #1f1f22;
-  --color-line-strong: #2e2e33;
-  --color-ink: #f4f4f5;
-  --color-muted: #a1a1aa;
-  --color-faint: #52525b;
-  --color-accent: #00fbfe;
-  --color-on-accent: #060608;
+  --color-canvas: #020404;
+  --color-surface: #080b0b;
+  --color-raised: #111616;
+  --color-line: #1b2221;
+  --color-line-strong: #303a38;
+  --color-ink: #ededed;
+  --color-muted: #a1aaa7;
+  --color-faint: #798580;
+  --color-accent: #80e0cd;
+  --color-on-accent: #061410;
   --color-ok: #4ade80;
   --color-warn: #fbbf24;
   --color-danger: #f87171;

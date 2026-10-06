@@ -1,11 +1,11 @@
 const buttonBase =
-  "inline-flex items-center justify-center gap-2 rounded-[10px] font-medium leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-medium leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-50";
 
-export const primaryButton = `${buttonBase} h-12 bg-accent px-6 text-[15px] text-on-accent hover:bg-ink`;
+export const primaryButton = `${buttonBase} min-h-12 bg-ink px-6 py-3 text-sm text-canvas hover:bg-accent`;
 
-export const secondaryButton = `${buttonBase} h-10 border border-line-strong px-4 text-sm text-ink hover:bg-raised`;
+export const secondaryButton = `${buttonBase} min-h-11 border border-line-strong bg-raised/50 px-4 py-2 text-sm text-ink hover:bg-raised`;
 
-export const quietButton = `${buttonBase} h-9 px-3 text-sm text-muted hover:bg-raised hover:text-ink`;
+export const quietButton = `${buttonBase} min-h-11 px-3 py-2 text-sm text-muted hover:bg-raised hover:text-ink`;
 
 export const touchPrimary = `${buttonBase} h-14 w-full bg-accent px-6 text-[17px] text-on-accent active:bg-ink`;
 

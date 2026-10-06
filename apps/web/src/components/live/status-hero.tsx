@@ -61,7 +61,7 @@ export function StatusHero({
   return (
     <section
       aria-labelledby="hero-heading"
-      className="rounded-3xl border border-line bg-surface px-5 py-7 sm:px-10 sm:py-10"
+      className="rounded-3xl border border-line bg-raised/40 px-5 py-7 sm:px-10 sm:py-10"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -73,7 +73,7 @@ export function StatusHero({
       <p className="mt-8 text-sm text-muted">{campaign.brand.name}</p>
       <h1
         id="hero-heading"
-        className="mt-2 text-4xl font-light tracking-tight text-balance text-ink sm:text-6xl"
+        className="mt-2 text-3xl font-medium tracking-tight text-balance text-ink sm:text-5xl"
       >
         {heroHeadline(campaign.status)}
       </h1>

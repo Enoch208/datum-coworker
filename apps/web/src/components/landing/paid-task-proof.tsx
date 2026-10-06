@@ -61,21 +61,18 @@ const steps: { label: string; evidence: ReactNode }[] = [
 
 export function PaidTaskProof() {
   return (
-    <section
-      aria-labelledby="paid-heading"
-      className="border-t border-line px-6 py-20 sm:px-16 sm:py-28"
-    >
+    <section aria-labelledby="paid-heading" className="py-20 sm:py-28">
       <p className="font-mono text-xs tracking-[0.2em] text-muted uppercase">
         Cardano Preprod · 6 October 2026
       </p>
-      <h2 id="paid-heading" className="mt-5 text-3xl font-light tracking-tight sm:text-5xl">
-        Datum gets paid as a Coworker
+      <h2 id="paid-heading" className="mt-5 text-3xl font-medium tracking-tight sm:text-5xl">
+        A paid coworker. A verifiable record.
       </h2>
-      <p className="mt-5 max-w-2xl text-lg font-light text-muted">
+      <p className="mt-5 max-w-2xl text-base font-light text-muted">
         Masumi handles hiring and paying Datum; printers and runners are paid as ordinary expenses.
         This is Datum&apos;s first paid Sokosumi Task, step by step, each linked to its record.
       </p>
-      <ol className="mt-12 max-w-4xl divide-y divide-line border-y border-line">
+      <ol className="mt-10 divide-y divide-line rounded-3xl border border-line bg-surface px-5 sm:px-8">
         {steps.map((step, index) => (
           <li
             key={step.label}

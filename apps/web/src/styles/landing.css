@@ -1,0 +1,110 @@
+@layer components {
+  .page-grid {
+    background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-ink) 3%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 16.666% 100%;
+  }
+
+  .hero-orbit {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    width: min(1160px, 150vw);
+    height: 760px;
+    transform: translateX(-50%) rotate(-12deg);
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-accent) 55%, var(--color-ink)) 0.7px,
+      transparent 1.3px
+    );
+    background-size: 5px 5px;
+    mask-image: radial-gradient(ellipse at 50% 39%, transparent 47%, #0008 57%, transparent 70%);
+    opacity: 0.48;
+    pointer-events: none;
+    animation: orbit-breathe 16s ease-in-out infinite alternate;
+  }
+
+  .landing-glow {
+    background: radial-gradient(
+      ellipse at 50% 24%,
+      color-mix(in srgb, var(--color-accent) 7%, transparent),
+      transparent 58%
+    );
+  }
+
+  .photo-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+  }
+
+  .photo-card img {
+    transition:
+      transform 700ms ease,
+      opacity 700ms ease;
+  }
+
+  .photo-card:hover img {
+    transform: scale(1.035);
+  }
+
+  .photo-shade {
+    background: linear-gradient(
+      to top,
+      var(--color-canvas),
+      color-mix(in srgb, var(--color-canvas) 20%, transparent) 62%,
+      transparent
+    );
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .surface-card {
+    border: 1px solid var(--color-line);
+    border-radius: 1.5rem;
+    background: var(--color-surface);
+  }
+
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    border-radius: 9999px;
+    background: var(--color-ink);
+    color: var(--color-canvas);
+    padding: 0.75rem 1.25rem;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+}
+
+@keyframes orbit-breathe {
+  to {
+    transform: translateX(-50%) rotate(8deg) scale(1.04);
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-orbit {
+    top: 0;
+    height: 610px;
+    opacity: 0.3;
+    background-size: 6px 6px;
+  }
+}

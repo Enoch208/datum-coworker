@@ -16,12 +16,12 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 
 export function CampaignHeader({ campaign }: { campaign: CampaignView }) {
   return (
-    <header>
+    <header className="surface-card p-5 sm:p-8">
       <div className="flex flex-wrap items-center gap-3">
         <CampaignStatusChip status={campaign.status} />
         <span className="font-mono text-xs text-muted">{campaign.id}</span>
       </div>
-      <h1 className="mt-6 text-4xl font-light tracking-tight break-words sm:text-6xl">
+      <h1 className="mt-6 text-3xl font-medium tracking-tight break-words sm:text-5xl">
         {campaign.brand.name}
       </h1>
       <p className="mt-4 max-w-3xl text-lg font-light break-words text-muted sm:text-xl">

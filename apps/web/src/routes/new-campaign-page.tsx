@@ -47,13 +47,15 @@ export function NewCampaignPage() {
     <>
       <header className="max-w-2xl">
         <p className="font-mono text-xs tracking-[0.2em] text-muted uppercase">New campaign</p>
-        <h1 className="mt-5 text-4xl font-light tracking-tight sm:text-6xl">Create a campaign</h1>
-        <p className="mt-5 text-lg font-light text-muted">
-          Tell Datum what to promote, where it may go, when it must be live and the most it may
-          spend. You get a proposal with a card for every spot to review before anything happens.
+        <h1 className="mt-5 text-3xl font-medium tracking-tight sm:text-4xl">
+          What do you want to promote?
+        </h1>
+        <p className="mt-4 max-w-xl text-sm text-muted">
+          A few details are all Datum needs to draft your cards and plan. You’ll review everything
+          before approving any work.
         </p>
       </header>
-      <div className="mt-12 sm:mt-16">
+      <div className="mt-8">
         <CampaignForm phase={phase} serverError={serverError} onSubmit={submit} />
       </div>
     </>

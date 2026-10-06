@@ -110,7 +110,7 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
     <article
       id="receipt-card"
       aria-labelledby="receipt-heading"
-      className="flex flex-col gap-8 rounded-3xl border border-line bg-surface p-6 sm:p-10 xl:h-[630px] xl:gap-0 xl:p-12"
+      className="flex flex-col gap-8 rounded-3xl border border-line bg-raised/30 p-5 sm:p-8 2xl:min-h-[630px] 2xl:p-10"
     >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
@@ -123,10 +123,10 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
         </div>
         <CampaignStatusChip status={receipt.status} />
       </header>
-      <div className="grid gap-8 xl:mt-8 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_25rem] xl:gap-12">
+      <div className="grid gap-8 2xl:flex-1 2xl:grid-cols-2 2xl:gap-10">
         <div className="flex min-w-0 flex-col">
           <p className="text-base break-words text-muted">{receipt.campaignName}</p>
-          <h1 id="receipt-heading" className="mt-1 text-3xl font-light tracking-tight sm:text-4xl">
+          <h1 id="receipt-heading" className="mt-1 text-3xl font-medium tracking-tight sm:text-4xl">
             {outcomeHeadline(receipt)}
           </h1>
           <p className="mt-6 font-mono text-8xl leading-none font-extralight tracking-tighter tabular-nums xl:text-[8.5rem]">
@@ -138,7 +138,7 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
             approved spots live, each proven by its own photo
           </p>
           <InducedNote spots={receipt.spots} />
-          <dl className="mt-8 grid grid-cols-3 gap-6 xl:mt-auto">
+          <dl className="mt-8 grid grid-cols-3 gap-3 2xl:mt-auto">
             <Stat
               label="First pass"
               value={`${String(receipt.firstPass.passed)}/${String(receipt.firstPass.required)}`}

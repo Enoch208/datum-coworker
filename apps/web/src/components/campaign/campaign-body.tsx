@@ -72,7 +72,21 @@ export function CampaignBody({
   return (
     <>
       <CampaignHeader campaign={campaign} />
-      <div className="mt-16 grid items-start gap-16 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_23rem] xl:gap-16">
+      {proposal !== null && approvalState(campaign) !== "current" && !isFinal(campaign) && (
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl text-sm text-muted">
+            <span className="font-medium text-ink">Your next step: review and approve.</span> Check
+            the copy, each card and the costs below. Nothing starts until you approve.
+          </p>
+          <a
+            href="#campaign-approval"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-accent/30 px-4 text-sm text-accent hover:bg-accent/10"
+          >
+            Review approval ↓
+          </a>
+        </div>
+      )}
+      <div className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-8">
         <div className="flex min-w-0 flex-col gap-16">
           {proposal === null ? (
             <NoProposal campaign={campaign} earlierFailure={planFailure} onPlanned={reload} />
@@ -89,11 +103,14 @@ export function CampaignBody({
           {proposal !== null && <ProposalDetails campaign={campaign} proposal={proposal} />}
         </div>
         {proposal !== null && (
-          <aside className="lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1 min-[1200px]:flex min-[1200px]:max-h-[calc(100dvh-7rem)] min-[1200px]:flex-col min-[1200px]:overflow-y-auto">
+          <aside
+            id="campaign-approval"
+            className="scroll-mt-6 xl:sticky xl:top-8 xl:col-start-2 xl:row-start-1 min-[1200px]:flex min-[1200px]:max-h-[calc(100dvh-7rem)] min-[1200px]:flex-col min-[1200px]:overflow-y-auto"
+          >
             <ApprovalAside campaign={campaign} proposal={proposal} reload={reload} />
           </aside>
         )}
-        <div className="min-w-0 lg:col-start-1">
+        <div className="min-w-0 xl:col-start-1">
           <Timeline resource={timeline} />
         </div>
       </div>

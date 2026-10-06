@@ -30,7 +30,7 @@ function SpotEditor({
   const nameId = `spot-${String(spot.key)}-name`;
   const placeId = `spot-${String(spot.key)}-place`;
   return (
-    <li className="rounded-xl border border-line bg-surface/60 p-4 sm:p-5">
+    <li className="rounded-2xl border border-line bg-raised/40 p-4 sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="flex size-9 items-center justify-center rounded-lg border border-line-strong font-mono text-base text-ink">
@@ -111,8 +111,8 @@ export function SpotList({
   return (
     <FormSection
       index="03"
-      title="Approved spots"
-      description="Only these places get a card. Codes follow the order of the list, and each spot gets its own QR code."
+      title="Where should the cards go?"
+      description="Add places you have permission to use. Each location gets its own card and QR code."
     >
       <ol className="flex flex-col gap-3">
         {spots.map((spot, index) => (

@@ -27,7 +27,7 @@ export function LiveCampaign({
 }) {
   const interventions = timeline.data === null ? null : countInterventions(timeline.data);
   return (
-    <div className="flex flex-col gap-10 sm:gap-14">
+    <div className="flex flex-col gap-8 sm:gap-10">
       <StatusHero
         campaign={campaign}
         goal={goal.data}
@@ -43,10 +43,10 @@ export function LiveCampaign({
           onDone={reload}
         />
       )}
-      <div className="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <SpotBoard campaign={campaign} />
         {campaign.approval !== null && (
-          <aside className="lg:sticky lg:top-24">
+          <aside className="xl:sticky xl:top-8">
             <LockedPanel campaign={campaign} approval={campaign.approval} />
           </aside>
         )}

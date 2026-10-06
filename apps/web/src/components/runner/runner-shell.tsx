@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router";
-import { BrandMark } from "@/components/brand-mark";
+import { BrandLockup } from "@/components/chrome/brand-lockup";
 
 export function RunnerShell() {
   const { pathname } = useLocation();
@@ -10,12 +10,14 @@ export function RunnerShell() {
   }, [pathname]);
 
   return (
-    <div className="flex min-h-dvh flex-col overflow-x-clip">
+    <div className="mx-auto my-3 flex min-h-[calc(100dvh-1.5rem)] max-w-2xl flex-col overflow-x-clip rounded-3xl border border-line bg-surface sm:my-6">
       <meta name="referrer" content="no-referrer" />
       <header className="border-b border-line">
-        <div className="mx-auto flex h-14 w-full max-w-xl items-center justify-between gap-4 px-4">
-          <BrandMark height={22} />
-          <span className="text-sm text-muted">Runner tasks</span>
+        <div className="mx-auto flex h-20 w-full max-w-xl items-center justify-between gap-4 px-4">
+          <BrandLockup />
+          <span className="rounded-full border border-line bg-raised px-3 py-2 text-xs text-muted">
+            Runner tasks
+          </span>
         </div>
       </header>
       <main className="mx-auto w-full max-w-xl flex-1 px-4 pt-6 pb-20">

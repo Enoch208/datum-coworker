@@ -3,7 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { CampaignReceiptView } from "@datum/core";
 import { useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
-import { BrandMark } from "@/components/brand-mark";
+import { AppShell } from "@/components/chrome/app-shell";
 import { quietButton, secondaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { CoworkerPayment } from "@/components/receipt/coworker-payment";
@@ -15,18 +15,16 @@ import { ReceiptSpots } from "@/components/receipt/receipt-spots";
 import { TargetActual } from "@/components/receipt/target-actual";
 import { getReceipt } from "@/lib/api-client";
 import { ApiRequestError } from "@/lib/http";
-import { appRoutes, campaignHref } from "@/lib/routes";
+import { campaignHref } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { useResource } from "@/lib/use-resource";
 
 function Frame({ campaignId, children }: { campaignId: string; children: ReactNode }) {
   return (
-    <div className="min-h-dvh overflow-x-clip px-4 pt-6 pb-20 sm:px-8 sm:pt-8">
+    <AppShell>
       <div className="mx-auto w-full max-w-[1200px]">
-        <nav className="mb-8 flex items-center justify-between gap-4 print:hidden">
-          <Link to={appRoutes.landing} aria-label="Datum home" className="rounded-md">
-            <BrandMark height={24} />
-          </Link>
+        <nav className="mb-6 flex flex-wrap justify-between gap-3 print:hidden">
+          <span className="eyebrow self-center text-accent">Your campaign, on record</span>
           <Link to={campaignHref(campaignId)} className={quietButton}>
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} strokeWidth={1.8} aria-hidden />
             Live campaign
@@ -34,7 +32,7 @@ function Frame({ campaignId, children }: { campaignId: string; children: ReactNo
         </nav>
         {children}
       </div>
-    </div>
+    </AppShell>
   );
 }
 

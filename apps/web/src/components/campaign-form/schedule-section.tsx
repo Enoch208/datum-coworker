@@ -96,8 +96,8 @@ export function ScheduleSection(props: SectionProps) {
   return (
     <FormSection
       index="04"
-      title="Deadline and budget"
-      description="The two limits Datum works inside once you approve."
+      title="When, and how much?"
+      description="Choose a deadline and the most you want to spend. These become hard limits after approval."
     >
       <DeadlineFields {...props} />
       <BudgetField {...props} />

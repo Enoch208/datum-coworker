@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import "@fontsource-variable/geist/wght.css";
 @import "@fontsource-variable/geist-mono/wght.css";
+@import "@fontsource-variable/manrope/wght.css";
 @import "./theme.css";
+@import "./landing.css";
 
 @layer base {
   html {
@@ -10,10 +12,46 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     color-scheme: dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 7rem;
   }
 
   body {
     background: var(--color-canvas);
+    margin: 0;
+    min-width: 320px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+
+  button:not(:disabled),
+  summary,
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    min-width: 0;
+  }
+
+  p {
+    line-height: 1.65;
   }
 
   :focus-visible {
@@ -23,6 +61,27 @@
 
   ::selection {
     background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+}
+
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

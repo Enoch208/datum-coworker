@@ -49,18 +49,20 @@ export function BriefPanel({
   values,
   phase,
   serverError,
+  ready,
 }: {
   values: CampaignFormValues;
   phase: SubmitPhase;
   serverError: Error | null;
+  ready: boolean;
 }) {
   const parts = briefParts(values);
   const busy = phase !== "idle";
   return (
-    <aside className="rounded-2xl border border-line bg-surface p-6 sm:p-7 lg:sticky lg:top-24">
+    <aside className="rounded-3xl border border-line bg-raised/40 p-6 xl:sticky xl:top-8">
       <h2 className="font-mono text-xs tracking-[0.2em] text-muted uppercase">Your brief</h2>
-      <p className="mt-4 text-xl leading-snug font-light tracking-tight">
-        Get the <Slot value={parts.brand} empty="your brand" /> campaign live at{" "}
+      <p className="mt-4 text-lg leading-snug font-light tracking-tight">
+        Get a campaign for <Slot value={parts.brand} empty="your brand" /> live at{" "}
         <span className="text-ink">{parts.spots}</span> by{" "}
         <Slot value={parts.deadline} empty="the deadline" />, spending no more than{" "}
         <Slot value={parts.budget} empty="your budget" />.
@@ -89,20 +91,26 @@ export function BriefPanel({
           </div>
         </div>
       )}
-      <button type="submit" disabled={busy} className={`${primaryButton} mt-6 w-full`}>
-        {busy && (
-          <HugeiconsIcon
-            icon={Loading03Icon}
-            size={18}
-            strokeWidth={2}
-            className="animate-spin motion-reduce:animate-none"
-            aria-hidden
-          />
-        )}
-        {busy ? "Working…" : "Create campaign"}
-      </button>
+      {ready && (
+        <button type="submit" disabled={busy} className={`${primaryButton} mt-6 w-full`}>
+          {busy && (
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              size={18}
+              strokeWidth={2}
+              className="animate-spin motion-reduce:animate-none"
+              aria-hidden
+            />
+          )}
+          {busy ? "Preparing your plan…" : "Create my plan"}
+        </button>
+      )}
       <p role="status" aria-live="polite" className="mt-3 min-h-5 text-sm text-muted">
-        {phase === "idle" ? "" : phaseText[phase]}
+        {phase === "idle"
+          ? ready
+            ? "Review and approve before any work starts."
+            : "Your brief updates as you go."
+          : phaseText[phase]}
       </p>
     </aside>
   );
