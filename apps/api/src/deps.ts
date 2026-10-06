@@ -6,6 +6,7 @@ import type { PlannerModel } from "./planner/model";
 export interface ApiDeps {
   readonly db: Db;
   readonly appBaseUrl: string;
+  readonly operatorKey: string | null;
   readonly assetDir: string;
   readonly planner: PlannerModel | null;
   readonly rates: RateSettings;

@@ -11,6 +11,7 @@ const env = loadEnv(process.env);
 const app = createApp({
   db: createDb(env.DATABASE_URL),
   appBaseUrl: env.APP_BASE_URL,
+  operatorKey: env.OPERATOR_KEY ?? null,
   assetDir: resolve(env.ASSET_DIR),
   planner:
     env.ANTHROPIC_API_KEY === undefined

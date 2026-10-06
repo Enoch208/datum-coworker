@@ -200,3 +200,21 @@ export interface RunnerInboxView {
   runner: { id: string; name: string };
   tasks: RunnerTaskView[];
 }
+
+export interface EnrollRunnerRequest {
+  name: string;
+  expiresAt: IsoTimestamp;
+}
+
+export interface OperatorRunnerView {
+  id: string;
+  name: string;
+  active: boolean;
+  expiresAt: IsoTimestamp;
+  createdAt: IsoTimestamp;
+}
+
+export interface EnrolledRunnerView {
+  runner: OperatorRunnerView;
+  inboxUrl: string;
+}

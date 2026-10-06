@@ -12,6 +12,11 @@ const optionalMoneyText = optionalText.refine(
   "must be a decimal amount such as 0.80",
 );
 
+const optionalSecret = optionalText.refine(
+  (value) => value === undefined || value.length >= 32,
+  "must be at least 32 characters",
+);
+
 const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   APP_BASE_URL: httpUrl.transform((url) => url.replace(/\/+$/, "")),
@@ -19,6 +24,7 @@ const envSchema = z.object({
   HOST: z.string().min(1).default("127.0.0.1"),
   ASSET_DIR: optionalText.transform((value) => value ?? "./.assets"),
   ANTHROPIC_API_KEY: optionalText,
+  OPERATOR_KEY: optionalSecret,
   DATUM_PRINT_COST_PER_COPY: optionalMoneyText,
   DATUM_PLACEMENT_COST_PER_SPOT: optionalMoneyText,
 });
