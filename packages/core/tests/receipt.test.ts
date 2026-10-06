@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { LedgerExpense } from "../src/budget";
-import type { ApprovalLock, MasumiPaymentEvidence, Money, SpotReceiptLine } from "../src/contract";
+import type {
+  ApprovalLock,
+  MasumiPaymentEvidence,
+  Money,
+  ReceiptIntervention,
+  ReceiptRecovery,
+  ReceiptSpendLine,
+  SpotReceiptLine,
+} from "../src/contract";
 import { buildReceipt, ReceiptError, type ReceiptFacts } from "../src/receipt";
 
 const sgd = (amountMinor: number): Money => ({ amountMinor, currency: "SGD" });
@@ -36,7 +44,37 @@ const line = (
   inducedMiss: false,
   scans,
   evidencePhotoUrl: `https://datum.example/evidence/${spotCode}.jpg`,
+  passedAt: "2026-10-07T16:00:00+08:00",
   ...overrides,
+});
+
+const spendLines: ReceiptSpendLine[] = [
+  { taskId: "tsk_print", kind: "RECEIPT", label: "Print Hub", amount: sgd(1380) },
+  {
+    taskId: "tsk_runner",
+    kind: "AGREED_FEE",
+    label: "Runner fee (agreed rate)",
+    amount: sgd(2000),
+  },
+  { taskId: "tsk_c2", kind: "AGREED_FEE", label: "Runner fee (agreed rate)", amount: sgd(400) },
+];
+
+const recovery: ReceiptRecovery = {
+  round: 1,
+  source: "MODEL",
+  idempotencyKey: `campaign:${campaignId}:spot:C:attempt:2`,
+  spotCodes: ["C"],
+  tasks: [{ spotCode: "C", attempt: 2, idempotencyKey: `campaign:${campaignId}:spot:C:attempt:2` }],
+  estimatedCost: sgd(400),
+  dispatchedAt: "2026-10-07T16:19:00+08:00",
+};
+
+const intervention = (at: string): ReceiptIntervention => ({
+  at,
+  actor: "CUSTOMER",
+  actorName: "Mei Tan",
+  action: "BUDGET_RAISED",
+  reason: "raised the approved budget from SGD 50.00 to SGD 60.00",
 });
 
 const spotC = line("C", 2, { firstPass: "MISS", attempts: 2, inducedMiss: true });
@@ -49,7 +87,10 @@ const facts: ReceiptFacts = {
   expenses: [confirmed(1380), confirmed(2000), confirmed(400)],
   completedAt: "2026-10-07T16:43:00+08:00",
   adaptersUsed: ["LOCAL_ENROLLED_RUNNER"],
-  manualInterventionsAt: [],
+  firstApprovedAt: approval.approvedAt,
+  interventions: [],
+  recoveries: [recovery],
+  spendLines,
   masumi: null,
 };
 
@@ -77,7 +118,10 @@ describe("buildReceipt", () => {
       spots: facts.spots,
       firstPassPassed: 3,
       recoveryActions: 1,
+      recoveries: [recovery],
       postApprovalInterventions: 0,
+      interventions: [],
+      spendLines,
       executorAdapters: ["LOCAL_ENROLLED_RUNNER"],
       totalScans: 17,
       masumi: null,
@@ -102,13 +146,24 @@ describe("buildReceipt", () => {
     });
   });
 
-  it("counts only manual interventions at or after approval", () => {
-    const manualInterventionsAt = [
-      "2026-10-07T13:00:00+08:00",
+  it("counts only interventions at or after the customer's first approval", () => {
+    const interventions = [
+      intervention("2026-10-07T13:00:00+08:00"),
+      intervention(approval.approvedAt),
+      intervention("2026-10-07T16:00:00+08:00"),
+    ];
+    const receipt = buildReceipt({ ...facts, interventions });
+    expect(receipt.postApprovalInterventions).toBe(2);
+    expect(receipt.interventions.map((item) => item.at)).toEqual([
       approval.approvedAt,
       "2026-10-07T16:00:00+08:00",
-    ];
-    expect(buildReceipt({ ...facts, manualInterventionsAt }).postApprovalInterventions).toBe(2);
+    ]);
+  });
+
+  it("refuses spend lines that do not add up to the confirmed spend", () => {
+    expect(() => buildReceipt({ ...facts, spendLines: spendLines.slice(1) })).toThrow(
+      expect.objectContaining({ code: "INCONSISTENT_SPEND" }),
+    );
   });
 
   it("lists each adapter once, in contract order", () => {

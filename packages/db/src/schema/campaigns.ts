@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { check, foreignKey, index, integer, pgTable, text, unique } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  foreignKey,
+  index,
+  integer,
+  pgTable,
+  text,
+  unique,
+} from "drizzle-orm/pg-core";
 import { brandPlaybooks, brands } from "./brands";
 import { createdAt, instant, minorUnits, primaryId } from "./columns";
 import { campaignStatus, currency, spotOutcome } from "./enums";
@@ -54,6 +63,7 @@ export const spots = pgTable(
     assetUrl: text("asset_url"),
     status: spotOutcome("status").notNull().default("PENDING"),
     firstPassStatus: spotOutcome("first_pass_status").notNull().default("PENDING"),
+    inducedMiss: boolean("induced_miss").notNull().default(false),
     createdAt: createdAt(),
   },
   (table) => [unique("spots_campaign_code_unique").on(table.campaignId, table.code)],

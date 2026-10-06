@@ -1,4 +1,5 @@
 import type {
+  CampaignStatus,
   InterventionAction,
   InterventionActor,
   Money,
@@ -34,6 +35,20 @@ export interface ExpenseDisputed {
 }
 
 export type LoopAuditEvent =
+  | {
+      type: "RECEIPT_PUBLISHED";
+      payload: {
+        receiptId: string;
+        sha256: string;
+        status: CampaignStatus;
+        spotsPassed: number;
+        required: number;
+        firstPassPassed: number;
+        recoveries: number;
+        interventions: number;
+        spend: Money;
+      };
+    }
   | {
       type: "INTERVENTION_RECORDED";
       payload: {

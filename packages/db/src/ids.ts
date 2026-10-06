@@ -19,6 +19,7 @@ export const idPrefixes = {
   runner: "rnr",
   remediationDecision: "rmd",
   intervention: "itv",
+  campaignReceipt: "rct",
 } as const;
 
 export type IdPrefix = (typeof idPrefixes)[keyof typeof idPrefixes];

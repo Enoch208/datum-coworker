@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  asCanonical,
   assetDocument,
   canonicalJson,
   spotSetDocument,
@@ -69,5 +70,22 @@ describe("hash documents", () => {
   it("ignores fields that are not part of the printed asset", () => {
     const extra = { ...spotA, scanCount: 12 };
     expect(canonicalJson(spotSetDocument([extra]))).toBe(canonicalJson(spotSetDocument([spotA])));
+  });
+});
+
+describe("asCanonical", () => {
+  it("accepts plain JSON data and keeps it as it is", () => {
+    const value = { b: [1, "two", null, true], a: { c: -3 } };
+    expect(asCanonical(value)).toEqual(value);
+    expect(canonicalJson(asCanonical(value))).toBe('{"a":{"c":-3},"b":[1,"two",null,true]}');
+  });
+
+  it.each([
+    ["a fraction", { amount: 1.5 }],
+    ["undefined", { missing: undefined }],
+    ["a date", { at: new Date(0) }],
+    ["a function", { run: () => 1 }],
+  ])("refuses %s", (_label, value) => {
+    expect(() => asCanonical(value)).toThrow(RangeError);
   });
 });

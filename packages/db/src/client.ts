@@ -21,5 +21,6 @@ export type RunnerRow = typeof schema.runners.$inferSelect;
 export type PhysicalTaskRow = typeof schema.physicalTasks.$inferSelect;
 export type EvidenceRow = typeof schema.evidence.$inferSelect;
 export type ExpenseRow = typeof schema.expenses.$inferSelect;
+export type CampaignReceiptRow = typeof schema.campaignReceipts.$inferSelect;
 export type InterventionRow = typeof schema.interventions.$inferSelect;
 export type RemediationDecisionRow = typeof schema.remediationDecisions.$inferSelect;

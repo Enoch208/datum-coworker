@@ -11,6 +11,21 @@ export type CanonicalValue =
 
 const isList = (value: CanonicalValue): value is readonly CanonicalValue[] => Array.isArray(value);
 
+const isPlainObject = (value: object): value is Record<string, unknown> => {
+  const prototype: unknown = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+};
+
+export const asCanonical = (value: unknown): CanonicalValue => {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number" && Number.isSafeInteger(value)) return value;
+  if (Array.isArray(value)) return value.map(asCanonical);
+  if (typeof value === "object" && isPlainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, asCanonical(item)]));
+  }
+  throw new RangeError(`Canonical JSON cannot hold a ${typeof value} of this kind`);
+};
+
 export const canonicalJson = (value: CanonicalValue): string => {
   if (typeof value === "number" && !Number.isSafeInteger(value)) {
     throw new RangeError(`Canonical JSON holds whole numbers only: ${String(value)}`);

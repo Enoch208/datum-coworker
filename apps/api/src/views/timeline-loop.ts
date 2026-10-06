@@ -44,6 +44,20 @@ const tripWords = (value: z.output<typeof trip>): string =>
   `${spotList(value.spotCodes)} within ${plural(value.dueInMinutes, "minute")}`;
 
 export const loopDescribers: Describers = {
+  RECEIPT_PUBLISHED: describe(
+    z.object({
+      sha256: z.string(),
+      spotsPassed: z.int(),
+      required: z.int(),
+      firstPassPassed: z.int(),
+      recoveries: z.int(),
+      interventions: z.int(),
+      spend: money,
+    }),
+    "DATUM_RULES",
+    (p) =>
+      `Published the Campaign Receipt: ${String(p.spotsPassed)} of ${plural(p.required, "spot")} live, ${String(p.firstPassPassed)} on the first pass, ${plural(p.recoveries, "recovery", "recoveries")}, ${plural(p.interventions, "post-approval intervention")}, ${formatMoney(p.spend)} spent (sha256 ${p.sha256.slice(0, 12)})`,
+  ),
   INTERVENTION_RECORDED: describe(
     z.object({
       actor: z.enum(interventionActors),

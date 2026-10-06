@@ -274,6 +274,35 @@ export interface SpotReceiptLine {
   inducedMiss: boolean;
   scans: number;
   evidencePhotoUrl: string | null;
+  passedAt: IsoTimestamp | null;
+}
+
+export const recoverySources = ["MODEL", "FALLBACK"] as const;
+export type RecoverySource = (typeof recoverySources)[number];
+
+export interface ReceiptRecovery {
+  round: number;
+  source: RecoverySource;
+  idempotencyKey: string;
+  spotCodes: SpotCode[];
+  tasks: { spotCode: SpotCode; attempt: number; idempotencyKey: string }[];
+  estimatedCost: Money;
+  dispatchedAt: IsoTimestamp;
+}
+
+export interface ReceiptIntervention {
+  at: IsoTimestamp;
+  actor: InterventionActor;
+  actorName: string;
+  action: InterventionAction;
+  reason: string;
+}
+
+export interface ReceiptSpendLine {
+  taskId: string;
+  kind: ExpenseKind;
+  label: string;
+  amount: Money;
 }
 
 export interface MasumiPaymentEvidence {
@@ -298,7 +327,10 @@ export interface CampaignReceipt {
   spots: SpotReceiptLine[];
   firstPassPassed: number;
   recoveryActions: number;
+  recoveries: ReceiptRecovery[];
   postApprovalInterventions: number;
+  interventions: ReceiptIntervention[];
+  spendLines: ReceiptSpendLine[];
   executorAdapters: ExecutorAdapter[];
   totalScans: number;
   masumi: MasumiPaymentEvidence | null;

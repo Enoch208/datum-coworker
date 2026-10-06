@@ -1,5 +1,6 @@
 import type { CampaignStatus } from "@datum/core";
 import { recordAudit } from "../services/audit";
+import { publishReceipt } from "../services/campaign-receipt";
 import { campaignParts } from "../services/campaigns";
 import { executableOf } from "../services/execution-plan";
 import { refreshCampaignSpots } from "../services/spot-outcomes";
@@ -40,6 +41,7 @@ export async function completeCampaign(
     if (!goal.complete || goal.completedAt === null) return false;
     await recordAudit(tx, campaignId, goalEvaluated(goal));
     await moveThrough(tx, campaignId, path, { completedAt: new Date(goal.completedAt) });
+    await publishReceipt(tx, campaignId, deps.appBaseUrl);
     return true;
   });
 }
@@ -60,5 +62,6 @@ export async function expireCampaign(
     const goal = evaluateCampaign(parts, executableOf(parts), deps.now());
     await recordAudit(tx, campaignId, goalEvaluated(goal));
     await moveThrough(tx, campaignId, [campaign.status, "EXPIRED_INCOMPLETE"]);
+    await publishReceipt(tx, campaignId, deps.appBaseUrl);
   });
 }

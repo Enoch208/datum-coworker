@@ -8,14 +8,17 @@ import {
   type IsoTimestamp,
   type MasumiPaymentEvidence,
   type Money,
+  type ReceiptIntervention,
+  type ReceiptRecovery,
+  type ReceiptSpendLine,
   type SpotReceiptLine,
 } from "./contract";
-import { compareMoney } from "./money";
+import { compareMoney, sumMoney } from "./money";
 import { compareSpotCodes } from "./qr";
 import { isAfter } from "./time";
 
 export type ReceiptErrorCode =
-  "INCONSISTENT_COMPLETION" | "UNVERIFIED_COLLECTION" | "INVALID_COUNT";
+  "INCONSISTENT_COMPLETION" | "INCONSISTENT_SPEND" | "UNVERIFIED_COLLECTION" | "INVALID_COUNT";
 
 export class ReceiptError extends Error {
   readonly code: ReceiptErrorCode;
@@ -35,7 +38,10 @@ export interface ReceiptFacts {
   expenses: readonly LedgerExpense[];
   completedAt: IsoTimestamp | null;
   adaptersUsed: readonly ExecutorAdapter[];
-  manualInterventionsAt: readonly IsoTimestamp[];
+  firstApprovedAt: IsoTimestamp;
+  interventions: readonly ReceiptIntervention[];
+  recoveries: readonly ReceiptRecovery[];
+  spendLines: readonly ReceiptSpendLine[];
   masumi: MasumiPaymentEvidence | null;
 }
 
@@ -85,6 +91,32 @@ const copyLine = (spot: SpotReceiptLine): SpotReceiptLine => ({
   inducedMiss: spot.inducedMiss,
   scans: spot.scans,
   evidencePhotoUrl: spot.evidencePhotoUrl,
+  passedAt: spot.passedAt,
+});
+
+const assertSpendLines = (facts: ReceiptFacts, spend: Money): void => {
+  const listed = sumMoney(
+    facts.spendLines.map((line) => line.amount),
+    spend.currency,
+  );
+  if (compareMoney(listed, spend) !== 0) {
+    throw new ReceiptError(
+      "INCONSISTENT_SPEND",
+      `The spend lines add up to ${String(listed.amountMinor)} but confirmed spend is ${String(spend.amountMinor)}`,
+    );
+  }
+};
+
+const afterApproval = (facts: ReceiptFacts): ReceiptIntervention[] =>
+  facts.interventions
+    .filter((intervention) => !isAfter(facts.firstApprovedAt, intervention.at))
+    .map((intervention) => ({ ...intervention }));
+
+const copyRecovery = (recovery: ReceiptRecovery): ReceiptRecovery => ({
+  ...recovery,
+  spotCodes: [...recovery.spotCodes],
+  tasks: recovery.tasks.map((task) => ({ ...task })),
+  estimatedCost: { ...recovery.estimatedCost },
 });
 
 const sum = (values: readonly number[]): number =>
@@ -93,14 +125,13 @@ const sum = (values: readonly number[]): number =>
 const countWhere = <T>(items: readonly T[], predicate: (item: T) => boolean): number =>
   items.filter(predicate).length;
 
-const interventionsSince = (approvedAt: IsoTimestamp, times: readonly IsoTimestamp[]): number =>
-  countWhere(times, (at) => !isAfter(approvedAt, at));
-
 export const buildReceipt = (facts: ReceiptFacts): CampaignReceipt => {
   assertCounts(facts.spots);
   assertVerifiedCollection(facts.masumi);
   const spend = confirmedSpend(facts.expenses, facts.approval.budget.currency);
   assertConsistentCompletion(facts, spend);
+  assertSpendLines(facts, spend);
+  const interventions = afterApproval(facts);
   const spots = [...facts.spots]
     .sort((left, right) => compareSpotCodes(left.spotCode, right.spotCode))
     .map(copyLine);
@@ -121,10 +152,10 @@ export const buildReceipt = (facts: ReceiptFacts): CampaignReceipt => {
     spots,
     firstPassPassed: countWhere(spots, (spot) => spot.firstPass === "PASS"),
     recoveryActions: sum(spots.map((spot) => Math.max(0, spot.attempts - 1))),
-    postApprovalInterventions: interventionsSince(
-      facts.approval.approvedAt,
-      facts.manualInterventionsAt,
-    ),
+    recoveries: facts.recoveries.map(copyRecovery),
+    postApprovalInterventions: interventions.length,
+    interventions,
+    spendLines: facts.spendLines.map((line) => ({ ...line, amount: { ...line.amount } })),
     executorAdapters: executorAdapters.filter((adapter) => facts.adaptersUsed.includes(adapter)),
     totalScans: sum(spots.map((spot) => spot.scans)),
     masumi: facts.masumi === null ? null : { ...facts.masumi },

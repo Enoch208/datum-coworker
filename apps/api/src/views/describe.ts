@@ -12,8 +12,8 @@ export type Describers = Partial<Record<AuditEventType, Describer>>;
 
 export const moneyPayload = z.object({ amountMinor: z.int(), currency: z.enum(currencies) });
 
-export const plural = (count: number, noun: string): string =>
-  `${String(count)} ${noun}${count === 1 ? "" : "s"}`;
+export const plural = (count: number, noun: string, many = `${noun}s`): string =>
+  `${String(count)} ${count === 1 ? noun : many}`;
 
 export const describe =
   <Schema extends z.ZodType>(

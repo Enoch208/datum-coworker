@@ -10,3 +10,4 @@ export * from "./proof";
 export * from "./payments";
 export * from "./remediation";
 export * from "./interventions";
+export * from "./campaign-receipts";
