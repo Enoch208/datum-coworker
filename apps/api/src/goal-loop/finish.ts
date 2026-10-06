@@ -4,7 +4,7 @@ import { publishReceipt } from "../services/campaign-receipt";
 import { campaignParts } from "../services/campaigns";
 import { executableOf } from "../services/execution-plan";
 import { refreshCampaignSpots } from "../services/spot-outcomes";
-import { lockCampaign, moveThrough } from "../services/status";
+import { lockCampaign, moveStatus, moveThrough } from "../services/status";
 import type { LoopDeps } from "./deps";
 import { markApplied } from "./decisions";
 import { goalEvaluated } from "./gaps";
@@ -39,8 +39,11 @@ export async function completeCampaign(
     const parts = await campaignParts(tx, campaignId);
     const goal = evaluateCampaign(parts, executableOf(parts), deps.now());
     if (!goal.complete || goal.completedAt === null) return false;
+    await moveThrough(tx, campaignId, path.slice(0, -1));
     await recordAudit(tx, campaignId, goalEvaluated(goal));
-    await moveThrough(tx, campaignId, path, { completedAt: new Date(goal.completedAt) });
+    await moveStatus(tx, campaignId, "VERIFYING", "COMPLETED", {
+      completedAt: new Date(goal.completedAt),
+    });
     await publishReceipt(tx, campaignId, deps.appBaseUrl);
     return true;
   });

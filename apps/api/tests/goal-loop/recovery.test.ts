@@ -103,8 +103,8 @@ describe("the Goal Loop on a real campaign (Gate 6)", () => {
       "STATUS_CHANGED",
       "RECOVERY_CREATED",
       "STATUS_CHANGED",
-      "GOAL_EVALUATED",
       "STATUS_CHANGED",
+      "GOAL_EVALUATED",
       "STATUS_CHANGED",
     ]);
   });

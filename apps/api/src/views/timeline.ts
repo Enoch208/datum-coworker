@@ -1,4 +1,9 @@
-import { campaignStatuses, formatMoney, type TimelineEventView } from "@datum/core";
+import {
+  campaignStatuses,
+  formatMoney,
+  type CampaignStatus,
+  type TimelineEventView,
+} from "@datum/core";
 import type { AuditEventRow } from "@datum/db";
 import { z } from "zod";
 import { describe, moneyPayload as money, plural, type Describers } from "./describe";
@@ -13,6 +18,15 @@ const playbookSources = {
   FAILED: "the brand name and the message; the brand page could not be read",
 };
 
+const statusMeanings: Partial<Record<CampaignStatus, string>> = {
+  EXECUTING: "the physical work is under way",
+  VERIFYING: "Datum is checking the evidence against the goal",
+  REMEDIATING: "Datum is planning how to recover the unresolved spots",
+  NEEDS_APPROVAL: "Datum stopped at the edge of its authority and needs the customer",
+  COMPLETED: "every approved spot is live",
+  EXPIRED_INCOMPLETE: "the deadline passed with spots unresolved",
+};
+
 const planningDescribers: Describers = {
   CAMPAIGN_CREATED: describe(
     z.object({ spotCodes: z.array(z.string()), budget: money, deadline: z.string() }),
@@ -20,11 +34,10 @@ const planningDescribers: Describers = {
     (p) =>
       `Campaign created for ${plural(p.spotCodes.length, "spot")} (${p.spotCodes.join(", ")}) with a ${formatMoney(p.budget)} budget, due ${p.deadline}`,
   ),
-  STATUS_CHANGED: describe(
-    z.object({ from: status, to: status }),
-    "DATUM_RULES",
-    (p) => `Status moved from ${p.from} to ${p.to}`,
-  ),
+  STATUS_CHANGED: describe(z.object({ from: status, to: status }), "DATUM_RULES", (p) => {
+    const meaning = statusMeanings[p.to];
+    return `Status moved from ${p.from} to ${p.to}${meaning === undefined ? "" : `: ${meaning}`}`;
+  }),
   PLAYBOOK_DRAFTED: describe(
     z.object({
       version: z.int(),
@@ -88,10 +101,14 @@ const planningDescribers: Describers = {
   ),
 };
 
-const describers: Describers = { ...planningDescribers, ...executionDescribers, ...loopDescribers };
+export const timelineDescribers: Describers = {
+  ...planningDescribers,
+  ...executionDescribers,
+  ...loopDescribers,
+};
 
 export function toTimelineEvent(event: AuditEventRow): TimelineEventView {
-  const describer = describers[event.type];
+  const describer = timelineDescribers[event.type];
   if (describer === undefined) {
     throw new Error(
       `Audit event ${event.id} has type ${event.type}, which the timeline cannot describe`,
