@@ -62,7 +62,7 @@ export async function createCampaign(
   return campaignDetail(db, appBaseUrl, campaignId);
 }
 
-async function findCampaign(db: Executor, campaignId: string) {
+export async function findCampaign(db: Executor, campaignId: string) {
   const [row] = await db
     .select({ campaign: campaigns, brand: brands })
     .from(campaigns)

@@ -1,3 +1,5 @@
+import type { UnresolvedReason } from "./goal";
+import type { RemediationRejection } from "./remediation";
 import type {
   AuditEventType,
   CampaignStatus,
@@ -6,12 +8,16 @@ import type {
   EvidencePolicy,
   EvidenceVerdict,
   ExecutorAdapter,
+  ExpenseKind,
   ExpenseStatus,
+  InterventionAction,
+  InterventionActor,
   IsoTimestamp,
   PhysicalTaskStatus,
   PhysicalTaskType,
   PrintFormat,
   PublicCopy,
+  RecoverySource,
   SpotCode,
   SpotDraft,
   SpotOutcome,
@@ -250,4 +256,178 @@ export interface OperatorRunnerView {
 export interface EnrolledRunnerView {
   runner: OperatorRunnerView;
   inboxUrl: string;
+}
+
+export interface ReceiptSpotView {
+  spotCode: SpotCode;
+  name: string;
+  firstPass: SpotOutcome;
+  final: SpotOutcome;
+  attempts: number;
+  recoveredAfterMiss: boolean;
+  inducedMiss: boolean;
+  scans: number;
+  evidencePhotoUrl: string | null;
+  passedAt: IsoTimestamp | null;
+}
+
+export interface RecoveryTaskKeyView {
+  spotCode: SpotCode;
+  attempt: number;
+  idempotencyKey: string;
+}
+
+export interface ReceiptRecoveryView {
+  round: number;
+  source: RecoverySource;
+  idempotencyKey: string;
+  spotCodes: SpotCode[];
+  tasks: RecoveryTaskKeyView[];
+  estimatedCost: WireMoney;
+  dispatchedAt: IsoTimestamp;
+}
+
+export interface ReceiptInterventionView {
+  at: IsoTimestamp;
+  actor: InterventionActor;
+  actorName: string;
+  action: InterventionAction;
+  reason: string;
+}
+
+export interface ReceiptSpendLineView {
+  taskId: string;
+  kind: ExpenseKind;
+  label: string;
+  amount: WireMoney;
+}
+
+export interface ExecutorLabelView {
+  adapter: ExecutorAdapter;
+  label: string;
+}
+
+export interface MasumiProofView {
+  sokosumiTaskId: string;
+  paymentId: string;
+  blockchainIdentifier: string;
+  resultHash: string;
+  sellerAddress: string;
+  tokenUnit: string;
+  collectionTxHash: string | null;
+  netReceivedAtomic: string | null;
+  collectionConfirmed: boolean;
+  verifiedAt: IsoTimestamp | null;
+}
+
+export interface CampaignReceiptView {
+  campaignId: string;
+  campaignName: string;
+  status: CampaignStatus;
+  target: { spots: number; deadline: IsoTimestamp; budget: WireMoney };
+  actual: { spotsPassed: number; completedAt: IsoTimestamp | null; spend: WireMoney };
+  firstPass: { passed: number; required: number };
+  spots: ReceiptSpotView[];
+  recoveryActions: number;
+  recoveries: ReceiptRecoveryView[];
+  postApprovalInterventions: number;
+  interventions: ReceiptInterventionView[];
+  spend: {
+    budget: WireMoney;
+    confirmed: WireMoney;
+    remaining: WireMoney;
+    lines: ReceiptSpendLineView[];
+  };
+  executors: ExecutorLabelView[];
+  totalScans: number;
+  publishedAt: IsoTimestamp;
+  sha256: string;
+  masumi: MasumiProofView | null;
+}
+
+export type GoalReasonCode = UnresolvedReason["kind"];
+
+export interface GoalRequirementView {
+  spotCode: SpotCode;
+  name: string;
+  status: SpotOutcome;
+  reasonCode: GoalReasonCode | null;
+  reason: string | null;
+  attempts: number;
+  openTaskKey: string | null;
+  latestEvidenceId: string | null;
+  passedAt: IsoTimestamp | null;
+}
+
+export interface UnresolvedRequirementView {
+  spotCode: SpotCode;
+  reasonCode: GoalReasonCode;
+  reason: string;
+}
+
+export const remediationOutcomes = ["ACCEPTED", "REJECTED", "NEEDS_APPROVAL", "EXPIRED"] as const;
+export type RemediationOutcome = (typeof remediationOutcomes)[number];
+
+export interface RemediationVerdictView {
+  outcome: RemediationOutcome;
+  reason: RemediationRejection | null;
+  actionIndex: number | null;
+  spotCode: SpotCode | null;
+  planCost: WireMoney | null;
+  shortfall: WireMoney | null;
+  revisedMaximum: WireMoney | null;
+}
+
+export interface ProposedTripView {
+  spotCodes: SpotCode[];
+  dueInMinutes: number;
+  runnerNote: string;
+}
+
+export interface DispatchedActionView {
+  idempotencyKey: string;
+  spotCodes: SpotCode[];
+  tasks: RecoveryTaskKeyView[];
+  estimatedCost: WireMoney;
+  dueBy: IsoTimestamp;
+  runnerNote: string | null;
+}
+
+export interface RemediationDecisionView {
+  round: number;
+  decidedAt: IsoTimestamp;
+  appliedAt: IsoTimestamp | null;
+  gaps: {
+    missingSpots: UnresolvedRequirementView[];
+    remainingBudget: WireMoney;
+    minutesToDeadline: number;
+    openTasks: string[];
+  };
+  planner: {
+    model: string | null;
+    proposal: { actions: ProposedTripView[]; rationale: string } | null;
+    failure: { code: string; detail: string } | null;
+    verdict: RemediationVerdictView | null;
+  };
+  fallbackUsed: boolean;
+  verdict: RemediationVerdictView;
+  actions: DispatchedActionView[];
+}
+
+export interface GoalStateView {
+  campaignId: string;
+  status: CampaignStatus;
+  evaluatedAt: IsoTimestamp;
+  deadline: IsoTimestamp;
+  minutesToDeadline: number;
+  passed: number;
+  required: number;
+  requirements: GoalRequirementView[];
+  unresolved: UnresolvedRequirementView[];
+  approvedBudget: WireMoney;
+  confirmedSpend: WireMoney;
+  committedSpend: WireMoney;
+  remainingBudget: WireMoney;
+  completedAt: IsoTimestamp | null;
+  latestDecision: RemediationDecisionView | null;
 }

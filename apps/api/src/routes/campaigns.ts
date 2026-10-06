@@ -9,9 +9,18 @@ import {
   raiseBudgetSchema,
 } from "../http/schemas";
 import { raiseBudget } from "../services/budget-raise";
+import { storedReceipt } from "../services/campaign-receipt";
+import { goalState } from "../services/goal-state";
+import { toCampaignReceiptView } from "../views/campaign-receipt";
+import { HttpError } from "../http/errors";
 import { acceptDisputedExpense } from "../services/disputes";
 import { approveProposal } from "../services/approvals";
-import { campaignDetail, campaignTimeline, createCampaign } from "../services/campaigns";
+import {
+  campaignDetail,
+  campaignTimeline,
+  createCampaign,
+  findCampaign,
+} from "../services/campaigns";
 import { editCopy } from "../services/copy-edits";
 import { planProposal } from "../services/planning";
 import { startCampaign } from "../services/start";
@@ -27,6 +36,20 @@ export function campaignRoutes(deps: ApiDeps) {
     })
     .get("/campaigns/:id", async (c) => c.json(await campaignDetail(db, appBaseUrl, campaignId(c))))
     .get("/campaigns/:id/timeline", async (c) => c.json(await campaignTimeline(db, campaignId(c))))
+    .get("/campaigns/:id/goal", async (c) => c.json(await goalState(db, campaignId(c), new Date())))
+    .get("/campaigns/:id/receipt", async (c) => {
+      const id = campaignId(c);
+      await findCampaign(db, id);
+      const row = await storedReceipt(db, id);
+      if (row === null) {
+        throw new HttpError(
+          404,
+          "NO_RECEIPT",
+          "The Campaign Receipt is published when the campaign ends",
+        );
+      }
+      return c.json(toCampaignReceiptView(row));
+    })
     .post("/campaigns/:id/plan", async (c) => c.json(await planProposal(deps, campaignId(c))))
     .patch("/campaigns/:id/copy", async (c) => {
       const id = campaignId(c);
