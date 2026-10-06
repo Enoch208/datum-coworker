@@ -43,6 +43,13 @@
       "when": 1791287597589,
       "tag": "0005_budget_checked",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791288166695,
+      "tag": "0006_agreed_fees",
+      "breakpoints": true
     }
   ]
 }

@@ -76,6 +76,9 @@ export type ExecutorAdapter = (typeof executorAdapters)[number];
 export const expenseStatuses = ["SUBMITTED", "CONFIRMED", "DISPUTED"] as const;
 export type ExpenseStatus = (typeof expenseStatuses)[number];
 
+export const expenseKinds = ["RECEIPT", "AGREED_FEE"] as const;
+export type ExpenseKind = (typeof expenseKinds)[number];
+
 export const currencies = ["SGD"] as const;
 export type Currency = (typeof currencies)[number];
 

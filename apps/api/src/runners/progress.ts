@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { physicalTasks, type Executor, type RunnerRow } from "@datum/db";
 import { conflict } from "../http/errors";
+import { recordAgreedFee } from "../services/agreed-fees";
 import { recordAudit } from "../services/audit";
 import { refreshSpotOutcome } from "../services/spot-outcomes";
 import { hasEvidence, isOpenForWork, printReceipts, runnerTask, type RunnerTask } from "./tasks";
@@ -69,14 +70,17 @@ export async function completeTask(db: Executor, runner: RunnerRow, taskId: stri
     if (!isOpenForWork(target.task)) throw closedConflict(target);
     await assertDeliverable(tx, target);
     const now = new Date();
-    await tx
+    const [completed] = await tx
       .update(physicalTasks)
       .set({ status: "COMPLETED", completedAt: now, updatedAt: now })
-      .where(eq(physicalTasks.id, taskId));
+      .where(eq(physicalTasks.id, taskId))
+      .returning();
+    if (completed === undefined) throw new Error(`Task ${taskId} vanished while completing`);
     await recordAudit(tx, target.task.campaignId, {
       type: "TASK_COMPLETED",
       payload: { ...subjectOf(target), runnerName: runner.name },
     });
+    if (completed.type === "PLACE_SPOT") await recordAgreedFee(tx, completed);
     if (target.spot !== null) await refreshSpotOutcome(tx, target.spot.id);
   });
 }

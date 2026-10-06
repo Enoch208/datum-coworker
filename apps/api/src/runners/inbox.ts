@@ -20,7 +20,7 @@ import {
 } from "@datum/db";
 import { cardAssetKey, cardAssetUrl } from "../cards/store";
 import { toEvidenceView } from "../views/evidence";
-import { toExpenseView } from "../views/ledger";
+import { isReceipt, toExpenseView } from "../views/ledger";
 import type { RunnerTask } from "./tasks";
 
 interface InboxRow extends RunnerTask {
@@ -78,7 +78,7 @@ async function attachments(db: Executor, rows: readonly InboxRow[]): Promise<Att
 }
 
 const currentExpense = (all: readonly ExpenseRow[], taskId: string): ExpenseRow | null => {
-  const own = all.filter((expense) => expense.physicalTaskId === taskId);
+  const own = all.filter((expense) => expense.physicalTaskId === taskId && isReceipt(expense));
   return own.findLast((expense) => expense.status !== "DISPUTED") ?? own.at(-1) ?? null;
 };
 

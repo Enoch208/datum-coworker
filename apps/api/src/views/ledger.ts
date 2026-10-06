@@ -1,6 +1,7 @@
 import {
   ledgerTotals,
   toWireMoney,
+  type AgreedFeeView,
   type ExpenseView,
   type LedgerView,
   type TaskSummaryView,
@@ -9,7 +10,12 @@ import type { ApprovalRow, ExpenseRow } from "@datum/db";
 import type { TaskWithSpot } from "../services/execution-reads";
 import { evidenceFileUrl } from "../uploads/files";
 
+export const isReceipt = (expense: ExpenseRow): boolean => expense.kind === "RECEIPT";
+
 export function toExpenseView(expense: ExpenseRow, appBaseUrl: string): ExpenseView {
+  if (expense.receiptFile === null) {
+    throw new Error(`Expense ${expense.id} is an agreed fee, not a receipt`);
+  }
   return {
     id: expense.id,
     taskId: expense.physicalTaskId,
@@ -18,6 +24,22 @@ export function toExpenseView(expense: ExpenseRow, appBaseUrl: string): ExpenseV
     status: expense.status,
     receiptUrl: evidenceFileUrl(appBaseUrl, expense.receiptFile),
     explanation: expense.explanation,
+  };
+}
+
+function toAgreedFeeView(expense: ExpenseRow, tasks: readonly TaskWithSpot[]): AgreedFeeView {
+  const owner = tasks.find(({ task }) => task.id === expense.physicalTaskId);
+  if (owner?.spotCode == null) throw new Error(`Fee ${expense.id} is not for a placement`);
+  return {
+    id: expense.id,
+    taskId: expense.physicalTaskId,
+    spotCode: owner.spotCode,
+    attempt: owner.task.attempt,
+    amount: toWireMoney({ amountMinor: expense.amountMinor, currency: expense.currency }),
+    merchant: expense.merchant ?? "",
+    status: expense.status,
+    explanation: expense.explanation,
+    recordedAt: expense.createdAt.toISOString(),
   };
 }
 
@@ -65,6 +87,9 @@ export function toLedgerView(
     confirmedSpend: toWireMoney(totals.confirmedSpend),
     committedSpend: toWireMoney(totals.committedSpend),
     remaining: toWireMoney(totals.remaining),
-    expenses: expenses.map((expense) => toExpenseView(expense, appBaseUrl)),
+    expenses: expenses.filter(isReceipt).map((expense) => toExpenseView(expense, appBaseUrl)),
+    agreedFees: expenses
+      .filter((expense) => expense.kind === "AGREED_FEE")
+      .map((expense) => toAgreedFeeView(expense, tasks)),
   };
 }

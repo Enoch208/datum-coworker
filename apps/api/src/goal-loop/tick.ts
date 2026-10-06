@@ -3,6 +3,7 @@ import { campaigns } from "@datum/db";
 import { isLoopStatus } from "./claim";
 import type { LoopDeps } from "./deps";
 import { advanceExecution } from "./execution";
+import { settleCompletedPlacements } from "../services/agreed-fees";
 import { refreshCampaignSpots } from "../services/spot-outcomes";
 import { expireOverdueTasks } from "./reconcile";
 
@@ -17,6 +18,7 @@ export async function tickCampaign(
     .where(eq(campaigns.id, campaignId));
   if (campaign === undefined || !isLoopStatus(campaign.status)) return;
   await expireOverdueTasks(deps.db, campaignId, deps.now());
+  await settleCompletedPlacements(deps.db, campaignId);
   await refreshCampaignSpots(deps.db, campaignId);
   signal.throwIfAborted();
   if (campaign.status !== "EXECUTING") return;

@@ -3,7 +3,7 @@ import { check, index, jsonb, pgTable, text, unique, uniqueIndex } from "drizzle
 import type { EvidenceChecks, GeoPoint } from "@datum/core";
 import { campaigns, spots } from "./campaigns";
 import { createdAt, instant, minorUnits, primaryId } from "./columns";
-import { currency, evidenceFailure, evidenceVerdict, expenseStatus } from "./enums";
+import { currency, evidenceFailure, evidenceVerdict, expenseKind, expenseStatus } from "./enums";
 import { physicalTasks } from "./execution";
 
 export const evidence = pgTable(
@@ -52,8 +52,9 @@ export const expenses = pgTable(
     physicalTaskId: text("physical_task_id")
       .notNull()
       .references(() => physicalTasks.id),
-    receiptFile: text("receipt_file").notNull(),
-    contentHash: text("content_hash").notNull(),
+    kind: expenseKind("kind").notNull().default("RECEIPT"),
+    receiptFile: text("receipt_file"),
+    contentHash: text("content_hash"),
     merchant: text("merchant"),
     amountMinor: minorUnits("amount_minor").notNull(),
     currency: currency("currency").notNull(),
@@ -69,6 +70,10 @@ export const expenses = pgTable(
     check(
       "expenses_receipt_file_is_stored_image",
       sql`${table.receiptFile} ~ '^[0-9a-f]{32}[.]jpg$'`,
+    ),
+    check(
+      "expenses_receipt_has_image",
+      sql`(${table.kind} = 'RECEIPT') = (${table.receiptFile} is not null and ${table.contentHash} is not null)`,
     ),
     check(
       "expenses_decided_has_time",

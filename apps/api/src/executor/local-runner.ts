@@ -18,6 +18,7 @@ import {
   physicalTasks,
   spots,
   type Executor,
+  type ExpenseRow,
   type PhysicalTaskRow,
 } from "@datum/db";
 import { recordAudit } from "../services/audit";
@@ -63,6 +64,23 @@ async function spotCodeOf(db: Executor, task: PhysicalTaskRow): Promise<string |
   return spot?.code ?? null;
 }
 
+const receiptEvidence = (appBaseUrl: string, receipt: ExpenseRow): ExecutorEvidence[] => {
+  if (receipt.receiptFile === null || receipt.contentHash === null) return [];
+  const receiptUrl = evidenceFileUrl(appBaseUrl, receipt.receiptFile);
+  return [
+    {
+      uploadId: receipt.id,
+      contentHash: receipt.contentHash,
+      photoUrl: receiptUrl,
+      submittedAt: receipt.createdAt.toISOString(),
+      claimedSpotCode: null,
+      claimedAmount: { amountMinor: receipt.amountMinor, currency: receipt.currency },
+      receiptUrl,
+      optionalGeo: null,
+    },
+  ];
+};
+
 async function localEvidence(
   db: Executor,
   appBaseUrl: string,
@@ -82,16 +100,7 @@ async function localEvidence(
       claimedSpotCode: spotCode,
       optionalGeo: photo.optionalGeo,
     })),
-    ...receipts.map((receipt) => ({
-      ...empty,
-      uploadId: receipt.id,
-      contentHash: receipt.contentHash,
-      photoUrl: evidenceFileUrl(appBaseUrl, receipt.receiptFile),
-      submittedAt: receipt.createdAt.toISOString(),
-      claimedSpotCode: null,
-      claimedAmount: { amountMinor: receipt.amountMinor, currency: receipt.currency },
-      receiptUrl: evidenceFileUrl(appBaseUrl, receipt.receiptFile),
-    })),
+    ...receipts.flatMap((receipt) => receiptEvidence(appBaseUrl, receipt)),
   ];
 }
 

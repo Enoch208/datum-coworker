@@ -171,12 +171,25 @@ export interface ExpenseView {
   explanation: string;
 }
 
+export interface AgreedFeeView {
+  id: string;
+  taskId: string;
+  spotCode: SpotCode;
+  attempt: number;
+  amount: WireMoney;
+  merchant: string;
+  status: ExpenseStatus;
+  explanation: string;
+  recordedAt: IsoTimestamp;
+}
+
 export interface LedgerView {
   approvedBudget: WireMoney;
   confirmedSpend: WireMoney;
   committedSpend: WireMoney;
   remaining: WireMoney;
   expenses: ExpenseView[];
+  agreedFees?: AgreedFeeView[];
 }
 
 export interface TaskSummaryView {

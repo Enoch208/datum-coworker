@@ -52,6 +52,7 @@ describe("POST /campaigns/:id/start (Gate 3)", () => {
       committedSpend: { amount: "6.00", currency: "SGD" },
       remaining: { amount: "44.00", currency: "SGD" },
       expenses: [],
+      agreedFees: [],
     });
   });
 

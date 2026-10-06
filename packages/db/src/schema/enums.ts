@@ -7,6 +7,7 @@ import {
   evidencePolicies,
   evidenceVerdicts,
   executorAdapters,
+  expenseKinds,
   expenseStatuses,
   physicalTaskStatuses,
   physicalTaskTypes,
@@ -20,6 +21,7 @@ export const physicalTaskType = pgEnum("physical_task_type", physicalTaskTypes);
 export const physicalTaskStatus = pgEnum("physical_task_status", physicalTaskStatuses);
 export const executorAdapter = pgEnum("executor_adapter", executorAdapters);
 export const expenseStatus = pgEnum("expense_status", expenseStatuses);
+export const expenseKind = pgEnum("expense_kind", expenseKinds);
 export const evidenceVerdict = pgEnum("evidence_verdict", evidenceVerdicts);
 export const evidenceFailure = pgEnum("evidence_failure", evidenceFailures);
 export const currency = pgEnum("currency", currencies);
