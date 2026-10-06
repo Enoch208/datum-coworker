@@ -107,7 +107,7 @@ export function ApprovalPanel({
   return (
     <section
       aria-labelledby="approve-heading"
-      className="rounded-2xl border border-line bg-surface p-6"
+      className="rounded-2xl border border-line bg-surface p-6 min-[1200px]:flex min-[1200px]:min-h-0 min-[1200px]:flex-col"
     >
       {stale && <NewApprovalNotice version={proposal.assetVersion} />}
       <h2 id="approve-heading" className="text-xl font-light tracking-tight">
@@ -116,12 +116,12 @@ export function ApprovalPanel({
       <p className="mt-1.5 text-sm text-muted">
         One approval locks all of this. Nothing is printed, placed or spent before it.
       </p>
-      <div className="mt-5">
+      <div className="mt-5 min-[1200px]:min-h-0 min-[1200px]:overflow-y-auto min-[1200px]:pb-6 min-[1200px]:[mask-image:linear-gradient(to_bottom,black_calc(100%-1.5rem),transparent)]">
         <BoundsList rows={boundsRows(campaign, proposal)} />
       </div>
       <form
         noValidate
-        className="mt-6 flex flex-col gap-2"
+        className="mt-6 flex shrink-0 flex-col gap-2 min-[1200px]:mt-0"
         onSubmit={(event) => {
           event.preventDefault();
           approve();

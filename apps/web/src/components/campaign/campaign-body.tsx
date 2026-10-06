@@ -86,7 +86,7 @@ export function CampaignBody({
           {proposal !== null && <ProposalDetails campaign={campaign} proposal={proposal} />}
         </div>
         {proposal !== null && (
-          <aside className="lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1">
+          <aside className="lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1 min-[1200px]:flex min-[1200px]:max-h-[calc(100dvh-7rem)] min-[1200px]:flex-col min-[1200px]:overflow-y-auto">
             <ApprovalAside campaign={campaign} proposal={proposal} reload={reload} />
           </aside>
         )}
