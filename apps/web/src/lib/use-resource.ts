@@ -18,7 +18,6 @@ const asError = (cause: unknown): Error =>
 export function useResource<T>(
   key: string,
   load: (signal: AbortSignal) => Promise<T>,
-  pollMs: number | null = null,
 ): Resource<T> {
   const loadRef = useRef(load);
   const [data, setData] = useState<Keyed<T> | null>(null);
@@ -31,29 +30,19 @@ export function useResource<T>(
 
   useEffect(() => {
     const controller = new AbortController();
-    let timer: number | undefined;
-    const run = () => {
-      void loadRef
-        .current(controller.signal)
-        .then(
-          (value) => {
-            setData({ key, value });
-            setError(null);
-          },
-          (cause: unknown) => {
-            if (!controller.signal.aborted) setError({ key, value: asError(cause) });
-          },
-        )
-        .finally(() => {
-          if (pollMs !== null && !controller.signal.aborted) timer = window.setTimeout(run, pollMs);
-        });
-    };
-    run();
+    loadRef.current(controller.signal).then(
+      (value) => {
+        setData({ key, value });
+        setError(null);
+      },
+      (cause: unknown) => {
+        if (!controller.signal.aborted) setError({ key, value: asError(cause) });
+      },
+    );
     return () => {
       controller.abort();
-      window.clearTimeout(timer);
     };
-  }, [key, pollMs, tick]);
+  }, [key, tick]);
 
   const reload = useCallback(() => {
     setTick((value) => value + 1);
@@ -67,4 +56,14 @@ export function useResource<T>(
     loading: current === null && currentError === null,
     reload,
   };
+}
+
+export function useRepeat(active: boolean, everyMs: number, action: () => void): void {
+  useEffect(() => {
+    if (!active) return;
+    const timer = window.setInterval(action, everyMs);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [active, everyMs, action]);
 }

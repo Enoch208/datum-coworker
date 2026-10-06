@@ -1,4 +1,4 @@
-import { formatMoney, parseMoney, type WireMoney } from "@datum/core";
+import { formatMoney, fromWireMoney, type WireMoney } from "@datum/core";
 
 export const singaporeZone = "Asia/Singapore";
 
@@ -23,7 +23,7 @@ const sgtTimeFormat = new Intl.DateTimeFormat("en-SG", {
 });
 
 export function formatWireMoney(money: WireMoney): string {
-  return formatMoney(parseMoney(money.amount, money.currency));
+  return formatMoney(fromWireMoney(money));
 }
 
 export function formatSgt(iso: string): string {
