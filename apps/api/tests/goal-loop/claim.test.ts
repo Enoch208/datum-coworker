@@ -3,7 +3,8 @@ import type { CampaignView, TimelineEventView } from "@datum/core";
 import { auditEvents, physicalTasks, spots } from "@datum/db";
 import { afterAll, describe, expect, it } from "vitest";
 import { withCampaignLock } from "../../src/goal-loop/claim";
-import { approvedCampaign, startedCampaign, taskFor } from "../runners/campaign";
+import { approvedCampaign, taskFor } from "../runners/campaign";
+import { printedCampaign } from "../runners/print";
 import { call, db, resetDatabaseBetweenTests } from "../support";
 import { loopDeps, runPass, secondWorkerDb } from "./loop";
 
@@ -25,7 +26,7 @@ const expiries = () => db.select().from(auditEvents).where(eq(auditEvents.type, 
 
 describe("the worker's claim on a campaign", () => {
   it("expires a placement past its due time, releases its hold and marks the spot missed", async () => {
-    const { campaign } = await startedCampaign();
+    const { campaign } = await printedCampaign();
     await overdue(taskFor(campaign, "A").id);
     const report = await runPass();
     expect(report).toEqual({ ticked: [campaign.id], skipped: [], failed: [] });
@@ -35,7 +36,7 @@ describe("the worker's claim on a campaign", () => {
       status: "MISS",
       firstPassStatus: "MISS",
     });
-    expect(view.body.ledger?.committedSpend).toEqual({ amount: "16.00", currency: "SGD" });
+    expect(view.body.ledger?.committedSpend).toEqual({ amount: "10.00", currency: "SGD" });
     const timeline = await call<TimelineEventView[]>("GET", `/campaigns/${campaign.id}/timeline`);
     expect(timeline.body.at(-1)).toMatchObject({
       type: "TASK_EXPIRED",
@@ -46,7 +47,7 @@ describe("the worker's claim on a campaign", () => {
   });
 
   it("does nothing on a later pass once nothing is overdue", async () => {
-    const { campaign } = await startedCampaign();
+    const { campaign } = await printedCampaign();
     await overdue(taskFor(campaign, "A").id);
     await runPass();
     await runPass();
@@ -61,7 +62,7 @@ describe("the worker's claim on a campaign", () => {
   });
 
   it("skips a campaign another worker holds and acts on it once that worker lets go", async () => {
-    const { campaign } = await startedCampaign();
+    const { campaign } = await printedCampaign();
     await overdue(taskFor(campaign, "A").id);
     let release = (): void => undefined;
     let acquired = (): void => undefined;
@@ -85,7 +86,7 @@ describe("the worker's claim on a campaign", () => {
   });
 
   it("expires a task exactly once when two workers pass at the same moment", async () => {
-    const { campaign } = await startedCampaign();
+    const { campaign } = await printedCampaign();
     await overdue(taskFor(campaign, "A").id);
     const reports = await Promise.all([runPass(), runPass(loopDeps({ db: otherDb }))]);
     expect(reports.flatMap((report) => report.failed)).toEqual([]);

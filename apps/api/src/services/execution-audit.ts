@@ -12,6 +12,21 @@ interface TaskSubject {
   spotCode: string | null;
 }
 
+export type BudgetStage = "PLAN" | "PLACEMENTS";
+
+export interface BudgetFacts {
+  stage: BudgetStage;
+  tasks: number;
+  estimated: Money;
+  confirmedSpend: Money;
+  committedSpend: Money;
+  budget: Money;
+}
+
+export type ApprovalRequest =
+  | { reason: "OVER_BUDGET"; estimated: Money; budget: Money; shortfall: Money }
+  | (Omit<BudgetFacts, "stage"> & { reason: "PLACEMENTS_OVER_BUDGET"; shortfall: Money });
+
 interface ExpenseDecided {
   expenseId: string;
   taskId: string;
@@ -38,10 +53,8 @@ export type ExecutionAuditEvent =
   | { type: "TASK_COMPLETED"; payload: TaskSubject & { runnerName: string } }
   | { type: "TASK_CANCELLED"; payload: TaskSubject }
   | { type: "TASK_EXPIRED"; payload: TaskSubject & { attempt: number; released: Money } }
-  | {
-      type: "APPROVAL_REQUESTED";
-      payload: { reason: "OVER_BUDGET"; estimated: Money; budget: Money; shortfall: Money };
-    }
+  | { type: "BUDGET_CHECKED"; payload: BudgetFacts }
+  | { type: "APPROVAL_REQUESTED"; payload: ApprovalRequest }
   | {
       type: "EVIDENCE_RECEIVED";
       payload: { evidenceId: string; taskId: string; spotCode: string; runnerName: string };

@@ -36,6 +36,13 @@
       "when": 1791286885681,
       "tag": "0004_task_expired",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791287597589,
+      "tag": "0005_budget_checked",
+      "breakpoints": true
     }
   ]
 }

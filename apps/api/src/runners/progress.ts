@@ -3,7 +3,7 @@ import { physicalTasks, type Executor, type RunnerRow } from "@datum/db";
 import { conflict } from "../http/errors";
 import { recordAudit } from "../services/audit";
 import { refreshSpotOutcome } from "../services/spot-outcomes";
-import { hasEvidence, hasExpense, isOpenForWork, runnerTask, type RunnerTask } from "./tasks";
+import { hasEvidence, isOpenForWork, printReceipts, runnerTask, type RunnerTask } from "./tasks";
 
 const subjectOf = ({ task, spot }: RunnerTask) => ({
   taskId: task.id,
@@ -33,13 +33,30 @@ export async function acceptTask(db: Executor, runner: RunnerRow, taskId: string
   });
 }
 
+async function assertReceiptConfirmed(db: Executor, taskId: string): Promise<void> {
+  const receipts = await printReceipts(db, taskId);
+  if (receipts.some((receipt) => receipt.status === "CONFIRMED")) return;
+  if (receipts.some((receipt) => receipt.status === "SUBMITTED")) {
+    throw conflict(
+      "RECEIPT_IN_REVIEW",
+      "The print receipt is waiting for review, so the print run cannot be finished yet",
+    );
+  }
+  const disputed = receipts.at(-1);
+  if (disputed === undefined) {
+    throw conflict("RECEIPT_REQUIRED", "Upload the print receipt and amount before finishing");
+  }
+  throw conflict(
+    "RECEIPT_DISPUTED",
+    `The print receipt was not accepted: ${disputed.explanation} Upload a correct receipt before finishing`,
+  );
+}
+
 async function assertDeliverable(db: Executor, target: RunnerTask): Promise<void> {
   if (target.task.type === "PLACE_SPOT" && !(await hasEvidence(db, target.task.id))) {
     throw conflict("EVIDENCE_REQUIRED", "Upload a photo of the placed card before finishing");
   }
-  if (target.task.type === "PRINT_AND_COLLECT" && !(await hasExpense(db, target.task.id))) {
-    throw conflict("RECEIPT_REQUIRED", "Upload the print receipt and amount before finishing");
-  }
+  if (target.task.type === "PRINT_AND_COLLECT") await assertReceiptConfirmed(db, target.task.id);
 }
 
 export async function completeTask(db: Executor, runner: RunnerRow, taskId: string): Promise<void> {

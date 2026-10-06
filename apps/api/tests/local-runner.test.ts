@@ -3,7 +3,8 @@ import type { PhysicalTaskDraft } from "@datum/core";
 import { auditEvents, physicalTasks, spots } from "@datum/db";
 import { describe, expect, it } from "vitest";
 import { localEnrolledRunner } from "../src/executor/local-runner";
-import { approvedCampaign, startedCampaign, taskFor } from "./runners/campaign";
+import { approvedCampaign, taskFor } from "./runners/campaign";
+import { printedCampaign } from "./runners/print";
 import { enrollTestRunner } from "./runners/enroll";
 import { appBaseUrl, db, resetDatabaseBetweenTests, testRates } from "./support";
 
@@ -89,7 +90,7 @@ describe("the local enrolled runner adapter", () => {
   });
 
   it("cancels an open task once, releasing its spot attempt as a miss", async () => {
-    const { campaign } = await startedCampaign();
+    const { campaign } = await printedCampaign();
     const ref = {
       adapter: "LOCAL_ENROLLED_RUNNER" as const,
       externalRef: taskFor(campaign, "A").id,

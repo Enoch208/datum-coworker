@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { campaigns } from "@datum/db";
 import { isLoopStatus } from "./claim";
 import type { LoopDeps } from "./deps";
+import { advanceExecution } from "./execution";
 import { refreshCampaignSpots } from "../services/spot-outcomes";
 import { expireOverdueTasks } from "./reconcile";
 
@@ -18,4 +19,6 @@ export async function tickCampaign(
   await expireOverdueTasks(deps.db, campaignId, deps.now());
   await refreshCampaignSpots(deps.db, campaignId);
   signal.throwIfAborted();
+  if (campaign.status !== "EXECUTING") return;
+  await advanceExecution(deps, campaignId, signal);
 }

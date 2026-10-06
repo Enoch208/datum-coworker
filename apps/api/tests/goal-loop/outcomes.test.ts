@@ -3,6 +3,7 @@ import type { CampaignView, EvidenceView } from "@datum/core";
 import { spots } from "@datum/db";
 import { describe, expect, it } from "vitest";
 import { startedCampaign, taskFor } from "../runners/campaign";
+import { printedCampaign } from "../runners/print";
 import { jpegFile, phonePhoto, postForm, runnerCall, taskPath } from "../runners/calls";
 import { call, db, resetDatabaseBetweenTests } from "../support";
 import { runPass } from "./loop";
@@ -18,7 +19,7 @@ const spotsOf = async (campaignId: string) =>
 
 describe("spot outcomes come from evidence and task closure", () => {
   it("marks a placement closed without a valid photo as a first-pass miss", async () => {
-    const { campaign, runner } = await startedCampaign();
+    const { campaign, runner } = await printedCampaign();
     const taskId = taskFor(campaign, "A").id;
     await runnerCall("POST", taskPath(runner.token, taskId, "accept"));
     const wrongCard = await phonePhoto(campaign, "B");

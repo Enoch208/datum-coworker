@@ -1,0 +1,1 @@
+ALTER TYPE "public"."audit_event_type" ADD VALUE 'BUDGET_CHECKED' BEFORE 'GOAL_EVALUATED';

@@ -1,4 +1,4 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 import {
   hasIdShape,
   campaigns,
@@ -7,6 +7,7 @@ import {
   physicalTasks,
   spots,
   type CampaignRow,
+  type ExpenseRow,
   type Executor,
   type PhysicalTaskRow,
   type RunnerRow,
@@ -59,11 +60,10 @@ export async function hasEvidence(db: Executor, taskId: string): Promise<boolean
   return row !== undefined;
 }
 
-export async function hasExpense(db: Executor, taskId: string): Promise<boolean> {
-  const [row] = await db
-    .select({ id: expenses.id })
+export async function printReceipts(db: Executor, taskId: string): Promise<ExpenseRow[]> {
+  return db
+    .select()
     .from(expenses)
     .where(eq(expenses.physicalTaskId, taskId))
-    .limit(1);
-  return row !== undefined;
+    .orderBy(asc(expenses.createdAt), asc(expenses.id));
 }

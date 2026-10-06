@@ -67,6 +67,7 @@ describe("campaignTransitions", () => {
     ["NEEDS_APPROVAL", "CANCELLED"],
     ["NEEDS_APPROVAL", "EXPIRED_INCOMPLETE"],
     ["EXECUTING", "FAILED"],
+    ["EXECUTING", "NEEDS_APPROVAL"],
   ])("allows %s -> %s", (from, to) => {
     expect(canTransition(from, to)).toBe(true);
     expect(() => {

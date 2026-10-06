@@ -4,7 +4,8 @@ import type { ApiError, OperatorRunnerView } from "@datum/core";
 import { physicalTasks, runners } from "@datum/db";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app";
-import { startedCampaign, taskFor } from "./runners/campaign";
+import { taskFor } from "./runners/campaign";
+import { printedCampaign } from "./runners/print";
 import { runnerCall, taskPath } from "./runners/calls";
 import { asOperator, enrollTestRunner, inFuture } from "./runners/enroll";
 import { db, resetDatabaseBetweenTests, testDeps } from "./support";
@@ -61,7 +62,7 @@ const assignedTasks = (runnerId: string) =>
 
 describe("POST /operator/runners/:id/deactivate", () => {
   it("closes the runner's link at once and leaves its assigned tasks in place", async () => {
-    const { campaign, runner } = await startedCampaign();
+    const { campaign, runner } = await printedCampaign();
     const runnerId = runner.view.runner.id;
     const spotA = taskFor(campaign, "A").id;
     await runnerCall("POST", taskPath(runner.token, spotA, "accept"));

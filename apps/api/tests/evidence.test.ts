@@ -3,7 +3,8 @@ import type { CampaignView, EvidenceView, TimelineEventView } from "@datum/core"
 import { auditEvents, evidence, physicalTasks } from "@datum/db";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { approvedCampaign, startedCampaign, taskFor } from "./runners/campaign";
+import { approvedCampaign, taskFor } from "./runners/campaign";
+import { printedCampaign } from "./runners/print";
 import { jpegFile, phonePhoto, postForm, runnerCall, taskPath } from "./runners/calls";
 import { app, call, db, resetDatabaseBetweenTests } from "./support";
 
@@ -19,7 +20,7 @@ const allChecks = {
 };
 
 async function placementReady(spotCode = "A") {
-  const started = await startedCampaign();
+  const started = await printedCampaign();
   const taskId = taskFor(started.campaign, spotCode).id;
   await runnerCall("POST", taskPath(started.runner.token, taskId, "accept"));
   return { ...started, taskId };
@@ -159,7 +160,7 @@ describe("POST /runner/:token/tasks/:taskId/evidence (Gate 4)", () => {
   });
 
   it("refuses a photo for a print run and for a task not yet accepted", async () => {
-    const { campaign, runner } = await startedCampaign();
+    const { campaign, runner } = await printedCampaign();
     const photo = await phonePhoto(campaign, "A");
     const print = taskFor(campaign, null).id;
     await runnerCall("POST", taskPath(runner.token, print, "accept"));

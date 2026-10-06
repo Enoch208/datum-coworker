@@ -11,6 +11,8 @@ import {
 } from "./receipts/fixture-reader";
 import { receiptPhoto } from "./receipts/receipt-image";
 import { startedCampaign, taskFor } from "./runners/campaign";
+import { campaignNow, finishPrint } from "./runners/print";
+import { runPass } from "./goal-loop/loop";
 import { jpegFile, postForm, runnerCall, taskPath } from "./runners/calls";
 import { callApp, db, resetDatabaseBetweenTests, testDeps } from "./support";
 
@@ -51,8 +53,8 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
     expect(await ledger()).toMatchObject({
       approvedBudget: { amount: "50.00" },
       confirmedSpend: { amount: "13.80" },
-      committedSpend: { amount: "20.00" },
-      remaining: { amount: "16.20" },
+      committedSpend: { amount: "0.00" },
+      remaining: { amount: "36.20" },
       expenses: [{ id: reply.body.id, status: "CONFIRMED" }],
     });
   });
@@ -67,8 +69,8 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
     });
     expect(await ledger()).toMatchObject({
       confirmedSpend: { amount: "0.00" },
-      committedSpend: { amount: "26.00" },
-      remaining: { amount: "24.00" },
+      committedSpend: { amount: "6.00" },
+      remaining: { amount: "44.00" },
     });
   });
 
@@ -179,9 +181,9 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
   it("takes a receipt only on an accepted print run", async () => {
     const reader = matching();
     const target = createApp(testDeps({ receiptReader: reader }));
-    const { campaign, runner } = await startedCampaign();
-    const spotA = taskFor(campaign, "A").id;
-    const print = taskFor(campaign, null).id;
+    const started = await startedCampaign();
+    const { runner } = started;
+    const print = taskFor(started.campaign, null).id;
     const sendTo = async (taskId: string) =>
       postForm(
         taskPath(runner.token, taskId, "expense"),
@@ -192,6 +194,9 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
       status: 409,
       body: { error: "TASK_NOT_ACCEPTED" },
     });
+    await finishPrint(started, "6.00");
+    await runPass();
+    const spotA = taskFor(await campaignNow(started.campaign.id), "A").id;
     await runnerCall("POST", taskPath(runner.token, spotA, "accept"));
     expect(await sendTo(spotA)).toMatchObject({ status: 409, body: { error: "NOT_A_PRINT_RUN" } });
   });

@@ -13,19 +13,15 @@ resetDatabaseBetweenTests();
 const taskRows = () => db.select().from(physicalTasks);
 
 describe("POST /campaigns/:id/start (Gate 3)", () => {
-  it("commissions one print run and one placement per spot under deterministic keys", async () => {
+  it("commissions only the print run first, under its deterministic key", async () => {
     const { campaign, runner } = await startedCampaign();
     expect(campaign.status).toBe("EXECUTING");
     expect(campaign.tasks.map((task) => [task.type, task.spotCode, task.status])).toEqual([
       ["PRINT_AND_COLLECT", null, "DISPATCHED"],
-      ["PLACE_SPOT", "A", "DISPATCHED"],
-      ["PLACE_SPOT", "B", "DISPATCHED"],
     ]);
     const rows = await taskRows();
-    expect(rows.map((row) => row.idempotencyKey).sort()).toEqual([
+    expect(rows.map((row) => row.idempotencyKey)).toEqual([
       `campaign:${campaign.id}:print:attempt:1`,
-      `campaign:${campaign.id}:spot:A:attempt:1`,
-      `campaign:${campaign.id}:spot:B:attempt:1`,
     ]);
     for (const row of rows) {
       expect(row).toMatchObject({
@@ -40,7 +36,7 @@ describe("POST /campaigns/:id/start (Gate 3)", () => {
     expect(campaign.tasks.every((task) => task.adapter === "LOCAL_ENROLLED_RUNNER")).toBe(true);
   });
 
-  it("commits each step's approved estimate and gives each task its cards", async () => {
+  it("holds the print run's approved estimate and gives it every spot's card", async () => {
     const { campaign } = await startedCampaign();
     const rows = await taskRows();
     const print = rows.find((row) => row.type === "PRINT_AND_COLLECT");
@@ -53,20 +49,20 @@ describe("POST /campaigns/:id/start (Gate 3)", () => {
     expect(campaign.ledger).toEqual({
       approvedBudget: { amount: "50.00", currency: "SGD" },
       confirmedSpend: { amount: "0.00", currency: "SGD" },
-      committedSpend: { amount: "26.00", currency: "SGD" },
-      remaining: { amount: "24.00", currency: "SGD" },
+      committedSpend: { amount: "6.00", currency: "SGD" },
+      remaining: { amount: "44.00", currency: "SGD" },
       expenses: [],
     });
   });
 
-  it("returns the same tasks when started again", async () => {
+  it("returns the same task when started again", async () => {
     const { campaign } = await startedCampaign();
     const again = await start(campaign.id);
     expect(again).toMatchObject({ status: 200, body: { status: "EXECUTING" } });
     expect(again.body.tasks).toEqual(campaign.tasks);
-    expect(await taskRows()).toHaveLength(3);
+    expect(await taskRows()).toHaveLength(1);
     const created = await db.select().from(auditEvents).where(eq(auditEvents.type, "TASK_CREATED"));
-    expect(created).toHaveLength(3);
+    expect(created).toHaveLength(1);
   });
 
   it("refuses to start without an approval", async () => {
@@ -136,26 +132,22 @@ describe("POST /campaigns/:id/start (Gate 3)", () => {
     });
   });
 
-  it("tells the timeline what was commissioned and who holds it", async () => {
+  it("tells the timeline that the plan fits and the print run goes first", async () => {
     const { campaign } = await startedCampaign();
     const events = await call<TimelineEventView[]>("GET", `/campaigns/${campaign.id}/timeline`);
-    const execution = events.body.filter((event) => event.type.startsWith("TASK_"));
+    const execution = events.body.filter(
+      (event) => event.type.startsWith("TASK_") || event.type === "BUDGET_CHECKED",
+    );
     expect(execution.map(({ actor, summary }) => [actor, summary])).toEqual([
+      [
+        "DATUM_RULES",
+        "Checked the approved plan's SGD 26.00 estimate against the SGD 50.00 budget: it fits, so the print run goes first and the placements follow once its spend is confirmed",
+      ],
       [
         "DATUM_RULES",
         "Commissioned the print run of 4 copies (attempt 1), holding SGD 6.00 of the budget",
       ],
       ["DATUM_RULES", "Sent the print run to Ana, a local enrolled runner"],
-      [
-        "DATUM_RULES",
-        "Commissioned the Spot A placement (attempt 1), holding SGD 10.00 of the budget",
-      ],
-      ["DATUM_RULES", "Sent the Spot A placement to Ana, a local enrolled runner"],
-      [
-        "DATUM_RULES",
-        "Commissioned the Spot B placement (attempt 1), holding SGD 10.00 of the budget",
-      ],
-      ["DATUM_RULES", "Sent the Spot B placement to Ana, a local enrolled runner"],
     ]);
   });
 });

@@ -2,7 +2,8 @@ import type { ApiError, EvidenceView } from "@datum/core";
 import { evidence } from "@datum/db";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { startedCampaign, taskFor } from "./runners/campaign";
+import { taskFor } from "./runners/campaign";
+import { printedCampaign } from "./runners/print";
 import { jpegFile, postForm, runnerCall, taskPath } from "./runners/calls";
 import { app, db, resetDatabaseBetweenTests } from "./support";
 
@@ -11,7 +12,7 @@ resetDatabaseBetweenTests();
 const twelveMegabytes = 12 * 1024 * 1024;
 
 async function readyTask() {
-  const { campaign, runner } = await startedCampaign();
+  const { campaign, runner } = await printedCampaign();
   const taskId = taskFor(campaign, "A").id;
   await runnerCall("POST", taskPath(runner.token, taskId, "accept"));
   return (fields: Record<string, string | Blob>) =>
