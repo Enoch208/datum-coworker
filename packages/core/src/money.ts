@@ -73,6 +73,18 @@ export const subtractMoney = (left: Money, right: Money): Money => {
 export const sumMoney = (items: readonly Money[], currency: Currency): Money =>
   items.reduce(addMoney, zeroMoney(currency));
 
+export const multiplyMoney = (money: Money, factor: number): Money => {
+  assertMinorUnits(money);
+  if (!Number.isSafeInteger(factor) || factor < 0) {
+    throw new RangeError(`A money multiplier is a whole number of units: ${String(factor)}`);
+  }
+  const amountMinor = money.amountMinor * factor;
+  if (!Number.isSafeInteger(amountMinor)) {
+    throw new MoneyError("AMOUNT_TOO_LARGE", `${String(factor)} units overflow the amount`);
+  }
+  return { amountMinor, currency: money.currency };
+};
+
 export const compareMoney = (left: Money, right: Money): -1 | 0 | 1 => {
   checkedPair(left, right);
   if (left.amountMinor < right.amountMinor) return -1;
