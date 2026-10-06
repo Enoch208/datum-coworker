@@ -4,9 +4,15 @@
 
   --color-canvas: #060608;
   --color-surface: #0c0c0d;
+  --color-raised: #131315;
   --color-line: #1f1f22;
+  --color-line-strong: #2e2e33;
   --color-ink: #f4f4f5;
   --color-muted: #a1a1aa;
   --color-faint: #52525b;
   --color-accent: #00fbfe;
+  --color-on-accent: #060608;
+  --color-ok: #4ade80;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
 }
