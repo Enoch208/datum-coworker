@@ -1,5 +1,5 @@
-import type { EvidenceView, RunnerInboxView } from "@datum/core";
-import { evidenceSchema, runnerInboxSchema } from "./execution-schemas";
+import type { EvidenceView, ExpenseView, MoneyText, RunnerInboxView } from "@datum/core";
+import { evidenceSchema, expenseSchema, runnerInboxSchema } from "./execution-schemas";
 import { ApiRequestError, expectShape, send } from "./http";
 import { postForm } from "./upload";
 
@@ -58,5 +58,28 @@ export function uploadEvidence(
     form.append("photo", photo, photo.name.length > 0 ? photo.name : "evidence.jpg");
     const body = await postForm(`${runnerTaskPath(token, taskId)}/evidence`, form, onProgress);
     return expectShape(evidenceSchema, body, "the photo check");
+  });
+}
+
+export interface ExpenseSubmission {
+  readonly receipt: File;
+  readonly amount: MoneyText;
+  readonly merchant: string;
+}
+
+export function submitExpense(
+  token: string,
+  taskId: string,
+  submission: ExpenseSubmission,
+  onProgress: (fraction: number) => void,
+): Promise<ExpenseView> {
+  return tokenSafe(token, async () => {
+    const form = new FormData();
+    const { receipt, amount, merchant } = submission;
+    form.append("receipt", receipt, receipt.name.length > 0 ? receipt.name : "receipt.jpg");
+    form.append("amount", amount);
+    if (merchant.length > 0) form.append("merchant", merchant);
+    const body = await postForm(`${runnerTaskPath(token, taskId)}/expense`, form, onProgress);
+    return expectShape(expenseSchema, body, "the receipt");
   });
 }
