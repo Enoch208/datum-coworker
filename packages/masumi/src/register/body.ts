@@ -1,5 +1,6 @@
 import { cardanoNetwork, paymentSourceType } from "../constants";
 import type { RegistrationBody, ScopedKeyBody } from "../mps/admin";
+import { runtimeKeyProblems } from "../mps/key-scope";
 import type { MpsApiKey, MpsRegistryEntry } from "../mps/schemas";
 
 export const datumRegistration = {
@@ -56,22 +57,11 @@ export function scopedKeyBody(sellingWalletId: string): ScopedKeyBody {
 }
 
 export function scopedKeyProblems(key: MpsApiKey, sellingWalletId: string): string[] {
-  const checks: [boolean, string][] = [
-    [key.canRead && key.canPay && !key.canAdmin, "key must be ReadAndPay without admin"],
-    [!key.usageLimited, "key must not be usage limited (PATCH it with usageLimited:false)"],
-    [
-      key.NetworkLimit.length === 1 && key.NetworkLimit[0] === cardanoNetwork,
-      "key must be Preprod only",
-    ],
-    [
-      key.walletScopeEnabled &&
-        key.WalletScopes.length === 1 &&
-        key.WalletScopes[0]?.hotWalletId === sellingWalletId,
-      "key must be scoped to the selling wallet",
-    ],
-    [!key.token.startsWith("*****"), "the token was not revealed"],
+  const revealed = !key.token.startsWith("*****");
+  return [
+    ...runtimeKeyProblems(key, sellingWalletId),
+    ...(revealed ? [] : ["the token was not revealed"]),
   ];
-  return checks.filter(([holds]) => !holds).map(([, problem]) => problem);
 }
 
 export function supportedSourceIndex(

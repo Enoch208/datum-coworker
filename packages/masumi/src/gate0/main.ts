@@ -35,7 +35,7 @@ async function main(): Promise<void> {
     token: env.MASUMI_PAYMENT_API_KEY,
     fetch,
   });
-  const coworkerId = await preflight(core, mps, log);
+  const coworkerId = await preflight(core, mps, env.MASUMI_SELLING_WALLET_ID, log);
   if (values.task === undefined) {
     const ready = (await core.readyTasks()).filter((task) => task.assigneeId === coworkerId);
     log(`${String(ready.length)} READY Task(s) assigned to this Coworker:`);

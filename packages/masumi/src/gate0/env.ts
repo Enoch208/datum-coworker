@@ -15,6 +15,9 @@ export const gate0EnvSchema = z.object({
     .regex(/^[0-9a-f]{57,250}$/, "must be the registered agentIdentifier (lowercase hex)"),
   MASUMI_SUPPORTED_PAYMENT_SOURCE_INDEX: z.coerce.number().int().min(0).max(24),
   MASUMI_SELLER_ADDRESS: z.string().regex(/^addr_test1[0-9a-z]+$/, "must be a Preprod address"),
+  MASUMI_SELLING_WALLET_ID: z
+    .string()
+    .min(1, "must be the MPS selling wallet id the key is scoped to"),
   BLOCKFROST_API_KEY_PREPROD: z.string().regex(/^preprod[A-Za-z0-9]+$/, "must be a Preprod key"),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   MASUMI_JOURNAL_DIR: z.string().min(1).default(defaultDatumDir("masumi-journal")),

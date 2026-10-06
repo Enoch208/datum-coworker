@@ -6,6 +6,7 @@ import {
   scopedKeyProblems,
   supportedSourceIndex,
 } from "../src/register/body";
+import { recordedApiKey } from "./fixtures/api-key";
 import { recordedSeller } from "./fixtures/mps-payment";
 
 describe("one-time registration", () => {
@@ -74,24 +75,6 @@ describe("one-time registration", () => {
 
 describe("scoped runtime key", () => {
   const requested = scopedKeyBody(recordedSeller.walletId);
-  const recordedKey = {
-    id: "cmuw15kk30000b9vbuwdgob1d",
-    token: "runtime-token-revealed-once",
-    permission: "ReadAndPay",
-    canRead: true,
-    canPay: true,
-    canAdmin: false,
-    usageLimited: false,
-    NetworkLimit: ["Preprod"],
-    ChainIdLimit: ["cardano:preprod"],
-    RemainingUsageCredits: [],
-    status: "Active",
-    walletScopeEnabled: true,
-    WalletScopes: [{ hotWalletId: recordedSeller.walletId }],
-    x402WalletScopeEnabled: true,
-    X402WalletScopes: [],
-  };
-
   it("asks for ReadAndPay on Preprod, scoped to the selling wallet", () => {
     expect(requested).toMatchObject({
       usageLimited: "false",
@@ -105,19 +88,21 @@ describe("scoped runtime key", () => {
   });
 
   it("accepts the recorded key shape", () => {
-    expect(scopedKeyProblems(mpsApiKeySchema.parse(recordedKey), recordedSeller.walletId)).toEqual(
-      [],
-    );
+    expect(
+      scopedKeyProblems(mpsApiKeySchema.parse(recordedApiKey), recordedSeller.walletId),
+    ).toEqual([]);
   });
 
   it.each([
     ["an admin key", { canAdmin: true }],
     ["a usage limited key", { usageLimited: true }],
     ["a masked token", { token: "*****oken" }],
-    ["an unscoped key", { walletScopeEnabled: false, WalletScopes: [] }],
+    ["a key without wallet scope", { walletScopeEnabled: false }],
+    ["a key scoped to no wallet", { WalletScopes: [] }],
+    ["a revoked key", { status: "Revoked" }],
     ["a Mainnet key", { NetworkLimit: ["Mainnet", "Preprod"] }],
   ])("flags %s", (_label, change) => {
-    const key = mpsApiKeySchema.parse({ ...recordedKey, ...change });
+    const key = mpsApiKeySchema.parse({ ...recordedApiKey, ...change });
     expect(scopedKeyProblems(key, recordedSeller.walletId)).toHaveLength(1);
   });
 });
