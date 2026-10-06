@@ -4,6 +4,7 @@ import {
   type CampaignReceipt,
   type CampaignReceiptView,
   type ExecutorAdapter,
+  type MasumiPaymentEvidence,
 } from "@datum/core";
 import type { CampaignReceiptRow } from "@datum/db";
 import { campaignReceiptSchema } from "./receipt-schema";
@@ -18,7 +19,10 @@ export const parseStoredReceipt = (row: CampaignReceiptRow): CampaignReceipt => 
   return campaignReceiptSchema.parse(json);
 };
 
-export function toCampaignReceiptView(row: CampaignReceiptRow): CampaignReceiptView {
+export function toCampaignReceiptView(
+  row: CampaignReceiptRow,
+  payment: MasumiPaymentEvidence | null = null,
+): CampaignReceiptView {
   const receipt = parseStoredReceipt(row);
   const { target, actual } = receipt;
   return {
@@ -52,6 +56,6 @@ export function toCampaignReceiptView(row: CampaignReceiptRow): CampaignReceiptV
     totalScans: receipt.totalScans,
     publishedAt: row.publishedAt.toISOString(),
     sha256: row.sha256,
-    masumi: receipt.masumi,
+    masumi: receipt.masumi ?? payment,
   };
 }

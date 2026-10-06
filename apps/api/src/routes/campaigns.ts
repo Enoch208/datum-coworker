@@ -1,4 +1,5 @@
 import { Hono, type Context } from "hono";
+import type { CampaignReceiptRow, Db } from "@datum/db";
 import type { ApiDeps } from "../deps";
 import { pathId, readBody } from "../http/input";
 import {
@@ -10,6 +11,7 @@ import {
 } from "../http/schemas";
 import { raiseBudget } from "../services/budget-raise";
 import { storedReceipt } from "../services/campaign-receipt";
+import { campaignPaymentEvidence } from "../services/coworker-payment";
 import { goalState } from "../services/goal-state";
 import { toCampaignReceiptView } from "../views/campaign-receipt";
 import { HttpError } from "../http/errors";
@@ -27,6 +29,19 @@ import { startCampaign } from "../services/start";
 
 const campaignId = (c: Context) => pathId(c, "id", "cmp", "Campaign");
 
+async function publishedReceipt(db: Db, id: string): Promise<CampaignReceiptRow> {
+  await findCampaign(db, id);
+  const row = await storedReceipt(db, id);
+  if (row === null) {
+    throw new HttpError(
+      404,
+      "NO_RECEIPT",
+      "The Campaign Receipt is published when the campaign ends",
+    );
+  }
+  return row;
+}
+
 export function campaignRoutes(deps: ApiDeps) {
   const { db, appBaseUrl } = deps;
   return new Hono()
@@ -39,16 +54,15 @@ export function campaignRoutes(deps: ApiDeps) {
     .get("/campaigns/:id/goal", async (c) => c.json(await goalState(db, campaignId(c), new Date())))
     .get("/campaigns/:id/receipt", async (c) => {
       const id = campaignId(c);
-      await findCampaign(db, id);
-      const row = await storedReceipt(db, id);
-      if (row === null) {
-        throw new HttpError(
-          404,
-          "NO_RECEIPT",
-          "The Campaign Receipt is published when the campaign ends",
-        );
-      }
-      return c.json(toCampaignReceiptView(row));
+      const row = await publishedReceipt(db, id);
+      return c.json(toCampaignReceiptView(row, await campaignPaymentEvidence(db, id)));
+    })
+    .get("/campaigns/:id/receipt/canonical", async (c) => {
+      const row = await publishedReceipt(db, campaignId(c));
+      return c.body(row.canonicalJson, 200, {
+        "content-type": "application/json; charset=utf-8",
+        "x-content-sha256": row.sha256,
+      });
     })
     .post("/campaigns/:id/plan", async (c) => c.json(await planProposal(deps, campaignId(c))))
     .patch("/campaigns/:id/copy", async (c) => {
