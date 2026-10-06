@@ -86,7 +86,7 @@ function Rows({ proof }: { proof: MasumiProofView }) {
       label: "Earned",
       value:
         verified && proof.netReceivedAtomic !== null ? (
-          <span className="font-mono text-lg text-accent tabular-nums">
+          <span className="font-mono text-lg font-medium text-ink tabular-nums">
             +{atomicToToken(proof.netReceivedAtomic, tusdmDecimals)} tUSDM
           </span>
         ) : (

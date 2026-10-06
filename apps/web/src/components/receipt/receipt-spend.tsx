@@ -50,7 +50,7 @@ export function ReceiptSpend({ receipt }: { receipt: CampaignReceiptView }) {
         </div>
         <div>
           <dt className="text-xs text-muted">Left</dt>
-          <dd className="mt-1 font-mono text-lg text-accent tabular-nums">
+          <dd className="mt-1 font-mono text-lg text-ink tabular-nums">
             {formatWireMoney(spend.remaining)}
           </dd>
         </div>

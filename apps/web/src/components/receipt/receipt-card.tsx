@@ -7,7 +7,7 @@ import { CampaignStatusChip } from "@/components/status/campaign-status-chip";
 import { SpotStatusChip } from "@/components/status/spot-status-chip";
 import { cx } from "@/lib/cx";
 import { formatSgtHour, formatWireMoney, shortHash } from "@/lib/format";
-import { isLive, outcomeHeadline } from "./outcome-words";
+import { outcomeHeadline } from "./outcome-words";
 
 function Stat({ label, value, strong }: { label: string; value: ReactNode; strong?: boolean }) {
   return (
@@ -15,8 +15,8 @@ function Stat({ label, value, strong }: { label: string; value: ReactNode; stron
       <dt className="text-xs leading-snug text-muted">{label}</dt>
       <dd
         className={cx(
-          "font-mono text-2xl font-light tabular-nums",
-          strong === true ? "text-accent" : "text-ink",
+          "font-mono text-2xl text-ink tabular-nums",
+          strong === true ? "font-normal" : "font-light",
         )}
       >
         {value}
@@ -29,7 +29,7 @@ function Thumb({ spot }: { spot: ReceiptSpotView }) {
   return (
     <li className="relative overflow-hidden rounded-xl border border-line bg-raised">
       {spot.evidencePhotoUrl === null ? (
-        <div className="flex aspect-[4/3] items-center justify-center text-faint">
+        <div className="flex aspect-[4/3] items-center justify-center text-muted">
           <HugeiconsIcon icon={ImageNotFound01Icon} size={22} strokeWidth={1.5} aria-hidden />
         </div>
       ) : (
@@ -40,7 +40,7 @@ function Thumb({ spot }: { spot: ReceiptSpotView }) {
         />
       )}
       {spot.recoveredAfterMiss && (
-        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full border border-accent/40 bg-canvas/85 px-2 py-0.5 text-[11px] font-medium text-accent">
+        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full border border-ink/30 bg-canvas/85 px-2 py-0.5 text-[11px] font-medium text-ink">
           <HugeiconsIcon icon={RepairIcon} size={12} strokeWidth={1.8} aria-hidden />
           Recovered after a miss
         </span>
@@ -105,32 +105,29 @@ function Footer({ receipt }: { receipt: CampaignReceiptView }) {
 }
 
 export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
-  const live = isLive(receipt);
   return (
     <article
       id="receipt-card"
       aria-labelledby="receipt-heading"
-      className="flex flex-col gap-8 rounded-3xl border border-line bg-raised/30 p-5 sm:p-8 2xl:min-h-[630px] 2xl:p-10"
+      className="flex flex-col gap-8 rounded-3xl border border-line bg-surface p-5 sm:p-10 xl:h-[630px] xl:gap-0 xl:p-12"
     >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <span className="print:brightness-0">
             <BrandMark height={22} />
           </span>
-          <span className="font-mono text-xs tracking-[0.2em] text-muted uppercase">
-            Campaign Receipt
-          </span>
+          <span className="eyebrow text-muted">Campaign Receipt</span>
         </div>
         <CampaignStatusChip status={receipt.status} />
       </header>
-      <div className="grid gap-8 2xl:flex-1 2xl:grid-cols-2 2xl:gap-10">
+      <div className="grid gap-8 xl:mt-8 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_25rem] xl:gap-12">
         <div className="flex min-w-0 flex-col">
           <p className="text-base break-words text-muted">{receipt.campaignName}</p>
           <h1 id="receipt-heading" className="mt-1 text-3xl font-medium tracking-tight sm:text-4xl">
             {outcomeHeadline(receipt)}
           </h1>
           <p className="mt-6 font-mono text-8xl leading-none font-extralight tracking-tighter tabular-nums xl:text-[8.5rem]">
-            <span className={live ? "text-accent" : "text-ink"}>{receipt.actual.spotsPassed}</span>
+            <span className="text-ink">{receipt.actual.spotsPassed}</span>
             <span className="mx-1 text-faint">/</span>
             <span className="text-faint">{receipt.target.spots}</span>
           </p>
@@ -138,7 +135,7 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
             approved spots live, each proven by its own photo
           </p>
           <InducedNote spots={receipt.spots} />
-          <dl className="mt-8 grid grid-cols-3 gap-3 2xl:mt-auto">
+          <dl className="mt-8 grid grid-cols-3 gap-6 xl:mt-auto">
             <Stat
               label="First pass"
               value={`${String(receipt.firstPass.passed)}/${String(receipt.firstPass.required)}`}

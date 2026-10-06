@@ -10,7 +10,7 @@ import { ReceiptSection } from "./receipt-section";
 function Photo({ spot }: { spot: ReceiptSpotView }) {
   if (spot.evidencePhotoUrl === null) {
     return (
-      <div className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-line-strong text-faint sm:size-28">
+      <div className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-line-strong text-muted sm:size-28">
         <HugeiconsIcon icon={ImageNotFound01Icon} size={20} strokeWidth={1.5} aria-hidden />
       </div>
     );

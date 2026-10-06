@@ -29,7 +29,7 @@ function Recoveries({ receipt }: { receipt: CampaignReceiptView }) {
             </p>
             <ToneChip {...sourceChips[recovery.source]} />
           </div>
-          <p className="mt-2 font-mono text-xs text-accent">
+          <p className="mt-2 font-mono text-xs text-ink">
             <KeyText value={recovery.idempotencyKey} />
           </p>
           <p className="mt-2 font-mono text-xs text-muted tabular-nums">
@@ -72,13 +72,11 @@ export function ReceiptRecoveries({ receipt }: { receipt: CampaignReceiptView })
       title="Recovery and interventions"
       note="Recoveries are commissioned by the Goal Loop from the evidence. Every action a person took after approval is counted here."
     >
-      <h3 className="text-xs tracking-[0.16em] text-muted uppercase">
-        Automatic recoveries · {receipt.recoveryActions}
-      </h3>
+      <h3 className="eyebrow text-muted">Automatic recoveries · {receipt.recoveryActions}</h3>
       <div className="mt-3">
         <Recoveries receipt={receipt} />
       </div>
-      <h3 className="mt-8 text-xs tracking-[0.16em] text-muted uppercase">
+      <h3 className="eyebrow mt-8 text-muted">
         Manual interventions after approval · {receipt.postApprovalInterventions}
       </h3>
       <div className="mt-3">

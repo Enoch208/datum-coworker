@@ -3,7 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { CampaignReceiptView } from "@datum/core";
 import { useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
-import { AppShell } from "@/components/chrome/app-shell";
+import { BrandLockup } from "@/components/chrome/brand-lockup";
 import { quietButton, secondaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { CoworkerPayment } from "@/components/receipt/coworker-payment";
@@ -15,24 +15,32 @@ import { ReceiptSpots } from "@/components/receipt/receipt-spots";
 import { TargetActual } from "@/components/receipt/target-actual";
 import { getReceipt } from "@/lib/api-client";
 import { ApiRequestError } from "@/lib/http";
-import { campaignHref } from "@/lib/routes";
+import { appRoutes, campaignHref } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { useResource } from "@/lib/use-resource";
 
 function Frame({ campaignId, children }: { campaignId: string; children: ReactNode }) {
   return (
-    <AppShell>
+    <div className="min-h-dvh overflow-x-clip px-4 pt-6 pb-20 sm:px-8 sm:pt-8 print:p-0">
+      <a href="#receipt-content" className="skip-link print:hidden">
+        Skip to content
+      </a>
       <div className="mx-auto w-full max-w-[1200px]">
-        <nav className="mb-6 flex flex-wrap justify-between gap-3 print:hidden">
-          <span className="eyebrow self-center text-accent">Your campaign, on record</span>
+        <nav
+          aria-label="Receipt navigation"
+          className="mb-8 flex items-center justify-between gap-4 print:hidden"
+        >
+          <Link to={appRoutes.landing} aria-label="Datum home" className="rounded-md">
+            <BrandLockup />
+          </Link>
           <Link to={campaignHref(campaignId)} className={quietButton}>
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} strokeWidth={1.8} aria-hidden />
             Live campaign
           </Link>
         </nav>
-        {children}
+        <main id="receipt-content">{children}</main>
       </div>
-    </AppShell>
+    </div>
   );
 }
 
@@ -40,7 +48,7 @@ function Waiting({ campaignId, error }: { campaignId: string; error: ApiRequestE
   const message = error.message.replace(/\.$/, "");
   return (
     <section className="max-w-xl">
-      <h1 className="text-4xl font-light tracking-tight">
+      <h1 className="text-4xl font-medium tracking-tight">
         {error.code === "NO_RECEIPT" ? "No receipt yet" : "No campaign here"}
       </h1>
       <p className="mt-4 text-lg font-light text-muted">{message}.</p>
