@@ -2,10 +2,11 @@ import { Hono, type Context } from "hono";
 import type { RunnerRow } from "@datum/db";
 import type { ApiDeps } from "../deps";
 import { submitEvidence } from "../evidence/submit";
+import { submitExpense } from "../expenses/submit";
 import { runnerForToken } from "../runners/enrollment";
 import { runnerInbox, runnerTaskView } from "../runners/inbox";
 import { acceptTask, completeTask } from "../runners/progress";
-import { fileField, readForm, uploadBodyLimit } from "../uploads/form";
+import { fileField, readForm, textField, uploadBodyLimit } from "../uploads/form";
 
 const taskPath = "/runner/:token/tasks/:taskId";
 
@@ -33,6 +34,17 @@ export function runnerRoutes(deps: ApiDeps) {
       const runner = await runnerOf(c);
       const photo = await fileField(await readForm(c), "photo");
       const submitted = await submitEvidence(deps, runner, taskIdOf(c), photo);
+      noStore(c);
+      return c.json(submitted.view, submitted.created ? 201 : 200);
+    })
+    .post(`${taskPath}/expense`, uploadBodyLimit, async (c) => {
+      const runner = await runnerOf(c);
+      const form = await readForm(c);
+      const submitted = await submitExpense(deps, runner, taskIdOf(c), {
+        receipt: await fileField(form, "receipt"),
+        amountText: textField(form, "amount"),
+        merchantText: textField(form, "merchant"),
+      });
       noStore(c);
       return c.json(submitted.view, submitted.created ? 201 : 200);
     })

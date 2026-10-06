@@ -6,6 +6,7 @@ import { brandPageLimits, createHtmlFetcher } from "./brand-page/safe-fetch";
 import { createBrandPageReader } from "./brand-page/reader";
 import { loadEnv, rateSettings } from "./env";
 import { createAnthropicPlannerModel } from "./planner/model";
+import { createAnthropicReceiptReader } from "./receipts/reader";
 
 const env = loadEnv(process.env);
 const app = createApp({
@@ -18,6 +19,10 @@ const app = createApp({
     env.ANTHROPIC_API_KEY === undefined
       ? null
       : createAnthropicPlannerModel({ apiKey: env.ANTHROPIC_API_KEY }),
+  receiptReader:
+    env.ANTHROPIC_API_KEY === undefined
+      ? null
+      : createAnthropicReceiptReader({ apiKey: env.ANTHROPIC_API_KEY }),
   rates: rateSettings(env),
   readBrandPage: createBrandPageReader(createHtmlFetcher(brandPageLimits)),
 });

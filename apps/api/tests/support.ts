@@ -68,6 +68,7 @@ export function testDeps(overrides: Partial<ApiDeps> = {}): ApiDeps {
     assetDir,
     evidenceDir,
     planner: fixturePlanner(plannerFixture("plan-accepted")),
+    receiptReader: null,
     rates: testRates,
     readBrandPage: readKopiLabPage,
     ...overrides,

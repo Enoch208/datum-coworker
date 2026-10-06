@@ -1,7 +1,7 @@
 import type { CampaignView } from "@datum/core";
 import { assetBytes } from "../flows";
 import { photographCard, plainScene, type Scene } from "../qr/scene";
-import { app } from "../support";
+import { app, type TestApp } from "../support";
 
 export interface RunnerReply<Body> {
   readonly status: number;
@@ -22,10 +22,11 @@ export const taskPath = (token: string, taskId: string, action: string) =>
 export async function postForm<Body>(
   path: string,
   fields: Record<string, string | Blob>,
+  target: TestApp = app,
 ): Promise<RunnerReply<Body>> {
   const form = new FormData();
   for (const [name, value] of Object.entries(fields)) form.append(name, value);
-  return replyOf<Body>(await app.request(path, { method: "POST", body: form }));
+  return replyOf<Body>(await target.request(path, { method: "POST", body: form }));
 }
 
 export const jpegFile = (bytes: Uint8Array, name = "photo.jpg", type = "image/jpeg") =>
