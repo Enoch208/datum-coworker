@@ -1,12 +1,7 @@
-import type { CampaignView } from "@datum/core";
 import { useCallback } from "react";
 import { Link, useLocation, useParams } from "react-router";
-import { CampaignHeader } from "@/components/campaign/campaign-header";
+import { CampaignBody } from "@/components/campaign/campaign-body";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
-import { NoProposal } from "@/components/campaign/no-proposal";
-import { ProposalCopy } from "@/components/campaign/proposal-copy";
-import { ProposalDetails } from "@/components/campaign/proposal-sections";
-import { SpotCards } from "@/components/campaign/spot-cards";
 import { secondaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { ApiRequestError, getCampaign } from "@/lib/api-client";
@@ -24,32 +19,6 @@ function MissingCampaign({ message }: { message: string }) {
         Create a campaign
       </Link>
     </section>
-  );
-}
-
-function CampaignBody({
-  campaign,
-  planFailure,
-  reload,
-}: {
-  campaign: CampaignView;
-  planFailure: string | null;
-  reload: () => void;
-}) {
-  const { proposal } = campaign;
-  return (
-    <>
-      <CampaignHeader campaign={campaign} />
-      <div className="mt-16 flex max-w-4xl min-w-0 flex-col gap-16">
-        {proposal === null ? (
-          <NoProposal campaign={campaign} earlierFailure={planFailure} onPlanned={reload} />
-        ) : (
-          <ProposalCopy proposal={proposal} />
-        )}
-        <SpotCards spots={campaign.spots} />
-        {proposal !== null && <ProposalDetails campaign={campaign} proposal={proposal} />}
-      </div>
-    </>
   );
 }
 
