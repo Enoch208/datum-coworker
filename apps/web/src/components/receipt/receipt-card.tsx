@@ -40,9 +40,9 @@ function Thumb({ spot }: { spot: ReceiptSpotView }) {
         />
       )}
       {spot.recoveredAfterMiss && (
-        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full border border-ink/30 bg-canvas/85 px-2 py-0.5 text-[11px] font-medium text-ink">
+        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full border border-ink/30 bg-canvas/85 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-ink">
           <HugeiconsIcon icon={RepairIcon} size={12} strokeWidth={1.8} aria-hidden />
-          Recovered after a miss
+          Recovered<span className="max-sm:hidden"> after a miss</span>
         </span>
       )}
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-canvas/85 px-2.5 py-1.5">
