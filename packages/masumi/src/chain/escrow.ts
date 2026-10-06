@@ -11,9 +11,9 @@ export interface EscrowLocation {
 
 const cborBytes32Prefix = "5820";
 
-function mayHoldResult(output: TxOutput, resultHash: string): boolean {
+function carriesResult(output: TxOutput, resultHash: string): boolean {
   return (
-    output.inline_datum === null ||
+    output.inline_datum !== null &&
     output.inline_datum.includes(`${cborBytes32Prefix}${resultHash}`)
   );
 }
@@ -23,12 +23,12 @@ export function escrowOutput(resultUtxos: TxUtxos, location: EscrowLocation): Tx
     (output) =>
       output.address === location.contractAddress &&
       !output.collateral &&
-      mayHoldResult(output, location.resultHash),
+      carriesResult(output, location.resultHash),
   );
   const [escrow] = candidates;
   if (escrow === undefined || candidates.length !== 1) {
     throw new TerminalLifecycleError(
-      `ResultSubmitted tx ${location.resultTxHash} has ${String(candidates.length)} contract outputs that could hold this payment's escrow; expected exactly 1`,
+      `ResultSubmitted tx ${location.resultTxHash} has ${String(candidates.length)} contract outputs whose datum carries this payment's result hash; expected exactly 1`,
     );
   }
   return escrow;

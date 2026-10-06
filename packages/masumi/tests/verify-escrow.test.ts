@@ -122,7 +122,20 @@ describe("collection verification against this payment's escrow output", () => {
   it("refuses a batched ResultSubmitted tx whose escrow outputs carry no datum", async () => {
     const ambiguous = batchedResultTx(null, null);
     await expect(verifyWith(collectionTx([ourEscrow], "1000000"), ambiguous)).rejects.toThrow(
-      "2 contract outputs",
+      "0 contract outputs",
+    );
+  });
+
+  it("refuses a lone contract output whose datum does not prove our result hash", async () => {
+    const recorded = resultUtxosNaming(recordedResultHash);
+    const datumless = {
+      ...recorded,
+      outputs: recorded.outputs.map((output) =>
+        output.address === contract ? { ...output, inline_datum: null } : output,
+      ),
+    };
+    await expect(verifyWith(collectionTx([ourEscrow], "1000000"), datumless)).rejects.toThrow(
+      "0 contract outputs",
     );
   });
 });
