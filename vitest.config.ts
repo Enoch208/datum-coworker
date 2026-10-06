@@ -29,6 +29,20 @@ export default defineConfig({
       },
       {
         test: {
+          name: "coworker",
+          root: "apps/coworker",
+          include: ["tests/**/*.test.ts"],
+          environment: "node",
+          fileParallelism: false,
+          testTimeout: 60_000,
+          sequence: { groupOrder: 1 },
+          env: {
+            DATABASE_URL: "postgres://datum:datum@localhost:54330/datum_test",
+          },
+        },
+      },
+      {
+        test: {
           name: "api",
           root: "apps/api",
           include: ["tests/**/*.test.ts"],

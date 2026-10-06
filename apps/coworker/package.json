@@ -1,0 +1,21 @@
+{
+  "name": "@datum/coworker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=.env src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0",
+    "@datum/api": "workspace:*",
+    "@datum/core": "workspace:*",
+    "@datum/db": "workspace:*",
+    "@datum/masumi": "workspace:*",
+    "drizzle-orm": "0.45.3",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}

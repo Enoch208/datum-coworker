@@ -94,6 +94,34 @@ importers:
         specifier: 4.23.15
         version: 4.23.15
 
+  apps/coworker:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: 0.131.0
+        version: 0.131.0(zod@4.6.5)
+      '@datum/api':
+        specifier: workspace:*
+        version: link:../api
+      '@datum/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@datum/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@datum/masumi':
+        specifier: workspace:*
+        version: link:../../packages/masumi
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(postgres@3.4.9)
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
+
   apps/web:
     dependencies:
       '@datum/core':
