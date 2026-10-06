@@ -14,6 +14,7 @@ import { localEnrolledRunner } from "../executor/local-runner";
 import { conflict } from "../http/errors";
 import { recordAudit } from "./audit";
 import { campaignDetail, campaignParts } from "./campaigns";
+import { paymentGate } from "./coworker-payment";
 import { budgetPositionOf, executableOf, isPrintDraft, plannedDrafts } from "./execution-plan";
 import { requireRates } from "./rates";
 import { lockCampaign, moveStatus } from "./status";
@@ -68,6 +69,12 @@ async function startLocked(deps: ApiDeps, db: Executor, campaignId: string): Pro
   }
   if (campaign.deadline.getTime() <= Date.now()) {
     throw conflict("DEADLINE_PASSED", "The campaign deadline has passed");
+  }
+  if ((await paymentGate(db, campaign)) === "AWAITING_ESCROW") {
+    throw conflict(
+      "AWAITING_PAYMENT",
+      "Approved. Datum starts this campaign by itself as soon as the payment for its Sokosumi Task is confirmed in escrow",
+    );
   }
   const drafts = plannedDrafts(parts, target, deps.appBaseUrl);
   const budget = target.lock.budget;

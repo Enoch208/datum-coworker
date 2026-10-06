@@ -11,6 +11,8 @@ import {
   campaignAssets,
   campaignReceipts,
   campaigns,
+  coworkerComments,
+  coworkerTasks,
   createDb,
   evidence,
   expenses,
@@ -82,6 +84,8 @@ export type TestApp = ReturnType<typeof createApp>;
 export const app = createApp(testDeps());
 
 const allTables = [
+  coworkerComments,
+  coworkerTasks,
   campaignReceipts,
   interventions,
   remediationDecisions,
