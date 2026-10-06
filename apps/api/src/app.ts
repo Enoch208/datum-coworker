@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import type { Db } from "@datum/db";
 import { errorBody, HttpError } from "./http/errors";
 import { campaignRoutes } from "./routes/campaigns";
+import { scanRoutes } from "./routes/scans";
 
 export interface AppDeps {
   readonly db: Db;
@@ -16,6 +17,7 @@ export function createApp({ db, appBaseUrl }: AppDeps) {
       return c.json({ status: "ok" });
     })
     .route("/", campaignRoutes(db, appBaseUrl))
+    .route("/", scanRoutes(db))
     .notFound((c) =>
       c.json(errorBody("NOT_FOUND", `No route for ${c.req.method} ${c.req.path}`), 404),
     )
