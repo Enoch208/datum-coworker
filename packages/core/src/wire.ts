@@ -140,6 +140,15 @@ export interface TimelineEventView {
   at: IsoTimestamp;
 }
 
+export interface EvidenceCheckView {
+  photoReceived: boolean;
+  qrDetected: boolean;
+  campaignMatches: boolean;
+  spotMatches: boolean;
+  taskOpen: boolean;
+  beforeDeadline: boolean;
+}
+
 export interface EvidenceView {
   id: string;
   taskId: string;
@@ -149,6 +158,7 @@ export interface EvidenceView {
   verdict: EvidenceVerdict | null;
   failure: EvidenceFailure | null;
   explanation: string;
+  checks: EvidenceCheckView;
 }
 
 export interface ExpenseView {

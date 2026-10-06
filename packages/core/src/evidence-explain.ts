@@ -1,4 +1,5 @@
-import type { EvidenceEvaluation, EvidenceFailure, QrPayload } from "./contract";
+import type { EvidenceChecks, EvidenceEvaluation, EvidenceFailure, QrPayload } from "./contract";
+import type { EvidenceCheckView } from "./wire";
 
 const spot = (payload: QrPayload): string => `Spot ${payload.spotCode}`;
 
@@ -31,3 +32,12 @@ export const explainEvidence = (evaluation: EvidenceEvaluation, expected: QrPayl
   evaluation.failure === null
     ? `This photo shows ${spot(expected)}'s code for this campaign and arrived in time.`
     : failureExplainers[evaluation.failure](evaluation, expected);
+
+export const evidenceCheckView = (checks: EvidenceChecks): EvidenceCheckView => ({
+  photoReceived: checks.photoPresent,
+  qrDetected: checks.qrDecodable,
+  campaignMatches: checks.qrMatchesCampaign,
+  spotMatches: checks.qrMatchesSpot,
+  taskOpen: checks.taskOpen,
+  beforeDeadline: checks.beforeDeadline,
+});

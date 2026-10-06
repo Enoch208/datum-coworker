@@ -11,12 +11,14 @@ import type {
   BrandRow,
   CampaignAssetRow,
   CampaignRow,
+  EvidenceRow,
   ExpenseRow,
   PlaybookRow,
   SpotRow,
 } from "@datum/db";
 import { cardAssetKey, cardAssetUrl } from "../cards/store";
 import type { TaskWithSpot } from "../services/execution-reads";
+import { deciding, toEvidenceView } from "./evidence";
 import { toLedgerView, toTaskSummaryView } from "./ledger";
 import { toApprovalView, toProposalView } from "./proposal";
 
@@ -34,6 +36,7 @@ export interface CampaignParts {
   readonly approval: ApprovalRow | null;
   readonly tasks: readonly TaskWithSpot[];
   readonly expenses: readonly ExpenseRow[];
+  readonly evidence: readonly EvidenceRow[];
 }
 
 const isoOrNull = (value: Date | null): string | null =>
@@ -62,11 +65,21 @@ function cardView(appBaseUrl: string, asset: CampaignAssetRow, spotCode: string)
   return { pngUrl: url("png"), pdfUrl: url("pdf") };
 }
 
+function latestEvidence(
+  spot: SpotRow,
+  rows: readonly EvidenceRow[],
+  appBaseUrl: string,
+): SpotView["latestEvidence"] {
+  const row = deciding(rows.filter((candidate) => candidate.spotId === spot.id));
+  return row === null ? null : toEvidenceView(row, spot.code, appBaseUrl);
+}
+
 function toSpotView(
   { spot, scans }: SpotWithScans,
-  asset: CampaignAssetRow | null,
+  parts: CampaignParts,
   appBaseUrl: string,
 ): SpotView {
+  const { asset } = parts;
   return {
     id: spot.id,
     code: spot.code,
@@ -77,7 +90,7 @@ function toSpotView(
     firstPassStatus: spot.firstPassStatus,
     scanCount: scans,
     card: asset === null ? null : cardView(appBaseUrl, asset, spot.code),
-    latestEvidence: null,
+    latestEvidence: latestEvidence(spot, parts.evidence, appBaseUrl),
   };
 }
 
@@ -105,7 +118,7 @@ export function toCampaignView(parts: CampaignParts, appBaseUrl: string): Campai
     playbook: playbook === null ? null : toPlaybookView(playbook, brand),
     proposal: proposalOf(parts),
     approval: approval === null || asset === null ? null : toApprovalView(approval, asset.version),
-    spots: spots.map((spot) => toSpotView(spot, asset, appBaseUrl)),
+    spots: spots.map((spot) => toSpotView(spot, parts, appBaseUrl)),
     tasks: tasks.map(toTaskSummaryView),
     ledger: approval === null ? null : toLedgerView(approval, tasks, expenses, appBaseUrl),
   };

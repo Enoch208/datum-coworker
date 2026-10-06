@@ -23,6 +23,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(8790),
   HOST: z.string().min(1).default("127.0.0.1"),
   ASSET_DIR: optionalText.transform((value) => value ?? "./.assets"),
+  EVIDENCE_DIR: optionalText.transform((value) => value ?? "./.evidence"),
   ANTHROPIC_API_KEY: optionalText,
   OPERATOR_KEY: optionalSecret,
   DATUM_PRINT_COST_PER_COPY: optionalMoneyText,

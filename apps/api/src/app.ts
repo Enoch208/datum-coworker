@@ -5,7 +5,9 @@ import { errorBody, HttpError } from "./http/errors";
 import { agentRoutes } from "./routes/agent";
 import { assetRoutes } from "./routes/assets";
 import { campaignRoutes } from "./routes/campaigns";
+import { evidenceFileRoutes } from "./routes/evidence-files";
 import { operatorRoutes } from "./routes/operator";
+import { runnerRoutes } from "./routes/runner";
 import { scanRoutes } from "./routes/scans";
 
 export function createApp(deps: ApiDeps) {
@@ -18,6 +20,8 @@ export function createApp(deps: ApiDeps) {
     .route("/", assetRoutes(deps))
     .route("/", scanRoutes(deps.db))
     .route("/", operatorRoutes(deps))
+    .route("/", runnerRoutes(deps))
+    .route("/", evidenceFileRoutes(deps))
     .route("/", agentRoutes())
     .notFound((c) =>
       c.json(errorBody("NOT_FOUND", `No route for ${c.req.method} ${c.req.path}`), 404),

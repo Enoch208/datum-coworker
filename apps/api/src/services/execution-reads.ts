@@ -1,8 +1,10 @@
 import { asc, eq } from "drizzle-orm";
 import {
+  evidence,
   expenses,
   physicalTasks,
   spots,
+  type EvidenceRow,
   type ExpenseRow,
   type Executor,
   type PhysicalTaskRow,
@@ -28,4 +30,14 @@ export async function campaignExpenses(db: Executor, campaignId: string): Promis
     .from(expenses)
     .where(eq(expenses.campaignId, campaignId))
     .orderBy(asc(expenses.createdAt), asc(expenses.id));
+}
+
+export async function campaignEvidence(db: Executor, campaignId: string): Promise<EvidenceRow[]> {
+  const rows = await db
+    .select({ evidence })
+    .from(evidence)
+    .innerJoin(physicalTasks, eq(physicalTasks.id, evidence.physicalTaskId))
+    .where(eq(physicalTasks.campaignId, campaignId))
+    .orderBy(asc(evidence.submittedAt), asc(evidence.id));
+  return rows.map((row) => row.evidence);
 }

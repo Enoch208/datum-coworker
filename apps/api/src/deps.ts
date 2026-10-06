@@ -8,6 +8,7 @@ export interface ApiDeps {
   readonly appBaseUrl: string;
   readonly operatorKey: string | null;
   readonly assetDir: string;
+  readonly evidenceDir: string;
   readonly planner: PlannerModel | null;
   readonly rates: RateSettings;
   readonly readBrandPage: BrandPageReader;

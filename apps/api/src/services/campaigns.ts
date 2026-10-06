@@ -16,7 +16,7 @@ import type { CreateCampaignInput } from "../http/schemas";
 import { toCampaignView, type CampaignParts } from "../views/campaigns";
 import { auditTrail, recordAudit } from "./audit";
 import { ensureBrand } from "./brands";
-import { campaignExpenses, campaignTasks } from "./execution-reads";
+import { campaignEvidence, campaignExpenses, campaignTasks } from "./execution-reads";
 
 export async function createCampaign(
   db: Db,
@@ -127,6 +127,7 @@ export async function campaignParts(db: Executor, campaignId: string): Promise<C
     approval: await latestApproval(db, campaignId),
     tasks: await campaignTasks(db, campaignId),
     expenses: await campaignExpenses(db, campaignId),
+    evidence: await campaignEvidence(db, campaignId),
   };
 }
 

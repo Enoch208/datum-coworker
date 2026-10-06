@@ -9,7 +9,11 @@ const base = {
 describe("loadEnv", () => {
   it("boots without an AI key or rates and keeps assets in ./.assets", () => {
     const env = loadEnv({ ...base, ANTHROPIC_API_KEY: "", ASSET_DIR: "" });
-    expect(env).toMatchObject({ APP_BASE_URL: "https://usedatum.xyz", ASSET_DIR: "./.assets" });
+    expect(env).toMatchObject({
+      APP_BASE_URL: "https://usedatum.xyz",
+      ASSET_DIR: "./.assets",
+      EVIDENCE_DIR: "./.evidence",
+    });
     expect(env.ANTHROPIC_API_KEY).toBeUndefined();
     expect(rateSettings(env)).toEqual({
       configured: false,

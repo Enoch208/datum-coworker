@@ -13,6 +13,7 @@ const app = createApp({
   appBaseUrl: env.APP_BASE_URL,
   operatorKey: env.OPERATOR_KEY ?? null,
   assetDir: resolve(env.ASSET_DIR),
+  evidenceDir: resolve(env.EVIDENCE_DIR),
   planner:
     env.ANTHROPIC_API_KEY === undefined
       ? null

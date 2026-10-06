@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateEvidence, type EvidenceContext, type EvidenceSubmission } from "../src/evidence";
-import { explainEvidence } from "../src/evidence-explain";
+import { evidenceCheckView, explainEvidence } from "../src/evidence-explain";
+import type { EvidenceCheckView } from "../src/wire";
 
 const baseUrl = "https://datum.example";
 const campaignId = "cmp_7k2m9q4w8z1x3c5v";
@@ -67,5 +68,46 @@ describe("explainEvidence", () => {
     expect(explain({ ...photo(null), belongsToOpenTask: false })).toBe(
       "This photo does not belong to an open Spot C task, so it cannot count.",
     );
+  });
+});
+
+describe("evidenceCheckView", () => {
+  const view = (submission: EvidenceSubmission | null, overrides: Partial<EvidenceContext> = {}) =>
+    evidenceCheckView(evaluateEvidence(submission, { ...context, ...overrides }).checks);
+  const spotLink = (code: string, id = campaignId) => `${baseUrl}/c/${id}/${code}`;
+
+  it("shows every check passing for a passing photo", () => {
+    expect(view(photo(spotLink("C")))).toEqual({
+      photoReceived: true,
+      qrDetected: true,
+      campaignMatches: true,
+      spotMatches: true,
+      taskOpen: true,
+      beforeDeadline: true,
+    });
+  });
+
+  it.each<[string, EvidenceSubmission | null, Partial<EvidenceContext>, keyof EvidenceCheckView]>([
+    ["NO_EVIDENCE", null, {}, "photoReceived"],
+    ["NO_EVIDENCE", { ...photo(spotLink("C")), belongsToOpenTask: false }, {}, "taskOpen"],
+    ["QR_NOT_FOUND", photo(null), {}, "qrDetected"],
+    ["QR_WRONG_CAMPAIGN", photo(spotLink("C", "cmp_0000000000000000")), {}, "campaignMatches"],
+    ["QR_WRONG_SPOT", photo(spotLink("B")), {}, "spotMatches"],
+    [
+      "LATE_EVIDENCE",
+      { ...photo(spotLink("C")), submittedAt: "2026-10-07T17:01:00+08:00" },
+      {},
+      "beforeDeadline",
+    ],
+    ["EXECUTOR_CANCELLED", photo(spotLink("C")), { taskCancelled: true }, "taskOpen"],
+    ["TASK_EXPIRED", photo(spotLink("C")), { taskExpired: true }, "taskOpen"],
+  ])("maps %s to a false %s check", (failure, submission, overrides, failing) => {
+    const evaluation = evaluateEvidence(submission, { ...context, ...overrides });
+    expect(evaluation.failure).toBe(failure);
+    expect(evidenceCheckView(evaluation.checks)[failing]).toBe(false);
+  });
+
+  it("keeps the campaign check true when only the spot is wrong", () => {
+    expect(view(photo(spotLink("B")))).toMatchObject({ campaignMatches: true, spotMatches: false });
   });
 });

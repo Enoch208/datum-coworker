@@ -5,6 +5,7 @@ build
 out
 coverage
 .assets
+.evidence
 *.tsbuildinfo
 .DS_Store
 npm-debug.log*

@@ -35,6 +35,7 @@ export const db = createDb(databaseUrl);
 export const appBaseUrl = "https://datum.test";
 export const operatorKey = "operator-key-for-tests-0123456789abcdef";
 export const assetDir = mkdtempSync(join(tmpdir(), "datum-api-assets-"));
+export const evidenceDir = mkdtempSync(join(tmpdir(), "datum-api-evidence-"));
 
 export const testRates: RateSettings = {
   configured: true,
@@ -65,6 +66,7 @@ export function testDeps(overrides: Partial<ApiDeps> = {}): ApiDeps {
     appBaseUrl,
     operatorKey,
     assetDir,
+    evidenceDir,
     planner: fixturePlanner(plannerFixture("plan-accepted")),
     rates: testRates,
     readBrandPage: readKopiLabPage,
