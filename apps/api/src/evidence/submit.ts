@@ -13,7 +13,7 @@ import type { ApiDeps } from "../deps";
 import { conflict } from "../http/errors";
 import { runnerTask, type RunnerTask } from "../runners/tasks";
 import { recordAudit } from "../services/audit";
-import { recordSpotPass } from "../services/spot-outcomes";
+import { refreshSpotOutcome } from "../services/spot-outcomes";
 import { acceptImage, assertAcceptableImage, contentHashOf } from "../uploads/image";
 import { storeImage } from "../uploads/store";
 import { toEvidenceView } from "../views/evidence";
@@ -97,7 +97,7 @@ async function recordPhoto(
         .set({ status: "SUBMITTED", updatedAt: new Date() })
         .where(eq(physicalTasks.id, taskId));
     }
-    if (evaluation.verdict === "PASS") await recordSpotPass(tx, spot.id, target.task.attempt);
+    await refreshSpotOutcome(tx, spot.id);
     return row;
   });
 }

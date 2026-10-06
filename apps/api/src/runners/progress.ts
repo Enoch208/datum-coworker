@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { physicalTasks, type Executor, type RunnerRow } from "@datum/db";
 import { conflict } from "../http/errors";
 import { recordAudit } from "../services/audit";
-import { closeSpotAttempt } from "../services/spot-outcomes";
+import { refreshSpotOutcome } from "../services/spot-outcomes";
 import { hasEvidence, hasExpense, isOpenForWork, runnerTask, type RunnerTask } from "./tasks";
 
 const subjectOf = ({ task, spot }: RunnerTask) => ({
@@ -60,6 +60,6 @@ export async function completeTask(db: Executor, runner: RunnerRow, taskId: stri
       type: "TASK_COMPLETED",
       payload: { ...subjectOf(target), runnerName: runner.name },
     });
-    if (target.spot !== null) await closeSpotAttempt(tx, target.spot.id, target.task.attempt);
+    if (target.spot !== null) await refreshSpotOutcome(tx, target.spot.id);
   });
 }

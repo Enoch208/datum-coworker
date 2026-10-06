@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { LedgerExpense } from "../src/budget";
-import type { EvidenceEvaluation, EvidenceFailure, Money } from "../src/contract";
-import { evaluateGoal, type GoalInput, type SpotEvidenceHistory } from "../src/goal";
+import type { EvidenceFailure, Money } from "../src/contract";
+import {
+  attemptStateOf,
+  evaluateGoal,
+  firstPassOutcome,
+  spotOutcome,
+  type AttemptState,
+  type GoalInput,
+  type SpotEvidenceHistory,
+  type TimedVerdict,
+} from "../src/goal";
 
 const sgd = (amountMinor: number): Money => ({ amountMinor, currency: "SGD" });
 const confirmed = (amountMinor: number): LedgerExpense => ({
@@ -9,136 +18,172 @@ const confirmed = (amountMinor: number): LedgerExpense => ({
   status: "CONFIRMED",
 });
 
-const pass: EvidenceEvaluation = {
+const deadline = "2026-10-07T17:00:00+08:00";
+const at = (time: string): string => `2026-10-07T${time}:00+08:00`;
+
+const pass = (time: string, attempt = 1): TimedVerdict => ({
+  attempt,
   verdict: "PASS",
   failure: null,
-  checks: {
-    photoPresent: true,
-    qrDecodable: true,
-    qrMatchesCampaign: true,
-    qrMatchesSpot: true,
-    taskOpen: true,
-    beforeDeadline: true,
-  },
-  decoded: { campaignId: "cmp_7k2m9q4w8z1x3c5v", spotCode: "A" },
-};
-const fail = (failure: EvidenceFailure): EvidenceEvaluation => ({
+  submittedAt: at(time),
+});
+const fail = (failure: EvidenceFailure, time: string, attempt = 1): TimedVerdict => ({
+  attempt,
   verdict: "FAIL",
   failure,
-  checks: {
-    photoPresent: false,
-    qrDecodable: false,
-    qrMatchesCampaign: false,
-    qrMatchesSpot: false,
-    taskOpen: false,
-    beforeDeadline: false,
-  },
-  decoded: null,
+  submittedAt: at(time),
 });
 
-const spot = (spotCode: string, ...evaluations: EvidenceEvaluation[]): SpotEvidenceHistory => ({
+const spot = (
+  spotCode: string,
+  attempts: readonly AttemptState[],
+  ...evidence: TimedVerdict[]
+): SpotEvidenceHistory => ({
   spotCode,
-  evaluations,
+  evidence,
+  attempts: attempts.map((state, index) => ({ attempt: index + 1, state })),
 });
 
-const firstPass = [
-  spot("A", pass),
-  spot("B", pass),
-  spot("C", fail("TASK_EXPIRED")),
-  spot("D", pass),
-];
-const afterRecovery = [
-  ...firstPass.slice(0, 2),
-  spot("C", fail("TASK_EXPIRED"), pass),
-  spot("D", pass),
-];
+const placed = (spotCode: string, time: string) => spot(spotCode, ["OPEN"], pass(time));
+const placedA = placed("A", "15:10");
+const placedB = placed("B", "15:25");
+const placedD = placed("D", "15:55");
+const missedC = spot("C", ["COMPLETED"], fail("QR_NOT_FOUND", "15:40"));
+const firstPass = [placedA, placedB, missedC, placedD];
+const recoveredC = spot(
+  "C",
+  ["COMPLETED", "OPEN"],
+  fail("QR_NOT_FOUND", "15:40"),
+  pass("16:43", 2),
+);
+const afterRecovery = [placedA, placedB, recoveredC, placedD];
 
 const input: GoalInput = {
   spots: firstPass,
   approvalValid: true,
-  now: "2026-10-07T16:13:00+08:00",
-  deadline: "2026-10-07T17:00:00+08:00",
+  now: at("16:13"),
+  deadline,
   approvedBudget: sgd(5000),
   expenses: [confirmed(1380), confirmed(2000)],
 };
 
 describe("evaluateGoal", () => {
-  it("reports 3 of 4 after the first pass with Spot C unresolved because its task expired", () => {
+  it("reports 3 of 4 after the first pass with Spot C closed without a valid photo", () => {
     expect(evaluateGoal(input)).toEqual({
       requiredSpotCodes: ["A", "B", "C", "D"],
       passedSpotCodes: ["A", "B", "D"],
       missingSpotCodes: ["C"],
-      unresolved: [{ spotCode: "C", reason: { kind: "TASK_ENDED", failure: "TASK_EXPIRED" } }],
+      unresolved: [
+        { spotCode: "C", reason: { kind: "CLOSED_WITHOUT_PASS", lastFailure: "QR_NOT_FOUND" } },
+      ],
       approvalValid: true,
       beforeDeadline: true,
       minutesToDeadline: 47,
       confirmedSpend: sgd(3380),
       withinBudget: true,
+      spendSettled: true,
+      completedAt: null,
       complete: false,
       stop: null,
     });
   });
 
-  it("completes once Spot C passes on its second attempt", () => {
+  it("completes once Spot C passes on its second attempt, at the time of that last pass", () => {
     const goal = evaluateGoal({
       ...input,
       spots: afterRecovery,
+      now: at("16:44"),
       expenses: [...input.expenses, confirmed(400)],
     });
     expect(goal).toMatchObject({
       unresolved: [],
       complete: true,
+      completedAt: at("16:43"),
       stop: "COMPLETED",
       confirmedSpend: sgd(3780),
     });
   });
 
-  it("reports any number of unresolved requirements, each with why it is unresolved", () => {
-    const spots = [
-      spot("A"),
-      spot("B", fail("QR_WRONG_SPOT")),
-      spot("C", fail("EXECUTOR_CANCELLED")),
-      spot("D"),
-    ];
-    expect(evaluateGoal({ ...input, spots }).unresolved).toEqual([
-      { spotCode: "A", reason: { kind: "NO_EVIDENCE_YET" } },
-      { spotCode: "B", reason: { kind: "EVIDENCE_FAILED", failure: "QR_WRONG_SPOT" } },
-      { spotCode: "C", reason: { kind: "TASK_ENDED", failure: "EXECUTOR_CANCELLED" } },
-      { spotCode: "D", reason: { kind: "NO_EVIDENCE_YET" } },
-    ]);
-  });
-
-  it("explains an unresolved spot with its most recent failure", () => {
-    const spots = [spot("C", fail("QR_NOT_FOUND"), fail("LATE_EVIDENCE"))];
-    expect(evaluateGoal({ ...input, spots }).unresolved).toEqual([
-      { spotCode: "C", reason: { kind: "EVIDENCE_FAILED", failure: "LATE_EVIDENCE" } },
-    ]);
-  });
-
-  it("keeps a passed spot resolved when a later upload fails", () => {
-    const spots = [spot("A", pass, fail("QR_WRONG_SPOT"))];
-    expect(evaluateGoal({ ...input, spots })).toMatchObject({
-      passedSpotCodes: ["A"],
+  it("still completes an in-time 4 of 4 when the evaluation itself runs after the deadline", () => {
+    const goal = evaluateGoal({ ...input, spots: afterRecovery, now: at("17:30") });
+    expect(goal).toMatchObject({
+      beforeDeadline: false,
       complete: true,
+      completedAt: at("16:43"),
+      stop: "COMPLETED",
     });
   });
 
-  it("completes when now is exactly the deadline", () => {
-    const goal = evaluateGoal({ ...input, spots: afterRecovery, now: input.deadline });
-    expect(goal).toMatchObject({ complete: true, minutesToDeadline: 0 });
-  });
-
-  it("expires instead of completing once the deadline has passed, even with every spot passing", () => {
-    const goal = evaluateGoal({ ...input, spots: afterRecovery, now: "2026-10-07T17:00:01+08:00" });
-    expect(goal).toMatchObject({
-      beforeDeadline: false,
+  it("never counts a pass submitted after the deadline, so the campaign expires", () => {
+    const lateC = spot("C", ["COMPLETED", "OPEN"], pass("17:01", 2));
+    const spots = [placedA, placedB, lateC, placedD];
+    expect(evaluateGoal({ ...input, spots, now: at("17:02") })).toMatchObject({
+      passedSpotCodes: ["A", "B", "D"],
       complete: false,
+      completedAt: null,
       stop: "EXPIRED_INCOMPLETE",
     });
   });
 
+  it("completes when the last pass arrived exactly at the deadline", () => {
+    const onTheDot = spot("C", ["COMPLETED", "OPEN"], pass("17:00", 2));
+    const spots = [placedA, placedB, onTheDot, placedD];
+    expect(evaluateGoal({ ...input, spots, now: deadline })).toMatchObject({
+      complete: true,
+      completedAt: deadline,
+      minutesToDeadline: 0,
+    });
+  });
+
+  it("gives every unresolved requirement the reason it is unresolved", () => {
+    const spots = [
+      spot("A", []),
+      spot("B", ["OPEN"]),
+      spot("C", ["OPEN"], fail("QR_WRONG_SPOT", "15:00")),
+      spot("D", ["EXPIRED"]),
+      spot("E", ["CANCELLED"]),
+      spot("F", ["COMPLETED"]),
+    ];
+    expect(evaluateGoal({ ...input, spots }).unresolved).toEqual([
+      { spotCode: "A", reason: { kind: "NOT_COMMISSIONED" } },
+      { spotCode: "B", reason: { kind: "NO_EVIDENCE_YET" } },
+      { spotCode: "C", reason: { kind: "EVIDENCE_FAILED", failure: "QR_WRONG_SPOT" } },
+      { spotCode: "D", reason: { kind: "TASK_ENDED", failure: "TASK_EXPIRED" } },
+      { spotCode: "E", reason: { kind: "TASK_ENDED", failure: "EXECUTOR_CANCELLED" } },
+      { spotCode: "F", reason: { kind: "CLOSED_WITHOUT_PASS", lastFailure: null } },
+    ]);
+  });
+
+  it("explains an open attempt with its own most recent failure, not an earlier attempt's", () => {
+    const retried = spot(
+      "C",
+      ["COMPLETED", "OPEN"],
+      fail("QR_NOT_FOUND", "15:00"),
+      fail("LATE_EVIDENCE", "15:10"),
+    );
+    expect(evaluateGoal({ ...input, spots: [retried] }).unresolved).toEqual([
+      { spotCode: "C", reason: { kind: "NO_EVIDENCE_YET" } },
+    ]);
+    const failedAgain = {
+      ...retried,
+      evidence: [...retried.evidence, fail("QR_WRONG_SPOT", "15:20", 2)],
+    };
+    expect(evaluateGoal({ ...input, spots: [failedAgain] }).unresolved).toEqual([
+      { spotCode: "C", reason: { kind: "EVIDENCE_FAILED", failure: "QR_WRONG_SPOT" } },
+    ]);
+  });
+
+  it("keeps a passed spot resolved when a later upload fails", () => {
+    const spots = [spot("A", ["OPEN"], pass("15:00"), fail("QR_WRONG_SPOT", "15:05"))];
+    expect(evaluateGoal({ ...input, spots })).toMatchObject({
+      passedSpotCodes: ["A"],
+      complete: true,
+      completedAt: at("15:00"),
+    });
+  });
+
   it("lets the deadline win over an invalid approval or an overrun", () => {
-    const expired = { ...input, now: "2026-10-07T17:30:00+08:00", approvalValid: false };
+    const expired = { ...input, now: at("17:30"), approvalValid: false };
     expect(evaluateGoal({ ...expired, expenses: [confirmed(6000)] }).stop).toBe(
       "EXPIRED_INCOMPLETE",
     );
@@ -146,7 +191,7 @@ describe("evaluateGoal", () => {
 
   it("stops at NEEDS_APPROVAL without a valid approval", () => {
     const goal = evaluateGoal({ ...input, spots: afterRecovery, approvalValid: false });
-    expect(goal).toMatchObject({ complete: false, stop: "NEEDS_APPROVAL" });
+    expect(goal).toMatchObject({ complete: false, completedAt: null, stop: "NEEDS_APPROVAL" });
   });
 
   it("stops at NEEDS_APPROVAL when confirmed spend exceeds the approved budget", () => {
@@ -155,11 +200,21 @@ describe("evaluateGoal", () => {
   });
 
   it("measures spend from CONFIRMED expenses only", () => {
-    const expenses = [confirmed(3780), { amount: sgd(9000), status: "SUBMITTED" as const }];
-    expect(evaluateGoal({ ...input, spots: afterRecovery, expenses })).toMatchObject({
-      confirmedSpend: sgd(3780),
-      complete: true,
-    });
+    const goal = evaluateGoal({ ...input, spots: afterRecovery, expenses: [confirmed(3780)] });
+    expect(goal).toMatchObject({ confirmedSpend: sgd(3780), complete: true });
+  });
+
+  it("refuses to complete while any expense still waits for review or is disputed", () => {
+    for (const status of ["SUBMITTED", "DISPUTED"] as const) {
+      const expenses = [confirmed(3780), { amount: sgd(900), status }];
+      expect(evaluateGoal({ ...input, spots: afterRecovery, expenses })).toMatchObject({
+        confirmedSpend: sgd(3780),
+        spendSettled: false,
+        complete: false,
+        completedAt: null,
+        stop: null,
+      });
+    }
   });
 
   it("never completes a campaign with no required spots", () => {
@@ -176,13 +231,52 @@ describe("evaluateGoal", () => {
   });
 
   it("evaluates identically whether or not Spot C is flagged as an induced miss", () => {
-    const flaggedC = { ...spot("C", fail("TASK_EXPIRED")), inducedMiss: true };
-    const unflaggedC = { ...spot("C", fail("TASK_EXPIRED")), inducedMiss: false };
-    const withFlag = [spot("A", pass), spot("B", pass), flaggedC, spot("D", pass)];
-    const withoutFlag = [spot("A", pass), spot("B", pass), unflaggedC, spot("D", pass)];
+    const withFlag = firstPass.map((history) =>
+      history.spotCode === "C" ? { ...history, inducedMiss: true } : history,
+    );
+    const withoutFlag = firstPass.map((history) =>
+      history.spotCode === "C" ? { ...history, inducedMiss: false } : history,
+    );
     expect(evaluateGoal({ ...input, spots: withFlag })).toEqual(
       evaluateGoal({ ...input, spots: withoutFlag }),
     );
     expect(evaluateGoal({ ...input, spots: withFlag })).toEqual(evaluateGoal(input));
+  });
+});
+
+describe("spot outcomes", () => {
+  it("marks a spot MISS on its first pass and PASS once its recovery passes", () => {
+    expect(spotOutcome(missedC, deadline)).toBe("MISS");
+    expect(firstPassOutcome(missedC, deadline)).toBe("MISS");
+    expect(spotOutcome(recoveredC, deadline)).toBe("PASS");
+    expect(firstPassOutcome(recoveredC, deadline)).toBe("MISS");
+  });
+
+  it("shows a spot PENDING while its recovery attempt is still open", () => {
+    const recovering = spot("C", ["COMPLETED", "OPEN"], fail("QR_NOT_FOUND", "15:40"));
+    expect(spotOutcome(recovering, deadline)).toBe("PENDING");
+    expect(firstPassOutcome(recovering, deadline)).toBe("MISS");
+  });
+
+  it("keeps the first pass PENDING until the first attempt closes or passes", () => {
+    expect(firstPassOutcome(spot("A", []), deadline)).toBe("PENDING");
+    expect(firstPassOutcome(spot("A", ["OPEN"], fail("QR_NOT_FOUND", "15:00")), deadline)).toBe(
+      "PENDING",
+    );
+    expect(firstPassOutcome(placed("A", "15:00"), deadline)).toBe("PASS");
+  });
+
+  it("does not let a pass after the deadline turn a spot PASS", () => {
+    const late = spot("A", ["OPEN"], pass("17:05"));
+    expect(spotOutcome(late, deadline)).toBe("PENDING");
+    expect(firstPassOutcome(late, deadline)).toBe("PENDING");
+  });
+
+  it("treats every closing task status as a closed attempt", () => {
+    expect(attemptStateOf("DISPATCHED")).toBe("OPEN");
+    expect(attemptStateOf("SUBMITTED")).toBe("OPEN");
+    expect(attemptStateOf("COMPLETED")).toBe("COMPLETED");
+    expect(attemptStateOf("EXPIRED")).toBe("EXPIRED");
+    expect(attemptStateOf("CANCELLED")).toBe("CANCELLED");
   });
 });

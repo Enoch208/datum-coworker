@@ -21,7 +21,7 @@ import {
   type PhysicalTaskRow,
 } from "@datum/db";
 import { recordAudit } from "../services/audit";
-import { closeSpotAttempt } from "../services/spot-outcomes";
+import { refreshSpotOutcome } from "../services/spot-outcomes";
 import { evidenceFileUrl } from "../uploads/files";
 import { createLocalTask, localAdapter } from "./local-dispatch";
 
@@ -107,7 +107,7 @@ async function cancelLocalTask(db: Executor, task: PhysicalTaskRow): Promise<Can
     type: "TASK_CANCELLED",
     payload: { taskId: task.id, type: task.type, spotCode },
   });
-  if (task.spotId !== null) await closeSpotAttempt(db, task.spotId, task.attempt);
+  if (task.spotId !== null) await refreshSpotOutcome(db, task.spotId);
   return { cancelled: true };
 }
 

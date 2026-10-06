@@ -2,7 +2,7 @@ import { and, eq, inArray, lt } from "drizzle-orm";
 import { openTaskStatuses } from "@datum/core";
 import { expenses, physicalTasks, spots, type Executor, type PhysicalTaskRow } from "@datum/db";
 import { recordAudit } from "../services/audit";
-import { closeSpotAttempt } from "../services/spot-outcomes";
+import { refreshSpotOutcome } from "../services/spot-outcomes";
 
 async function spotCodeOf(db: Executor, task: PhysicalTaskRow): Promise<string | null> {
   if (task.spotId === null) return null;
@@ -29,7 +29,7 @@ async function recordExpiry(db: Executor, task: PhysicalTaskRow): Promise<void> 
       released: { amountMinor: await heldAmount(db, task), currency: task.currency },
     },
   });
-  if (task.spotId !== null) await closeSpotAttempt(db, task.spotId, task.attempt);
+  if (task.spotId !== null) await refreshSpotOutcome(db, task.spotId);
 }
 
 export async function expireOverdueTasks(

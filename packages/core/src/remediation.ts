@@ -41,6 +41,7 @@ export const remediationRejections = [
   "SPOT_NOT_UNRESOLVED",
   "DUPLICATE_OPEN_TASK",
   "SPOT_HAS_OPEN_TASK",
+  "SPOT_LEFT_UNPLANNED",
 ] as const;
 export type RemediationRejection = (typeof remediationRejections)[number];
 
@@ -158,6 +159,14 @@ const budgetVerdict = (
   return { outcome: "NEEDS_APPROVAL", planCost, shortfall, revisedMaximum };
 };
 
+const unplannedSpot = (
+  authority: RemediationAuthority,
+  planned: ReadonlySet<SpotCode>,
+): SpotCode | undefined =>
+  authority.unresolved
+    .map((requirement) => requirement.spotCode)
+    .find((spotCode) => !planned.has(spotCode) && !hasOpenTask(authority, spotCode));
+
 export const validateRemediation = (
   plan: RemediationPlan,
   authority: RemediationAuthority,
@@ -171,6 +180,8 @@ export const validateRemediation = (
     if ("outcome" in result) return result;
     accepted.push(result);
   }
+  const unplanned = unplannedSpot(authority, planned);
+  if (unplanned !== undefined) return rejected("SPOT_LEFT_UNPLANNED", null, unplanned);
   return budgetVerdict(accepted, authority);
 };
 

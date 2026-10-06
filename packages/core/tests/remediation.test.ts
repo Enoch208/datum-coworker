@@ -110,6 +110,25 @@ describe("validateRemediation", () => {
     });
   });
 
+  it("rejects a plan that leaves an unresolved spot with no task to fix it", () => {
+    expect(validateRemediation({ actions: [action(["C"])] }, twoMisses)).toEqual({
+      outcome: "REJECTED",
+      reason: "SPOT_LEFT_UNPLANNED",
+      actionIndex: null,
+      spotCode: "B",
+    });
+  });
+
+  it("does not ask a plan to cover a spot whose recovery is already under way", () => {
+    const bUnderWay = {
+      ...twoMisses,
+      tasks: [...twoMisses.tasks, { idempotencyKey: key("B", 2), spotCodes: ["B"], open: true }],
+    };
+    expect(validateRemediation({ actions: [action(["C"])] }, bUnderWay)).toMatchObject({
+      outcome: "ACCEPTED",
+    });
+  });
+
   it("returns EXPIRED once the deadline has passed, before any other check", () => {
     const late = { ...authority, now: "2026-10-07T17:00:01+08:00" };
     expect(validateRemediation({ actions: [] }, late)).toEqual({ outcome: "EXPIRED" });

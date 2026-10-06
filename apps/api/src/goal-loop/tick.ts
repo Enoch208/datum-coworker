@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { campaigns } from "@datum/db";
 import { isLoopStatus } from "./claim";
 import type { LoopDeps } from "./deps";
+import { refreshCampaignSpots } from "../services/spot-outcomes";
 import { expireOverdueTasks } from "./reconcile";
 
 export async function tickCampaign(
@@ -15,5 +16,6 @@ export async function tickCampaign(
     .where(eq(campaigns.id, campaignId));
   if (campaign === undefined || !isLoopStatus(campaign.status)) return;
   await expireOverdueTasks(deps.db, campaignId, deps.now());
+  await refreshCampaignSpots(deps.db, campaignId);
   signal.throwIfAborted();
 }
