@@ -1,0 +1,12 @@
+{
+  "headline": "Come in today for a free oat flat white at Kopi Lab on Amoy Street",
+  "subcopy": "Scan the code and show this card at Kopi Lab.",
+  "printFormat": "A6",
+  "assumptions": [],
+  "customerWarnings": [],
+  "steps": [
+    { "type": "PRINT_AND_COLLECT", "quantity": 2 },
+    { "type": "PLACE_SPOT", "spotCode": "A" },
+    { "type": "PLACE_SPOT", "spotCode": "B" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "headline": "Your oat flat white is on us",
+  "subcopy": "Scan the code, show this card at Kopi Lab on Amoy Street and the first oat flat white is free.",
+  "printFormat": "A6",
+  "assumptions": ["Two spare cards are printed in case one is damaged while placing."],
+  "customerWarnings": [
+    "The notice board at Telok Ayer may need the building manager's permission."
+  ],
+  "steps": [
+    { "type": "PRINT_AND_COLLECT", "quantity": 4 },
+    { "type": "PLACE_SPOT", "spotCode": "A" },
+    { "type": "PLACE_SPOT", "spotCode": "B" }
+  ]
+}

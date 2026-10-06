@@ -1,0 +1,13 @@
+{
+  "headline": "Your oat flat white is on us",
+  "subcopy": "Scan the code and show this card at Kopi Lab.",
+  "printFormat": "A6",
+  "assumptions": [],
+  "customerWarnings": [],
+  "steps": [
+    { "type": "PRINT_AND_COLLECT", "quantity": 3 },
+    { "type": "PLACE_SPOT", "spotCode": "A" },
+    { "type": "PLACE_SPOT", "spotCode": "B" },
+    { "type": "PLACE_SPOT", "spotCode": "C" }
+  ]
+}
