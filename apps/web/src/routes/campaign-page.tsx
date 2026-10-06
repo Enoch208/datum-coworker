@@ -4,7 +4,7 @@ import { CampaignBody } from "@/components/campaign/campaign-body";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
 import { secondaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { ApiRequestError, getCampaign } from "@/lib/api-client";
+import { ApiRequestError, getCampaign, getTimeline } from "@/lib/api-client";
 import { readPlanHandoff } from "@/lib/plan-handoff";
 import { appRoutes } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
@@ -26,9 +26,20 @@ export function CampaignPage() {
   const { campaignId = "" } = useParams();
   const location = useLocation();
   const load = useCallback((signal: AbortSignal) => getCampaign(campaignId, signal), [campaignId]);
+  const loadTimeline = useCallback(
+    (signal: AbortSignal) => getTimeline(campaignId, signal),
+    [campaignId],
+  );
   const campaign = useResource(`campaign:${campaignId}`, load);
+  const timeline = useResource(`timeline:${campaignId}`, loadTimeline);
+  const { reload: reloadCampaign } = campaign;
+  const { reload: reloadTimeline } = timeline;
+  const reload = useCallback(() => {
+    reloadCampaign();
+    reloadTimeline();
+  }, [reloadCampaign, reloadTimeline]);
   useDocumentTitle(campaign.data === null ? "Campaign" : `${campaign.data.brand.name} campaign`);
-  useRepeat(campaign.data?.status === "PLANNING", 3000, campaign.reload);
+  useRepeat(campaign.data?.status === "PLANNING", 3000, reload);
 
   if (campaign.error instanceof ApiRequestError && campaign.error.status === 404) {
     return <MissingCampaign message={campaign.error.message} />;
@@ -46,8 +57,9 @@ export function CampaignPage() {
   return (
     <CampaignBody
       campaign={campaign.data}
+      timeline={timeline}
       planFailure={readPlanHandoff(location.state)}
-      reload={campaign.reload}
+      reload={reload}
     />
   );
 }

@@ -1,4 +1,4 @@
-import type { CampaignView, ProposalView } from "@datum/core";
+import type { CampaignView, ProposalView, TimelineEventView } from "@datum/core";
 import { ApprovalPanel } from "@/components/approval/approval-panel";
 import { approvalState, isFinal } from "@/components/approval/approval-state";
 import { LockedPanel } from "@/components/approval/locked-panel";
@@ -6,7 +6,9 @@ import { CampaignHeader } from "./campaign-header";
 import { CopySection } from "./copy-section";
 import { NoProposal } from "./no-proposal";
 import { ProposalDetails } from "./proposal-sections";
+import type { Resource } from "@/lib/use-resource";
 import { SpotCards } from "./spot-cards";
+import { Timeline } from "./timeline";
 
 function ApprovalAside({
   campaign,
@@ -34,10 +36,12 @@ function ApprovalAside({
 
 export function CampaignBody({
   campaign,
+  timeline,
   planFailure,
   reload,
 }: {
   campaign: CampaignView;
+  timeline: Resource<TimelineEventView[]>;
   planFailure: string | null;
   reload: () => void;
 }) {
@@ -66,6 +70,9 @@ export function CampaignBody({
             <ApprovalAside campaign={campaign} proposal={proposal} reload={reload} />
           </aside>
         )}
+        <div className="min-w-0 lg:col-start-1">
+          <Timeline resource={timeline} />
+        </div>
       </div>
     </>
   );
