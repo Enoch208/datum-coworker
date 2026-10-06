@@ -3,6 +3,7 @@ export * from "./money";
 export * from "./time";
 export * from "./budget";
 export * from "./ledger";
+export * from "./expense";
 export * from "./qr";
 export * from "./evidence";
 export * from "./evidence-explain";
