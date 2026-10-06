@@ -6,6 +6,7 @@ import { approveProposal } from "../services/approvals";
 import { campaignDetail, campaignTimeline, createCampaign } from "../services/campaigns";
 import { editCopy } from "../services/copy-edits";
 import { planProposal } from "../services/planning";
+import { startCampaign } from "../services/start";
 
 const campaignId = (c: Context) => pathId(c, "id", "cmp", "Campaign");
 
@@ -28,5 +29,6 @@ export function campaignRoutes(deps: ApiDeps) {
       const id = campaignId(c);
       const request = await readBody(c, approveCampaignSchema);
       return c.json(await approveProposal(deps, id, request));
-    });
+    })
+    .post("/campaigns/:id/start", async (c) => c.json(await startCampaign(deps, campaignId(c))));
 }

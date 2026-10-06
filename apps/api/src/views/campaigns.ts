@@ -11,10 +11,13 @@ import type {
   BrandRow,
   CampaignAssetRow,
   CampaignRow,
+  ExpenseRow,
   PlaybookRow,
   SpotRow,
 } from "@datum/db";
 import { cardAssetKey, cardAssetUrl } from "../cards/store";
+import type { TaskWithSpot } from "../services/execution-reads";
+import { toLedgerView, toTaskSummaryView } from "./ledger";
 import { toApprovalView, toProposalView } from "./proposal";
 
 export interface SpotWithScans {
@@ -29,6 +32,8 @@ export interface CampaignParts {
   readonly spots: readonly SpotWithScans[];
   readonly asset: CampaignAssetRow | null;
   readonly approval: ApprovalRow | null;
+  readonly tasks: readonly TaskWithSpot[];
+  readonly expenses: readonly ExpenseRow[];
 }
 
 const isoOrNull = (value: Date | null): string | null =>
@@ -85,7 +90,7 @@ function proposalOf({ asset, playbook, campaign }: CampaignParts): ProposalView 
 }
 
 export function toCampaignView(parts: CampaignParts, appBaseUrl: string): CampaignView {
-  const { campaign, brand, playbook, spots, asset, approval } = parts;
+  const { campaign, brand, playbook, spots, asset, approval, tasks, expenses } = parts;
   return {
     id: campaign.id,
     status: campaign.status,
@@ -101,7 +106,7 @@ export function toCampaignView(parts: CampaignParts, appBaseUrl: string): Campai
     proposal: proposalOf(parts),
     approval: approval === null || asset === null ? null : toApprovalView(approval, asset.version),
     spots: spots.map((spot) => toSpotView(spot, asset, appBaseUrl)),
-    tasks: [],
-    ledger: null,
+    tasks: tasks.map(toTaskSummaryView),
+    ledger: approval === null ? null : toLedgerView(approval, tasks, expenses, appBaseUrl),
   };
 }

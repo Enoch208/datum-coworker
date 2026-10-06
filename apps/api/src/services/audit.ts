@@ -2,8 +2,9 @@ import { asc, eq } from "drizzle-orm";
 import type { CampaignStatus, Money, TimelineEventView } from "@datum/core";
 import { auditEvents, type Executor } from "@datum/db";
 import { toTimelineEvent } from "../views/timeline";
+import type { ExecutionAuditEvent } from "./execution-audit";
 
-export type AuditEvent =
+type PlanningAuditEvent =
   | {
       type: "CAMPAIGN_CREATED";
       payload: { brandId: string; spotCodes: string[]; budget: Money; deadline: string };
@@ -47,6 +48,8 @@ export type AuditEvent =
         deadline: string;
       };
     };
+
+export type AuditEvent = PlanningAuditEvent | ExecutionAuditEvent;
 
 export async function recordAudit(
   db: Executor,

@@ -1,4 +1,4 @@
-import { brandPageWarning, type CampaignView, type CostRates } from "@datum/core";
+import { brandPageWarning, type CampaignView } from "@datum/core";
 import type { CampaignAssetRow } from "@datum/db";
 import type { ApiDeps } from "../deps";
 import { conflict, unavailable, upstreamFailed } from "../http/errors";
@@ -11,6 +11,7 @@ import { recordAudit } from "./audit";
 import { campaignDetail, campaignParts } from "./campaigns";
 import { choosePlaybook, type PlaybookChoice } from "./playbooks";
 import { publishCards, saveFirstProposal } from "./proposals";
+import { requireRates } from "./rates";
 import { moveStatus } from "./status";
 
 const requirePlanner = (deps: ApiDeps): PlannerModel => {
@@ -18,14 +19,6 @@ const requirePlanner = (deps: ApiDeps): PlannerModel => {
   throw unavailable(
     "PLANNER_UNAVAILABLE",
     "The AI planner is not configured: set ANTHROPIC_API_KEY",
-  );
-};
-
-const requireRates = (deps: ApiDeps): CostRates => {
-  if (deps.rates.configured) return deps.rates.rates;
-  throw unavailable(
-    "COST_RATES_MISSING",
-    `Datum cannot price a plan until ${deps.rates.missing.join(" and ")} ${deps.rates.missing.length > 1 ? "are" : "is"} set`,
   );
 };
 

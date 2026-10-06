@@ -1,34 +1,10 @@
-import {
-  campaignStatuses,
-  currencies,
-  formatMoney,
-  type AuditEventType,
-  type TimelineActor,
-  type TimelineEventView,
-} from "@datum/core";
+import { campaignStatuses, formatMoney, type TimelineEventView } from "@datum/core";
 import type { AuditEventRow } from "@datum/db";
 import { z } from "zod";
+import { describe, moneyPayload as money, plural, type Describers } from "./describe";
+import { executionDescribers } from "./timeline-execution";
 
-interface Description {
-  readonly actor: TimelineActor;
-  readonly summary: string;
-}
-
-type Describer = (payload: unknown) => Description;
-
-const money = z.object({ amountMinor: z.int(), currency: z.enum(currencies) });
 const status = z.enum(campaignStatuses);
-
-const plural = (count: number, noun: string): string =>
-  `${String(count)} ${noun}${count === 1 ? "" : "s"}`;
-
-const describe =
-  <Schema extends z.ZodType>(
-    schema: Schema,
-    actor: TimelineActor,
-    summarize: (payload: z.output<Schema>) => string,
-  ): Describer =>
-  (payload) => ({ actor, summary: summarize(schema.parse(payload)) });
 
 const playbookSources = {
   READ: "the brand name, the message and the brand page",
@@ -36,7 +12,7 @@ const playbookSources = {
   FAILED: "the brand name and the message; the brand page could not be read",
 };
 
-const describers: Partial<Record<AuditEventType, Describer>> = {
+const planningDescribers: Describers = {
   CAMPAIGN_CREATED: describe(
     z.object({ spotCodes: z.array(z.string()), budget: money, deadline: z.string() }),
     "CUSTOMER",
@@ -110,6 +86,8 @@ const describers: Partial<Record<AuditEventType, Describer>> = {
       `${p.approvedBy} approved proposal v${String(p.assetVersion)} with a ${formatMoney(p.budget)} budget, due ${p.deadline}`,
   ),
 };
+
+const describers: Describers = { ...planningDescribers, ...executionDescribers };
 
 export function toTimelineEvent(event: AuditEventRow): TimelineEventView {
   const describer = describers[event.type];
