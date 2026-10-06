@@ -1,11 +1,11 @@
-import jsQR from "jsqr";
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
+import { readQrTexts } from "../../src/evidence/qr-reader";
 
 export async function decodeQr(png: Uint8Array): Promise<string | null> {
   const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const pixels = new Uint8ClampedArray(data.buffer, data.byteOffset, data.length);
-  return jsQR(pixels, info.width, info.height)?.data ?? null;
+  const [text] = await readQrTexts({ data, width: info.width, height: info.height }, () => true);
+  return text ?? null;
 }
 
 export async function pngShape(png: Uint8Array) {
