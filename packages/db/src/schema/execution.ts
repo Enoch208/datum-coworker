@@ -1,17 +1,10 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, jsonb, pgTable, text, unique } from "drizzle-orm/pg-core";
-import type { EvidenceChecks, GeoPoint } from "@datum/core";
+import { check, foreignKey, index, integer, pgTable, text } from "drizzle-orm/pg-core";
+import { campaignAssets } from "./assets";
 import { campaigns, spots } from "./campaigns";
 import { createdAt, instant, minorUnits, primaryId } from "./columns";
-import {
-  currency,
-  evidenceFailure,
-  evidenceVerdict,
-  executorAdapter,
-  expenseStatus,
-  physicalTaskStatus,
-  physicalTaskType,
-} from "./enums";
+import { currency, executorAdapter, physicalTaskStatus, physicalTaskType } from "./enums";
+import { runners } from "./runners";
 
 export const physicalTasks = pgTable(
   "physical_tasks",
@@ -29,86 +22,45 @@ export const physicalTasks = pgTable(
       .unique("physical_tasks_idempotency_key_unique"),
     externalTaskRef: text("external_task_ref"),
     status: physicalTaskStatus("status").notNull().default("CREATED"),
+    assetVersion: integer("asset_version").notNull(),
+    copies: integer("copies"),
     instructions: text("instructions").notNull(),
     assetUrls: text("asset_urls").array().notNull(),
     estimatedCostMinor: minorUnits("estimated_cost_minor").notNull(),
     committedCostMinor: minorUnits("committed_cost_minor").notNull().default(0),
     currency: currency("currency").notNull(),
     dueBy: instant("due_by").notNull(),
-    runnerTokenHash: text("runner_token_hash").unique("physical_tasks_runner_token_hash_unique"),
-    runnerTokenExpiresAt: instant("runner_token_expires_at"),
+    runnerId: text("runner_id").references(() => runners.id),
     createdAt: createdAt(),
+    updatedAt: instant("updated_at").notNull().defaultNow(),
+    dispatchedAt: instant("dispatched_at"),
+    acceptedAt: instant("accepted_at"),
     completedAt: instant("completed_at"),
   },
   (table) => [
+    foreignKey({
+      name: "physical_tasks_campaign_asset_fk",
+      columns: [table.campaignId, table.assetVersion],
+      foreignColumns: [campaignAssets.campaignId, campaignAssets.version],
+    }),
     check("physical_tasks_attempt_positive", sql`${table.attempt} >= 1`),
     check(
       "physical_tasks_costs_non_negative",
       sql`${table.estimatedCostMinor} >= 0 and ${table.committedCostMinor} >= 0`,
     ),
-    check("physical_tasks_runner_token_is_hash", sql`${table.runnerTokenHash} ~ '^[0-9a-f]{64}$'`),
     check(
-      "physical_tasks_runner_token_expires",
-      sql`(${table.runnerTokenHash} is null) = (${table.runnerTokenExpiresAt} is null)`,
+      "physical_tasks_spot_matches_type",
+      sql`(${table.type} = 'PLACE_SPOT') = (${table.spotId} is not null)`,
+    ),
+    check(
+      "physical_tasks_copies_match_type",
+      sql`(${table.type} = 'PRINT_AND_COLLECT') = (${table.copies} is not null and ${table.copies} >= 1)`,
+    ),
+    check(
+      "physical_tasks_local_dispatch_has_runner",
+      sql`${table.adapter} <> 'LOCAL_ENROLLED_RUNNER' or ${table.status} = 'CREATED' or ${table.runnerId} is not null`,
     ),
     index("physical_tasks_campaign_idx").on(table.campaignId),
-  ],
-);
-
-export const evidence = pgTable(
-  "evidence",
-  {
-    id: primaryId("evd"),
-    physicalTaskId: text("physical_task_id")
-      .notNull()
-      .references(() => physicalTasks.id),
-    spotId: text("spot_id").references(() => spots.id),
-    contentHash: text("content_hash").notNull(),
-    photoUrl: text("photo_url").notNull(),
-    submittedAt: instant("submitted_at").notNull(),
-    decodedCampaignId: text("decoded_campaign_id"),
-    decodedSpotCode: text("decoded_spot_code"),
-    optionalGeo: jsonb("optional_geo").$type<GeoPoint>(),
-    checks: jsonb("checks").$type<EvidenceChecks>(),
-    verdict: evidenceVerdict("verdict"),
-    failure: evidenceFailure("failure"),
-    createdAt: createdAt(),
-  },
-  (table) => [
-    unique("evidence_task_content_unique").on(table.physicalTaskId, table.contentHash),
-    check("evidence_content_hash_is_sha256", sql`${table.contentHash} ~ '^[0-9a-f]{64}$'`),
-    check(
-      "evidence_failure_only_on_fail",
-      sql`coalesce(${table.verdict} = 'FAIL', false) = (${table.failure} is not null)`,
-    ),
-    check(
-      "evidence_verdict_has_checks",
-      sql`(${table.verdict} is null) = (${table.checks} is null)`,
-    ),
-    index("evidence_spot_idx").on(table.spotId),
-  ],
-);
-
-export const expenses = pgTable(
-  "expenses",
-  {
-    id: primaryId("exp"),
-    campaignId: text("campaign_id")
-      .notNull()
-      .references(() => campaigns.id),
-    physicalTaskId: text("physical_task_id")
-      .notNull()
-      .references(() => physicalTasks.id),
-    receiptUrl: text("receipt_url").notNull(),
-    merchant: text("merchant"),
-    amountMinor: minorUnits("amount_minor").notNull(),
-    currency: currency("currency").notNull(),
-    status: expenseStatus("status").notNull().default("SUBMITTED"),
-    ocr: jsonb("ocr"),
-    createdAt: createdAt(),
-  },
-  (table) => [
-    check("expenses_amount_positive", sql`${table.amountMinor} > 0`),
-    index("expenses_campaign_idx").on(table.campaignId),
+    index("physical_tasks_runner_idx").on(table.runnerId),
   ],
 );

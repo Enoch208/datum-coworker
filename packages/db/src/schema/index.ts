@@ -4,5 +4,7 @@ export * from "./campaigns";
 export * from "./assets";
 export * from "./approvals";
 export * from "./events";
+export * from "./runners";
 export * from "./execution";
+export * from "./proof";
 export * from "./payments";

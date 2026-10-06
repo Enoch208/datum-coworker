@@ -15,6 +15,7 @@ import {
   expenses,
   masumiPaymentEvidence,
   physicalTasks,
+  runners,
   scanEvents,
   spots,
 } from "@datum/db";
@@ -80,6 +81,7 @@ const allTables = [
   evidence,
   expenses,
   physicalTasks,
+  runners,
   approvals,
   campaignAssets,
   spots,

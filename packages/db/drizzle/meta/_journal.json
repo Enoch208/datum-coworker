@@ -15,6 +15,20 @@
       "when": 1791279786259,
       "tag": "0001_clumsy_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791282970898,
+      "tag": "0002_runner_execution",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791282981255,
+      "tag": "0003_drop_superseded_columns",
+      "breakpoints": true
     }
   ]
 }

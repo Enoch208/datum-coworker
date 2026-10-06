@@ -16,6 +16,7 @@ export const idPrefixes = {
   evidence: "evd",
   expense: "exp",
   masumiPayment: "pay",
+  runner: "rnr",
 } as const;
 
 export type IdPrefix = (typeof idPrefixes)[keyof typeof idPrefixes];
