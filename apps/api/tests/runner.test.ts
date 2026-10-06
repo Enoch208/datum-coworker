@@ -53,9 +53,9 @@ describe("GET /runner/:token (Gate 3)", () => {
     await db.update(runners).set({ tokenExpiresAt: new Date(Date.now() - 1_000) });
     expect(await inbox(runner.token)).toMatchObject(refusedLink);
     await db.update(runners).set({ tokenExpiresAt: new Date(Date.now() + 60_000), active: false });
-    const refused = await inbox(runner.token);
+    const refused = await runnerCall<ApiError>("GET", `/runner/${runner.token}`);
     expect(refused).toMatchObject(refusedLink);
-    expect((refused.body as unknown as ApiError).message).not.toContain(runner.token);
+    expect(refused.body.message).not.toContain(runner.token);
   });
 
   it("never shows or opens another runner's tasks", async () => {
