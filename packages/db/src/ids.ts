@@ -9,6 +9,7 @@ export const idPrefixes = {
   campaign: "cmp",
   spot: "spt",
   approval: "apr",
+  campaignAsset: "ast",
   auditEvent: "evt",
   scanEvent: "scn",
   physicalTask: "tsk",

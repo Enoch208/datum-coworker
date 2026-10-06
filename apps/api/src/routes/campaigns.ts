@@ -12,6 +12,6 @@ export function campaignRoutes(db: Db, appBaseUrl: string) {
       const input = await readBody(c, createCampaignSchema);
       return c.json(await createCampaign(db, appBaseUrl, input), 201);
     })
-    .get("/campaigns/:id", async (c) => c.json(await campaignDetail(db, campaignId(c))))
+    .get("/campaigns/:id", async (c) => c.json(await campaignDetail(db, appBaseUrl, campaignId(c))))
     .get("/campaigns/:id/timeline", async (c) => c.json(await campaignTimeline(db, campaignId(c))));
 }

@@ -1,5 +1,21 @@
-import { toWireMoney, type CampaignView, type PlaybookView, type SpotView } from "@datum/core";
-import type { BrandRow, CampaignRow, PlaybookRow, SpotRow } from "@datum/db";
+import {
+  toWireMoney,
+  type CampaignView,
+  type PlaybookView,
+  type ProposalView,
+  type SpotCardView,
+  type SpotView,
+} from "@datum/core";
+import type {
+  ApprovalRow,
+  BrandRow,
+  CampaignAssetRow,
+  CampaignRow,
+  PlaybookRow,
+  SpotRow,
+} from "@datum/db";
+import { cardAssetKey, cardAssetUrl } from "../cards/store";
+import { toApprovalView, toProposalView } from "./proposal";
 
 export interface SpotWithScans {
   readonly spot: SpotRow;
@@ -11,6 +27,8 @@ export interface CampaignParts {
   readonly brand: BrandRow;
   readonly playbook: PlaybookRow | null;
   readonly spots: readonly SpotWithScans[];
+  readonly asset: CampaignAssetRow | null;
+  readonly approval: ApprovalRow | null;
 }
 
 const isoOrNull = (value: Date | null): string | null =>
@@ -33,7 +51,17 @@ export function toPlaybookView(playbook: PlaybookRow, brand: BrandRow): Playbook
   };
 }
 
-function toSpotView({ spot, scans }: SpotWithScans): SpotView {
+function cardView(appBaseUrl: string, asset: CampaignAssetRow, spotCode: string): SpotCardView {
+  const url = (file: "png" | "pdf") =>
+    cardAssetUrl(appBaseUrl, cardAssetKey(asset.campaignId, asset.version, spotCode, file));
+  return { pngUrl: url("png"), pdfUrl: url("pdf") };
+}
+
+function toSpotView(
+  { spot, scans }: SpotWithScans,
+  asset: CampaignAssetRow | null,
+  appBaseUrl: string,
+): SpotView {
   return {
     id: spot.id,
     code: spot.code,
@@ -43,11 +71,20 @@ function toSpotView({ spot, scans }: SpotWithScans): SpotView {
     status: spot.status,
     firstPassStatus: spot.firstPassStatus,
     scanCount: scans,
-    card: null,
+    card: asset === null ? null : cardView(appBaseUrl, asset, spot.code),
   };
 }
 
-export function toCampaignView({ campaign, brand, playbook, spots }: CampaignParts): CampaignView {
+function proposalOf({ asset, playbook, campaign }: CampaignParts): ProposalView | null {
+  if (asset === null) return null;
+  if (playbook === null) {
+    throw new Error(`Campaign ${campaign.id} has a proposal but no Brand Playbook`);
+  }
+  return toProposalView(asset, playbook.defaultEvidencePolicy);
+}
+
+export function toCampaignView(parts: CampaignParts, appBaseUrl: string): CampaignView {
+  const { campaign, brand, playbook, spots, asset, approval } = parts;
   return {
     id: campaign.id,
     status: campaign.status,
@@ -60,8 +97,8 @@ export function toCampaignView({ campaign, brand, playbook, spots }: CampaignPar
     approvedAt: isoOrNull(campaign.approvedAt),
     completedAt: isoOrNull(campaign.completedAt),
     playbook: playbook === null ? null : toPlaybookView(playbook, brand),
-    proposal: null,
-    approval: null,
-    spots: spots.map(toSpotView),
+    proposal: proposalOf(parts),
+    approval: approval === null || asset === null ? null : toApprovalView(approval, asset.version),
+    spots: spots.map((spot) => toSpotView(spot, asset, appBaseUrl)),
   };
 }

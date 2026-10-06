@@ -97,6 +97,11 @@ export const auditEventTypes = [
   "RECOVERY_CREATED",
   "APPROVAL_REQUESTED",
   "RECEIPT_PUBLISHED",
+  "PLAYBOOK_DRAFTED",
+  "PLAN_REJECTED",
+  "PLAN_VALIDATED",
+  "CARDS_RENDERED",
+  "COPY_EDITED",
 ] as const;
 export type AuditEventType = (typeof auditEventTypes)[number];
 
@@ -149,6 +154,7 @@ export interface ApprovalLock {
   assetVersion: number;
   assetHash: string;
   spotsHash: string;
+  approvedCopy: PublicCopy;
   budget: Money;
   deadline: IsoTimestamp;
   evidencePolicy: EvidencePolicy;

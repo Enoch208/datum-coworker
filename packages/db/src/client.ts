@@ -15,4 +15,5 @@ export type PlaybookRow = typeof schema.brandPlaybooks.$inferSelect;
 export type CampaignRow = typeof schema.campaigns.$inferSelect;
 export type SpotRow = typeof schema.spots.$inferSelect;
 export type ApprovalRow = typeof schema.approvals.$inferSelect;
+export type CampaignAssetRow = typeof schema.campaignAssets.$inferSelect;
 export type AuditEventRow = typeof schema.auditEvents.$inferSelect;

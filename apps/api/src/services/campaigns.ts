@@ -1,8 +1,10 @@
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq } from "drizzle-orm";
 import { buildSpotQrUrl, type CampaignView } from "@datum/core";
 import {
+  approvals,
   brandPlaybooks,
   brands,
+  campaignAssets,
   campaigns,
   scanEvents,
   spots,
@@ -53,7 +55,7 @@ export async function createCampaign(
     });
     return campaign.id;
   });
-  return campaignDetail(db, campaignId);
+  return campaignDetail(db, appBaseUrl, campaignId);
 }
 
 async function findCampaign(db: Executor, campaignId: string) {
@@ -90,6 +92,26 @@ async function campaignSpots(db: Executor, campaignId: string) {
     .orderBy(asc(spots.code));
 }
 
+export async function currentAsset(db: Executor, campaignId: string) {
+  const [asset] = await db
+    .select()
+    .from(campaignAssets)
+    .where(eq(campaignAssets.campaignId, campaignId))
+    .orderBy(desc(campaignAssets.version))
+    .limit(1);
+  return asset ?? null;
+}
+
+export async function latestApproval(db: Executor, campaignId: string) {
+  const [approval] = await db
+    .select()
+    .from(approvals)
+    .where(eq(approvals.campaignId, campaignId))
+    .orderBy(desc(approvals.version))
+    .limit(1);
+  return approval ?? null;
+}
+
 export async function campaignParts(db: Executor, campaignId: string): Promise<CampaignParts> {
   const { campaign, brand } = await findCampaign(db, campaignId);
   return {
@@ -97,11 +119,17 @@ export async function campaignParts(db: Executor, campaignId: string): Promise<C
     brand,
     playbook: await campaignPlaybook(db, brand.id, campaign.brandPlaybookVersion),
     spots: await campaignSpots(db, campaignId),
+    asset: await currentAsset(db, campaignId),
+    approval: await latestApproval(db, campaignId),
   };
 }
 
-export async function campaignDetail(db: Executor, campaignId: string): Promise<CampaignView> {
-  return toCampaignView(await campaignParts(db, campaignId));
+export async function campaignDetail(
+  db: Executor,
+  appBaseUrl: string,
+  campaignId: string,
+): Promise<CampaignView> {
+  return toCampaignView(await campaignParts(db, campaignId), appBaseUrl);
 }
 
 export async function campaignTimeline(db: Executor, campaignId: string) {

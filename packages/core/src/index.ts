@@ -12,4 +12,6 @@ export * from "./receipt";
 export * from "./playbook";
 export * from "./estimate";
 export * from "./plan";
+export * from "./approval";
+export * from "./canonical";
 export * from "./wire";

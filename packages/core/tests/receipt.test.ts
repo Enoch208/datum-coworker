@@ -15,6 +15,7 @@ const approval: ApprovalLock = {
   assetVersion: 1,
   assetHash: "sha256:asset-v1",
   spotsHash: "sha256:spots-abcd",
+  approvedCopy: { headline: "Free oat flat white", subcopy: "Show this card at Kopi Lab." },
   budget: sgd(5000),
   deadline: "2026-10-07T17:00:00+08:00",
   evidencePolicy: "photo_with_decodable_spot_qr",
