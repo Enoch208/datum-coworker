@@ -3,18 +3,10 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import prettierConfig from "eslint-config-prettier";
 import globals from "globals";
-import datum from "./eslint-rules/index.js";
 
 export default tseslint.config(
   {
-    ignores: [
-      "**/dist/**",
-      "**/node_modules/**",
-      "coverage/**",
-      "packages/db/drizzle/**",
-      "video/**",
-      "design/**",
-    ],
+    ignores: ["**/dist/**", "**/node_modules/**", "coverage/**", "packages/db/drizzle/**"],
   },
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
@@ -35,16 +27,12 @@ export default tseslint.config(
       noInlineConfig: true,
       reportUnusedDisableDirectives: "error",
     },
-    plugins: {
-      datum,
-    },
     rules: {
-      "datum/no-comments": "error",
       "no-console": "error",
     },
   },
   {
-    files: ["eslint.config.js", "eslint-rules/**/*.js", "**/*.config.ts"],
+    files: ["**/*.js", "**/*.config.ts"],
     extends: [tseslint.configs.disableTypeChecked],
   },
 );
