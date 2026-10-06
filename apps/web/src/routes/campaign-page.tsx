@@ -50,6 +50,7 @@ export function CampaignPage() {
         stale={campaign.error !== null}
         timeline={timeline}
         goal={goal}
+        reload={reload}
       />
     );
   }

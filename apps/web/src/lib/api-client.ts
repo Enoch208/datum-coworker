@@ -1,9 +1,11 @@
 import type {
+  AcceptExpenseRequest,
   ApproveCampaignRequest,
   CampaignView,
   CreateCampaignRequest,
   EditCopyRequest,
   GoalStateView,
+  RaiseBudgetRequest,
   TimelineEventView,
 } from "@datum/core";
 import { goalStateSchema } from "./goal-schemas";
@@ -48,4 +50,17 @@ export async function startCampaign(id: string): Promise<void> {
 export async function getGoal(id: string, signal: AbortSignal): Promise<GoalStateView> {
   const body = await send(`${campaignPath(id)}/goal`, { method: "GET", signal });
   return expectShape(goalStateSchema, body, "the goal state");
+}
+
+export async function raiseBudget(id: string, request: RaiseBudgetRequest): Promise<void> {
+  await send(`${campaignPath(id)}/budget`, { method: "POST", body: json(request) });
+}
+
+export async function acceptExpense(
+  id: string,
+  expenseId: string,
+  request: AcceptExpenseRequest,
+): Promise<void> {
+  const path = `${campaignPath(id)}/expenses/${encodeURIComponent(expenseId)}/accept`;
+  await send(path, { method: "POST", body: json(request) });
 }
