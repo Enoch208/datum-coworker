@@ -1,8 +1,13 @@
+import { ArrowRight01Icon, Certificate01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { CampaignView, GoalStateView } from "@datum/core";
+import { Link } from "react-router";
+import { primaryButton } from "@/components/feedback/buttons";
 import { CampaignStatusChip } from "@/components/status/campaign-status-chip";
-import { isRunning } from "@/lib/campaign-phase";
+import { hasReceipt, isRunning } from "@/lib/campaign-phase";
 import { cx } from "@/lib/cx";
 import { formatSgtClock } from "@/lib/format";
+import { receiptHref } from "@/lib/routes";
 import { GoalProgress } from "./goal-progress";
 import { heroDetail, heroHeadline } from "./hero-words";
 import { LiveFacts } from "./live-facts";
@@ -25,6 +30,16 @@ function LiveMark({ fetchedAt, stale }: { fetchedAt: number | null; stale: boole
       />
       {stale ? "Not updating · last read" : "Live · read"} {formatSgtClock(fetchedAt)}
     </span>
+  );
+}
+
+function ReceiptLink({ campaignId }: { campaignId: string }) {
+  return (
+    <Link to={receiptHref(campaignId)} className={`${primaryButton} w-full sm:w-auto`}>
+      <HugeiconsIcon icon={Certificate01Icon} size={18} strokeWidth={1.8} aria-hidden />
+      View the Campaign Receipt
+      <HugeiconsIcon icon={ArrowRight01Icon} size={18} strokeWidth={1.8} aria-hidden />
+    </Link>
   );
 }
 
@@ -69,6 +84,14 @@ export function StatusHero({
         <GoalProgress passed={passed} required={required} spots={campaign.spots} />
         <LiveFacts campaign={campaign} goal={goal} interventions={interventions} />
       </div>
+      {hasReceipt(campaign.status) && (
+        <div className="mt-10 flex flex-col gap-3 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted">
+            The outcome, the spend and every proof are published as one receipt.
+          </p>
+          <ReceiptLink campaignId={campaign.id} />
+        </div>
+      )}
     </section>
   );
 }

@@ -25,3 +25,30 @@
     background: color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
 }
+
+@media print {
+  :root {
+    --color-canvas: #ffffff;
+    --color-surface: #ffffff;
+    --color-raised: #f4f4f5;
+    --color-line: #e4e4e7;
+    --color-line-strong: #d4d4d8;
+    --color-ink: #09090b;
+    --color-muted: #52525b;
+    --color-faint: #a1a1aa;
+    --color-accent: #0e7490;
+    --color-ok: #15803d;
+    --color-warn: #a16207;
+    --color-danger: #b91c1c;
+  }
+
+  html,
+  body {
+    color-scheme: light;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+}
