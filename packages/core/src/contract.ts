@@ -170,7 +170,9 @@ export interface QrPayload {
 export interface EvidenceChecks {
   photoPresent: boolean;
   qrDecodable: boolean;
+  qrMatchesCampaign: boolean;
   qrMatchesSpot: boolean;
+  taskOpen: boolean;
   beforeDeadline: boolean;
 }
 
@@ -178,6 +180,7 @@ export interface EvidenceEvaluation {
   verdict: EvidenceVerdict;
   failure: EvidenceFailure | null;
   checks: EvidenceChecks;
+  decoded: QrPayload | null;
 }
 
 export interface GeoPoint {

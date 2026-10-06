@@ -44,8 +44,11 @@ const checksFor = (
   decoded: QrPayload | null,
 ): EvidenceChecks => ({
   photoPresent: submission?.photoPresent === true,
-  qrDecodable: submission?.decodedQrText != null,
+  qrDecodable: decoded !== null,
+  qrMatchesCampaign: decoded?.campaignId === context.expected.campaignId,
   qrMatchesSpot: matchesExpected(decoded, context.expected),
+  taskOpen:
+    submission?.belongsToOpenTask === true && !context.taskCancelled && !context.taskExpired,
   beforeDeadline: submission !== null && submittedInWindow(submission, context),
 });
 
@@ -79,5 +82,5 @@ export const evaluateEvidence = (
   const decoded = decodedPayload(submission, context);
   const checks = checksFor(submission, context, decoded);
   const failure = firstFailure(submission, context, checks, decoded);
-  return { verdict: failure === null ? "PASS" : "FAIL", failure, checks };
+  return { verdict: failure === null ? "PASS" : "FAIL", failure, checks, decoded };
 };

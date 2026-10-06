@@ -12,12 +12,28 @@ const confirmed = (amountMinor: number): LedgerExpense => ({
 const pass: EvidenceEvaluation = {
   verdict: "PASS",
   failure: null,
-  checks: { photoPresent: true, qrDecodable: true, qrMatchesSpot: true, beforeDeadline: true },
+  checks: {
+    photoPresent: true,
+    qrDecodable: true,
+    qrMatchesCampaign: true,
+    qrMatchesSpot: true,
+    taskOpen: true,
+    beforeDeadline: true,
+  },
+  decoded: { campaignId: "cmp_7k2m9q4w8z1x3c5v", spotCode: "A" },
 };
 const fail = (failure: EvidenceFailure): EvidenceEvaluation => ({
   verdict: "FAIL",
   failure,
-  checks: { photoPresent: false, qrDecodable: false, qrMatchesSpot: false, beforeDeadline: false },
+  checks: {
+    photoPresent: false,
+    qrDecodable: false,
+    qrMatchesCampaign: false,
+    qrMatchesSpot: false,
+    taskOpen: false,
+    beforeDeadline: false,
+  },
+  decoded: null,
 });
 
 const spot = (spotCode: string, ...evaluations: EvidenceEvaluation[]): SpotEvidenceHistory => ({

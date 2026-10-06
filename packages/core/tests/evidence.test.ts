@@ -21,6 +21,15 @@ const onTimeSpotC: EvidenceSubmission = {
   belongsToOpenTask: true,
 };
 
+const allChecks = {
+  photoPresent: true,
+  qrDecodable: true,
+  qrMatchesCampaign: true,
+  qrMatchesSpot: true,
+  taskOpen: true,
+  beforeDeadline: true,
+};
+
 const lateSpotC: EvidenceSubmission = { ...onTimeSpotC, submittedAt: "2026-10-07T16:52:00+08:00" };
 
 const failureOf = (
@@ -33,7 +42,8 @@ describe("evaluateEvidence", () => {
     expect(evaluateEvidence(onTimeSpotC, context)).toEqual({
       verdict: "PASS",
       failure: null,
-      checks: { photoPresent: true, qrDecodable: true, qrMatchesSpot: true, beforeDeadline: true },
+      checks: allChecks,
+      decoded: { campaignId, spotCode: "C" },
     });
   });
 
@@ -45,7 +55,8 @@ describe("evaluateEvidence", () => {
     expect(evaluateEvidence(lateSpotC, context)).toEqual({
       verdict: "FAIL",
       failure: "LATE_EVIDENCE",
-      checks: { photoPresent: true, qrDecodable: true, qrMatchesSpot: true, beforeDeadline: false },
+      checks: { ...allChecks, beforeDeadline: false },
+      decoded: { campaignId, spotCode: "C" },
     });
   });
 
@@ -96,7 +107,8 @@ describe("evaluateEvidence", () => {
     expect(evaluateEvidence({ ...onTimeSpotC, decodedQrText: spotUrl("B") }, context)).toEqual({
       verdict: "FAIL",
       failure: "QR_WRONG_SPOT",
-      checks: { photoPresent: true, qrDecodable: true, qrMatchesSpot: false, beforeDeadline: true },
+      checks: { ...allChecks, qrMatchesSpot: false },
+      decoded: { campaignId, spotCode: "B" },
     });
   });
 
@@ -104,9 +116,46 @@ describe("evaluateEvidence", () => {
     expect(evaluateEvidence(null, context).checks).toEqual({
       photoPresent: false,
       qrDecodable: false,
+      qrMatchesCampaign: false,
       qrMatchesSpot: false,
+      taskOpen: false,
       beforeDeadline: false,
     });
+  });
+
+  it.each([
+    ["NO_EVIDENCE", { ...onTimeSpotC, belongsToOpenTask: false }, {}, "taskOpen"],
+    ["QR_NOT_FOUND", { ...onTimeSpotC, decodedQrText: null }, {}, "qrDecodable"],
+    [
+      "QR_WRONG_CAMPAIGN",
+      { ...onTimeSpotC, decodedQrText: spotUrl("C", "cmp_0000000000000000") },
+      {},
+      "qrMatchesCampaign",
+    ],
+    ["QR_WRONG_SPOT", { ...onTimeSpotC, decodedQrText: spotUrl("B") }, {}, "qrMatchesSpot"],
+    ["LATE_EVIDENCE", lateSpotC, {}, "beforeDeadline"],
+    ["EXECUTOR_CANCELLED", onTimeSpotC, { taskCancelled: true }, "taskOpen"],
+    ["TASK_EXPIRED", onTimeSpotC, { taskExpired: true }, "taskOpen"],
+  ] as const)("marks the failing check for %s", (failure, submission, overrides, failing) => {
+    const evaluation = evaluateEvidence(submission, { ...context, ...overrides });
+    expect(evaluation.failure).toBe(failure);
+    expect(evaluation.checks[failing]).toBe(false);
+  });
+
+  it("keeps the campaign check true when only the spot is wrong", () => {
+    const checks = evaluateEvidence(
+      { ...onTimeSpotC, decodedQrText: spotUrl("B") },
+      context,
+    ).checks;
+    expect(checks).toMatchObject({ qrMatchesCampaign: true, qrMatchesSpot: false });
+  });
+
+  it("treats a QR that is not a Datum spot URL as no spot code at all", () => {
+    const evaluation = evaluateEvidence(
+      { ...onTimeSpotC, decodedQrText: "https://cafe.example/menu" },
+      context,
+    );
+    expect(evaluation).toMatchObject({ decoded: null, checks: { qrDecodable: false } });
   });
 
   it("never produces ADVISORY_REVIEW_REQUIRED from the deterministic checks", () => {

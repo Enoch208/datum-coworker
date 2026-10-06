@@ -1,0 +1,71 @@
+import { describe, expect, it } from "vitest";
+import { evaluateEvidence, type EvidenceContext, type EvidenceSubmission } from "../src/evidence";
+import { explainEvidence } from "../src/evidence-explain";
+
+const baseUrl = "https://datum.example";
+const campaignId = "cmp_7k2m9q4w8z1x3c5v";
+const expected = { campaignId, spotCode: "C" };
+
+const context: EvidenceContext = {
+  expected,
+  qrBaseUrl: baseUrl,
+  taskDueBy: "2026-10-07T17:00:00+08:00",
+  campaignDeadline: "2026-10-07T17:00:00+08:00",
+  taskCancelled: false,
+  taskExpired: false,
+};
+
+const photo = (decodedQrText: string | null): EvidenceSubmission => ({
+  photoPresent: true,
+  decodedQrText,
+  submittedAt: "2026-10-07T16:00:00+08:00",
+  belongsToOpenTask: true,
+});
+
+const explain = (submission: EvidenceSubmission | null, overrides: Partial<EvidenceContext> = {}) =>
+  explainEvidence(evaluateEvidence(submission, { ...context, ...overrides }), expected);
+
+describe("explainEvidence", () => {
+  it("names the spot a passing photo proves", () => {
+    expect(explain(photo(`${baseUrl}/c/${campaignId}/C`))).toBe(
+      "This photo shows Spot C's code for this campaign and arrived in time.",
+    );
+  });
+
+  it("names both spots when the photo shows the wrong one", () => {
+    expect(explain(photo(`${baseUrl}/c/${campaignId}/B`))).toBe(
+      "This photo shows Spot B's code, not Spot C's.",
+    );
+  });
+
+  it("says a code from another campaign is not this spot's", () => {
+    expect(explain(photo(`${baseUrl}/c/cmp_0000000000000000/C`))).toBe(
+      "This photo shows a code from another campaign, not Spot C's.",
+    );
+  });
+
+  it("tells the runner how to retake a photo with no readable code", () => {
+    expect(explain(photo(null))).toBe(
+      "No Datum spot code could be read in this photo. Retake it with Spot C's whole QR code in frame and in focus.",
+    );
+  });
+
+  it("keeps late, cancelled and expired photos for the record without counting them", () => {
+    const late = {
+      ...photo(`${baseUrl}/c/${campaignId}/C`),
+      submittedAt: "2026-10-07T17:01:00+08:00",
+    };
+    expect(explain(late)).toBe(
+      "This photo of Spot C arrived after the task was due, so it is kept for the record but cannot count.",
+    );
+    expect(explain(photo(null), { taskCancelled: true })).toMatch(/^The Spot C task was cancelled/);
+    expect(explain(photo(null), { taskExpired: true })).toMatch(/^The Spot C task had expired/);
+  });
+
+  it("separates a missing photo from a photo for a closed task", () => {
+    expect(explain(null)).toBe("No photo was received for Spot C.");
+    expect(explain({ ...photo(null), belongsToOpenTask: false })).toBe(
+      "This photo does not belong to an open Spot C task, so it cannot count.",
+    );
+  });
+});

@@ -4,6 +4,7 @@ export * from "./time";
 export * from "./budget";
 export * from "./qr";
 export * from "./evidence";
+export * from "./evidence-explain";
 export * from "./goal";
 export * from "./transitions";
 export * from "./recovery";
