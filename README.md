@@ -47,13 +47,15 @@ Built and running at usedatum.xyz:
 - Campaign brief, AI-drafted proposal, rule validation, cost estimate, printable cards with one QR per spot (each card is tested to scan back to its own URL), one versioned approval.
 - Pre-enrolled local runner: a phone inbox, task pages, photo and receipt upload.
 - Server-side QR reading of evidence photos, deterministic verdicts with per-check reasons, a spend ledger.
-- The full Masumi seller lifecycle shown above.
+- The Goal Loop worker. It evaluates the goal from evidence, and when a spot is missing it gives the model the unresolved spots, the remaining budget and the time left. The model proposes a recovery; the rules check it against the approval and either commission it without the customer or stop at NEEDS_APPROVAL with the extra amount needed. If the model is unavailable or its plan fails the rules, a deterministic plan runs instead. Each campaign is claimed under a Postgres advisory lock and every action carries a deterministic key, so a restarted worker reconciles instead of commissioning twice.
+- The live campaign screen, a record of why Datum took each decision, and the Campaign Receipt, stored as canonical JSON with its SHA-256.
+- The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a campaign. It reads the brief from the Task and posts the proposal link. It works only after the escrow is funded and the customer has approved. When the campaign ends, the Task result names the Campaign Receipt's SHA-256 and links its exact bytes. Datum commits that result's hash on chain, completes the Task and verifies its own collection.
 
-In progress:
+Not done yet:
 
-- The autonomous Goal Loop runtime: detecting an incomplete first pass from evidence and dispatching the recovery without the customer.
-- The Campaign Receipt and the live campaign screen.
-- The first real physical campaign and an external founder's campaign.
+- A real physical campaign on the deployed stack: printed cards, permitted spots, a runner, real receipts.
+- An external founder's campaign.
+- A hired Sokosumi Task carried through a real campaign to collection. The paid-Task lifecycle itself is proven above, with a one-line result.
 
 ## Honest labels
 
@@ -71,8 +73,10 @@ A TypeScript pnpm workspace:
 packages/core     the contract and the pure engine: money, budget, evidence, goal, state machine, recovery, receipt
 packages/db       Postgres schema; invariants enforced by constraints
 packages/masumi   Sokosumi and Masumi clients, the resumable paid-Task lifecycle, on-chain verification
-apps/api          campaigns, planner, cards, runners, evidence, expenses, scan redirects
-apps/web          founder screens and the runner's phone pages
+apps/api          campaigns, planner, cards, runners, evidence, expenses, the Goal Loop, receipts, scan redirects
+apps/worker       the durable Goal Loop process
+apps/coworker     the always-on Sokosumi Coworker: hired Task → campaign → paid result
+apps/web          founder screens, the Campaign Receipt and the runner's phone pages
 ```
 
 ## Running it locally
