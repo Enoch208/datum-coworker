@@ -17,11 +17,7 @@ export function Hero() {
       aria-labelledby="landing-heading"
       className="relative mx-auto mb-16 max-w-5xl pt-14 text-center sm:mb-24 sm:pt-12"
     >
-      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1.5 text-[10px] font-medium tracking-wider text-accent uppercase">
-        <span
-          className="size-1.5 rounded-full bg-accent shadow-[0_0_12px_var(--color-accent)]"
-          aria-hidden
-        />
+      <div className="mb-8 inline-flex items-center rounded-full border border-line-strong bg-raised/60 px-3 py-1.5 text-[10px] font-medium tracking-wider text-muted uppercase">
         Your AI field marketing coworker
       </div>
       <h1

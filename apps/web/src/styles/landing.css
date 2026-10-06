@@ -17,11 +17,16 @@
     transform: translateX(-50%) rotate(-12deg);
     background-image: radial-gradient(
       circle,
-      color-mix(in srgb, var(--color-accent) 55%, var(--color-ink)) 0.7px,
+      color-mix(in srgb, var(--color-ink) 70%, transparent) 0.7px,
       transparent 1.3px
     );
     background-size: 5px 5px;
-    mask-image: radial-gradient(ellipse at 50% 39%, transparent 47%, #0008 57%, transparent 70%);
+    mask-image: radial-gradient(
+      ellipse at 50% 39%,
+      transparent 47%,
+      rgb(0 0 0 / 0.55) 57%,
+      transparent 70%
+    );
     opacity: 0.48;
     pointer-events: none;
     animation: orbit-breathe 16s ease-in-out infinite alternate;
@@ -30,7 +35,7 @@
   .landing-glow {
     background: radial-gradient(
       ellipse at 50% 24%,
-      color-mix(in srgb, var(--color-accent) 7%, transparent),
+      color-mix(in srgb, var(--color-ink) 6%, transparent),
       transparent 58%
     );
   }
