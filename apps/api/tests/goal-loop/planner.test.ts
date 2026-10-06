@@ -64,7 +64,9 @@ describe("the recovery planner inside the Goal Loop (Gate 6)", () => {
       estimatedCostMinor: 1_000,
       dueBy: new Date(now.getTime() + 30 * 60_000),
     });
-    expect(task?.instructions).toMatch(/keep the whole card in frame\.$/);
+    expect(task?.instructions).toMatch(
+      /upload it\. This time: The first photo had no readable code; keep the whole card in frame\.$/,
+    );
     const [decision] = await decisions();
     expect(decision).toMatchObject({
       round: 1,
@@ -90,6 +92,7 @@ describe("the recovery planner inside the Goal Loop (Gate 6)", () => {
       ),
     });
     expect(prompt?.user).not.toMatch(/induced|demo/i);
+    expect(prompt?.system).toMatch(/never repeat them; say only what changes/);
     const story = (await timeline(field.campaign.id)).filter((event) =>
       ["REMEDIATION_PROPOSED", "RECOVERY_CREATED"].includes(event.type),
     );

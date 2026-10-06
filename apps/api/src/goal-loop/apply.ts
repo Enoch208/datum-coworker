@@ -22,7 +22,7 @@ async function spotRow(db: Executor, campaignId: string, spotCode: string): Prom
 const recoveryInstructions = (spot: SpotRow, note: string | null): string =>
   note === null || note.length === 0
     ? placeInstructions(spot)
-    : `${placeInstructions(spot)} ${sentence(note)}`;
+    : `${placeInstructions(spot)} This time: ${sentence(note)}`;
 
 async function recoveryDrafts(
   deps: LoopDeps,
