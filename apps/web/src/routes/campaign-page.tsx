@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from "react-router";
 import { CampaignBody } from "@/components/campaign/campaign-body";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
 import { secondaryButton } from "@/components/feedback/buttons";
+import { liveStatuses } from "@/components/execution/execution-sections";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { getCampaign, getTimeline } from "@/lib/api-client";
 import { ApiRequestError } from "@/lib/http";
@@ -40,7 +41,9 @@ export function CampaignPage() {
     reloadTimeline();
   }, [reloadCampaign, reloadTimeline]);
   useDocumentTitle(campaign.data === null ? "Campaign" : `${campaign.data.brand.name} campaign`);
-  usePoll(campaign.data?.status === "PLANNING", 3000, !campaign.pending, reload);
+  const status = campaign.data?.status;
+  const live = status !== undefined && liveStatuses.includes(status);
+  usePoll(status === "PLANNING" || live, live ? 5000 : 3000, !campaign.pending, reload);
 
   if (campaign.error instanceof ApiRequestError && campaign.error.status === 404) {
     return <MissingCampaign message={campaign.error.message} />;

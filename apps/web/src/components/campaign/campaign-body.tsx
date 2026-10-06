@@ -1,7 +1,10 @@
 import type { CampaignView, ProposalView, TimelineEventView } from "@datum/core";
+import { useState } from "react";
 import { ApprovalPanel } from "@/components/approval/approval-panel";
 import { approvalState, isFinal } from "@/components/approval/approval-state";
+import { LaunchPanel } from "@/components/approval/launch-panel";
 import { LockedPanel } from "@/components/approval/locked-panel";
+import { ExecutionSections, hasStarted } from "@/components/execution/execution-sections";
 import { CampaignHeader } from "./campaign-header";
 import { CopySection } from "./copy-section";
 import { NoProposal } from "./no-proposal";
@@ -19,9 +22,24 @@ function ApprovalAside({
   proposal: ProposalView;
   reload: () => void;
 }) {
+  const [startFailure, setStartFailure] = useState<string | null>(null);
   const state = approvalState(campaign);
   if (state === "current" && campaign.approval !== null) {
-    return <LockedPanel campaign={campaign} approval={campaign.approval} />;
+    return (
+      <div className="flex flex-col gap-6">
+        {campaign.status === "APPROVED" && (
+          <LaunchPanel
+            campaignId={campaign.id}
+            failure={startFailure}
+            onResult={(failure) => {
+              setStartFailure(failure);
+              reload();
+            }}
+          />
+        )}
+        <LockedPanel campaign={campaign} approval={campaign.approval} />
+      </div>
+    );
   }
   if (isFinal(campaign)) return null;
   return (
@@ -30,6 +48,7 @@ function ApprovalAside({
       proposal={proposal}
       stale={state === "stale"}
       onChanged={reload}
+      onStartFailed={setStartFailure}
     />
   );
 }
@@ -51,6 +70,7 @@ export function CampaignBody({
       <CampaignHeader campaign={campaign} />
       <div className="mt-16 grid items-start gap-16 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_23rem] xl:gap-16">
         <div className="flex min-w-0 flex-col gap-16">
+          {hasStarted(campaign) && <ExecutionSections campaign={campaign} />}
           {proposal === null ? (
             <NoProposal campaign={campaign} earlierFailure={planFailure} onPlanned={reload} />
           ) : (

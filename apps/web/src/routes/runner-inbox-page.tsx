@@ -4,7 +4,7 @@ import { ErrorPanel } from "@/components/feedback/error-panel";
 import { Freshness } from "@/components/runner/freshness";
 import { LinkInactive } from "@/components/runner/link-inactive";
 import { RunnerSkeleton } from "@/components/runner/runner-skeleton";
-import { inRunOrder, isHandedIn } from "@/components/runner/task-facts";
+import { isHandedIn, runnerOrder } from "@/components/runner/task-facts";
 import { TaskRow } from "@/components/runner/task-row";
 import { runnerTaskHref } from "@/lib/routes";
 import { isInactiveLink } from "@/lib/runner-client";
@@ -62,7 +62,7 @@ export function RunnerInboxPage() {
       />
     );
   }
-  const ordered = inRunOrder(inbox.data.tasks);
+  const ordered = runnerOrder(inbox.data.tasks);
   return (
     <>
       <header>

@@ -38,3 +38,7 @@ export async function approveCampaign(id: string, request: ApproveCampaignReques
 export async function editCopy(id: string, request: EditCopyRequest): Promise<void> {
   await send(`${campaignPath(id)}/copy`, { method: "PATCH", body: json(request) });
 }
+
+export async function startCampaign(id: string): Promise<void> {
+  await send(`${campaignPath(id)}/start`, { method: "POST" });
+}

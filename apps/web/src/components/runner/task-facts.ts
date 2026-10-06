@@ -1,12 +1,5 @@
-import type {
-  EvidenceView,
-  ExpenseView,
-  PhysicalTaskStatus,
-  PhysicalTaskType,
-  RunnerTaskView,
-} from "@datum/core";
-
-const typeRank: Record<PhysicalTaskType, number> = { PRINT_AND_COLLECT: 0, PLACE_SPOT: 1 };
+import type { EvidenceView, ExpenseView, PhysicalTaskStatus, RunnerTaskView } from "@datum/core";
+import { inRunOrder } from "@/lib/task-order";
 
 const handedInStatuses: readonly PhysicalTaskStatus[] = [
   "SUBMITTED",
@@ -15,17 +8,8 @@ const handedInStatuses: readonly PhysicalTaskStatus[] = [
   "EXPIRED",
 ];
 
-const spotOrder = (left: RunnerTaskView, right: RunnerTaskView): number =>
-  (left.spot?.code ?? "").localeCompare(right.spot?.code ?? "", "en", { numeric: true });
-
-export function inRunOrder(tasks: readonly RunnerTaskView[]): RunnerTaskView[] {
-  return [...tasks].sort(
-    (left, right) =>
-      typeRank[left.type] - typeRank[right.type] ||
-      spotOrder(left, right) ||
-      left.attempt - right.attempt,
-  );
-}
+export const runnerOrder = (tasks: readonly RunnerTaskView[]): RunnerTaskView[] =>
+  inRunOrder(tasks, (task) => task.spot?.code ?? null);
 
 export const isHandedIn = (status: PhysicalTaskStatus): boolean =>
   handedInStatuses.includes(status);

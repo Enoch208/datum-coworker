@@ -5,10 +5,13 @@ import { useState } from "react";
 import { FieldError, controlBorder, controlClass } from "@/components/campaign-form/field";
 import { primaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { approveCampaign } from "@/lib/api-client";
+import { approveCampaign, startCampaign } from "@/lib/api-client";
 import { ApiRequestError } from "@/lib/http";
 import { formatSgt, formatWireMoney, shortHash } from "@/lib/format";
 import { BoundsList, Mono, SpotCodes } from "./bounds-list";
+
+const messageOf = (cause: unknown): string =>
+  cause instanceof Error ? cause.message : String(cause);
 
 const staleText =
   "The proposal changed while you were reviewing it, so this approval was not recorded. The page now shows the latest version; check it and approve again.";
@@ -55,16 +58,34 @@ export function ApprovalPanel({
   proposal,
   stale,
   onChanged,
+  onStartFailed,
 }: {
   campaign: CampaignView;
   proposal: ProposalView;
   stale: boolean;
   onChanged: () => void;
+  onStartFailed: (message: string) => void;
 }) {
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | undefined>(undefined);
-  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "approving" | "starting">("idle");
   const [failure, setFailure] = useState<string | null>(null);
+  const busy = phase !== "idle";
+
+  const start = () => {
+    setPhase("starting");
+    void startCampaign(campaign.id).then(
+      () => {
+        setPhase("idle");
+        onChanged();
+      },
+      (cause: unknown) => {
+        setPhase("idle");
+        onStartFailed(messageOf(cause));
+        onChanged();
+      },
+    );
+  };
 
   const approve = () => {
     if (name.trim().length === 0) {
@@ -72,21 +93,15 @@ export function ApprovalPanel({
       document.getElementById("approved-by")?.focus();
       return;
     }
-    setBusy(true);
+    setPhase("approving");
     setFailure(null);
     const request = { assetVersion: proposal.assetVersion, approvedBy: name.trim() };
-    void approveCampaign(campaign.id, request).then(
-      () => {
-        setBusy(false);
-        onChanged();
-      },
-      (cause: unknown) => {
-        setBusy(false);
-        const conflict = cause instanceof ApiRequestError && cause.status === 409;
-        setFailure(conflict ? staleText : cause instanceof Error ? cause.message : String(cause));
-        if (conflict) onChanged();
-      },
-    );
+    void approveCampaign(campaign.id, request).then(start, (cause: unknown) => {
+      setPhase("idle");
+      const conflict = cause instanceof ApiRequestError && cause.status === 409;
+      setFailure(conflict ? staleText : messageOf(cause));
+      if (conflict) onChanged();
+    });
   };
 
   return (
@@ -145,7 +160,11 @@ export function ApprovalPanel({
               aria-hidden
             />
           )}
-          {busy ? "Approving…" : "Approve and launch"}
+          {phase === "approving"
+            ? "Approving…"
+            : phase === "starting"
+              ? "Starting…"
+              : "Approve and launch"}
         </button>
         <p className="mt-2 text-xs leading-relaxed text-muted">
           After approval Datum works on its own within these bounds. Changing the copy or the spots,
