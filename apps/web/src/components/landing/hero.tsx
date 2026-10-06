@@ -17,22 +17,23 @@ export function Hero() {
       aria-labelledby="landing-heading"
       className="relative mx-auto mb-16 max-w-5xl pt-14 text-center sm:mb-24 sm:pt-12"
     >
-      <div className="mb-8 inline-flex items-center rounded-full border border-line-strong bg-raised/60 px-3 py-1.5 text-[10px] font-medium tracking-wider text-muted uppercase">
+      <p className="rise mb-8 inline-flex items-center rounded-full border border-line-strong bg-raised/60 px-3 py-1 text-[10px] font-medium tracking-wider text-muted uppercase [animation-delay:100ms]">
         Your AI field marketing coworker
-      </div>
+      </p>
       <h1
         id="landing-heading"
-        className="text-[clamp(2.65rem,6vw,4.5rem)] leading-[1.06] font-medium tracking-[-0.065em] text-balance text-ink"
+        className="rise text-[clamp(2.5rem,5.6vw,4rem)] leading-[1.05] font-medium tracking-tight text-balance text-ink [animation-delay:200ms]"
       >
-        Your campaign.
-        <br />
-        <span className="text-faint">Printed, placed, proven.</span>
+        You set the goal.{" "}
+        <span className="text-gradient-grey pb-[0.12em] sm:-mb-[0.12em] sm:block">
+          Datum gets the campaign live.
+        </span>
       </h1>
-      <p className="mx-auto mt-7 max-w-[550px] text-base font-light tracking-tight text-muted sm:text-lg">
-        Your campaign. Out in the world. Give Datum your message, approved spots, deadline and
-        budget. Approve the plan once. It handles the printing, placement and proof.
+      <p className="rise mx-auto mt-7 max-w-2xl text-base leading-relaxed font-light tracking-tight text-pretty text-muted [animation-delay:300ms] sm:text-lg">
+        Give Datum the message, the approved spots, a deadline and a budget. Approve once, and it
+        handles printing, placement and proof until every spot is live.
       </p>
-      <div className="mt-9 flex flex-col items-center gap-4">
+      <div className="rise mt-9 flex flex-col items-center gap-4 [animation-delay:400ms]">
         <Link to={appRoutes.newCampaign} className={`${primaryButton} px-8`}>
           Create your campaign <HugeiconsIcon icon={ArrowRight01Icon} size={17} aria-hidden />
         </Link>
@@ -45,16 +46,16 @@ export function Hero() {
       </div>
       <ol
         aria-label="Your campaign journey"
-        className="relative mt-10 grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-canvas/80 text-left backdrop-blur-sm sm:mt-12 md:grid-cols-4"
+        className="rise relative mt-12 grid grid-cols-2 overflow-hidden rounded-2xl border border-line bg-canvas/80 text-left backdrop-blur-sm [animation-delay:500ms] sm:mt-16 md:grid-cols-4"
       >
         {stages.map((stage, index) => (
           <li
             key={stage.number}
             className={`p-5 sm:p-6 ${index > 1 ? "border-t md:border-t-0" : ""} ${index % 2 !== 0 ? "border-l" : "md:border-l"} ${index === 0 ? "md:border-l-0" : ""} border-line`}
           >
-            <span className="font-mono text-[10px] text-accent">{stage.number}</span>
+            <span className="font-mono text-[11px] text-muted tabular-nums">{stage.number}</span>
             <p className="mt-2 text-sm font-medium text-ink">{stage.title}</p>
-            <p className="mt-1 text-xs text-faint">{stage.detail}</p>
+            <p className="mt-1 text-xs text-muted">{stage.detail}</p>
           </li>
         ))}
       </ol>

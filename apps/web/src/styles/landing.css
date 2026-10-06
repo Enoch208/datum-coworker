@@ -9,6 +9,8 @@
   }
 
   .hero-orbit {
+    --orbit-peak: 0.68;
+    --orbit-rest: 0.44;
     position: absolute;
     top: -100px;
     left: 50%;
@@ -17,17 +19,17 @@
     transform: translateX(-50%) rotate(-12deg);
     background-image: radial-gradient(
       circle,
-      color-mix(in srgb, var(--color-ink) 70%, transparent) 0.7px,
+      color-mix(in srgb, var(--color-ink) 85%, transparent) 0.7px,
       transparent 1.3px
     );
     background-size: 5px 5px;
     mask-image: radial-gradient(
       ellipse at 50% 39%,
-      transparent 47%,
-      rgb(0 0 0 / 0.55) 57%,
-      transparent 70%
+      transparent 46%,
+      rgb(0 0 0 / 0.6) 57%,
+      transparent 71%
     );
-    opacity: 0.48;
+    opacity: var(--orbit-peak);
     pointer-events: none;
     animation: orbit-breathe 16s ease-in-out infinite alternate;
   }
@@ -35,9 +37,20 @@
   .landing-glow {
     background: radial-gradient(
       ellipse at 50% 24%,
-      color-mix(in srgb, var(--color-ink) 6%, transparent),
+      color-mix(in srgb, var(--color-ink) 8%, transparent),
       transparent 58%
     );
+  }
+
+  .text-gradient-grey {
+    background: linear-gradient(to bottom right, var(--color-muted), var(--color-faint));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .rise {
+    animation: rise 0.8s ease-out both;
   }
 
   .photo-card {
@@ -98,10 +111,23 @@
   }
 }
 
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 @keyframes orbit-breathe {
   to {
     transform: translateX(-50%) rotate(8deg) scale(1.04);
-    opacity: 0.3;
+    opacity: var(--orbit-rest);
   }
 }
 
@@ -109,7 +135,14 @@
   .hero-orbit {
     top: 0;
     height: 610px;
-    opacity: 0.3;
+    --orbit-peak: 0.62;
+    --orbit-rest: 0.42;
     background-size: 6px 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
   }
 }
