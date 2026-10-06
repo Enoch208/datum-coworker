@@ -24,3 +24,5 @@ export type ExpenseRow = typeof schema.expenses.$inferSelect;
 export type CampaignReceiptRow = typeof schema.campaignReceipts.$inferSelect;
 export type InterventionRow = typeof schema.interventions.$inferSelect;
 export type RemediationDecisionRow = typeof schema.remediationDecisions.$inferSelect;
+export type CoworkerTaskRow = typeof schema.coworkerTasks.$inferSelect;
+export type CoworkerCommentRow = typeof schema.coworkerComments.$inferSelect;
