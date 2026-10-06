@@ -33,6 +33,14 @@ export const evidenceSchema: z.ZodType<EvidenceView> = z.object({
   verdict: z.enum(evidenceVerdicts).nullable(),
   failure: z.enum(evidenceFailures).nullable(),
   explanation: z.string(),
+  checks: z.object({
+    photoReceived: z.boolean(),
+    qrDetected: z.boolean(),
+    campaignMatches: z.boolean(),
+    spotMatches: z.boolean(),
+    taskOpen: z.boolean(),
+    beforeDeadline: z.boolean(),
+  }),
 });
 
 export const expenseSchema: z.ZodType<ExpenseView> = z.object({

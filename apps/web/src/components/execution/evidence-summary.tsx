@@ -2,6 +2,7 @@ import { CancelCircleIcon, CheckmarkBadge01Icon, HourglassIcon } from "@hugeicon
 import type { IconSvgElement } from "@hugeicons/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { EvidenceVerdict, EvidenceView } from "@datum/core";
+import { EvidenceChecks } from "@/components/status/evidence-checks";
 import { cx } from "@/lib/cx";
 import { formatSgtMoment } from "@/lib/format";
 
@@ -37,7 +38,12 @@ export function EvidenceSummary({
           <HugeiconsIcon icon={line.icon} size={16} strokeWidth={1.8} aria-hidden />
           {line.word}
         </p>
-        <p className="mt-1 text-sm break-words text-ink">{evidence.explanation}</p>
+        {evidence.verdict !== null && (
+          <div className="mt-1.5">
+            <EvidenceChecks checks={evidence.checks} size="sm" />
+          </div>
+        )}
+        <p className="mt-1.5 text-sm break-words text-ink">{evidence.explanation}</p>
         <p className="mt-1.5 font-mono text-xs text-muted tabular-nums">
           Photo {formatSgtMoment(evidence.submittedAt)} SGT
         </p>

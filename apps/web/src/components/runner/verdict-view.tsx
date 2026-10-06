@@ -1,6 +1,7 @@
 import { CancelCircleIcon, CheckmarkBadge01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { EvidenceView } from "@datum/core";
+import { EvidenceChecks } from "@/components/status/evidence-checks";
 import { ByRules } from "@/components/status/provenance";
 import { cx } from "@/lib/cx";
 import { formatSgtMoment } from "@/lib/format";
@@ -43,7 +44,12 @@ export function VerdictView({ evidence, spotCode }: { evidence: EvidenceView; sp
       )}
     >
       <Headline evidence={evidence} spotCode={spotCode} />
-      <p className="mt-2 text-[17px] leading-snug break-words text-ink">{evidence.explanation}</p>
+      {evidence.verdict !== null && (
+        <div className="mt-3">
+          <EvidenceChecks checks={evidence.checks} size="md" />
+        </div>
+      )}
+      <p className="mt-3 text-[17px] leading-snug break-words text-ink">{evidence.explanation}</p>
       <div className="mt-4 flex items-center gap-3">
         <img
           src={evidence.photoUrl}
