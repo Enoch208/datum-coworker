@@ -4,7 +4,13 @@ import { EvidenceStep } from "./evidence-step";
 import { ExpenseStep } from "./expense-step";
 import { AcceptStep, CompleteStep } from "./runner-steps";
 import { SettledStep } from "./settled-step";
-import { awaitsAcceptance, shownEvidence, shownExpense } from "./task-facts";
+import { awaitsAcceptance, isOpenForWork, shownEvidence, shownExpense } from "./task-facts";
+
+const disputedCaution =
+  "Datum disputes this receipt, so the amount does not count as spent yet. Send it again if you can.";
+
+const failedCaution = (spotCode: string): string =>
+  `Your latest photo did not pass, so Datum will treat Spot ${spotCode} as missed. Retake it if you can.`;
 
 export function TaskActions({
   token,
@@ -39,15 +45,20 @@ export function TaskActions({
   if (awaitsAcceptance(task.status)) {
     return <AcceptStep token={token} task={task} onDone={reload} />;
   }
-  if (task.status !== "ACCEPTED") {
+  if (!isOpenForWork(task.status)) {
     return <SettledStep task={task} evidence={evidence} expense={expense} inboxHref={inboxHref} />;
   }
   if (task.type === "PRINT_AND_COLLECT") {
     return (
       <>
         <ExpenseStep token={token} task={task} shown={expense} onSubmitted={onSubmitted} />
-        {expense !== null && expense.status !== "DISPUTED" && (
-          <CompleteStep token={token} task={task} onDone={reload} />
+        {expense !== null && (
+          <CompleteStep
+            token={token}
+            task={task}
+            caution={expense.status === "DISPUTED" ? disputedCaution : null}
+            onDone={reload}
+          />
         )}
       </>
     );
@@ -55,7 +66,14 @@ export function TaskActions({
   return (
     <>
       <EvidenceStep token={token} task={task} shown={evidence} onUploaded={onUploaded} />
-      {evidence?.verdict === "PASS" && <CompleteStep token={token} task={task} onDone={reload} />}
+      {evidence !== null && evidence.verdict !== null && (
+        <CompleteStep
+          token={token}
+          task={task}
+          caution={evidence.verdict === "FAIL" ? failedCaution(task.spot?.code ?? "") : null}
+          onDone={reload}
+        />
+      )}
     </>
   );
 }

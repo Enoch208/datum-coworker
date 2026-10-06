@@ -1,18 +1,16 @@
 import type { EvidenceView, ExpenseView, PhysicalTaskStatus, RunnerTaskView } from "@datum/core";
 import { inRunOrder } from "@/lib/task-order";
 
-const handedInStatuses: readonly PhysicalTaskStatus[] = [
-  "SUBMITTED",
-  "COMPLETED",
-  "CANCELLED",
-  "EXPIRED",
-];
+const finishedStatuses: readonly PhysicalTaskStatus[] = ["COMPLETED", "CANCELLED", "EXPIRED"];
 
 export const runnerOrder = (tasks: readonly RunnerTaskView[]): RunnerTaskView[] =>
   inRunOrder(tasks, (task) => task.spot?.code ?? null);
 
-export const isHandedIn = (status: PhysicalTaskStatus): boolean =>
-  handedInStatuses.includes(status);
+export const isFinished = (status: PhysicalTaskStatus): boolean =>
+  finishedStatuses.includes(status);
+
+export const isOpenForWork = (status: PhysicalTaskStatus): boolean =>
+  status === "ACCEPTED" || status === "SUBMITTED";
 
 export const awaitsAcceptance = (status: PhysicalTaskStatus): boolean =>
   status === "CREATED" || status === "DISPATCHED";

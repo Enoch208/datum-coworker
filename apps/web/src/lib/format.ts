@@ -41,7 +41,6 @@ export function shortHash(hash: string): string {
 
 const sgtShortFormat = new Intl.DateTimeFormat("en-SG", {
   timeZone: singaporeZone,
-  weekday: "short",
   day: "numeric",
   month: "short",
   hour: "2-digit",

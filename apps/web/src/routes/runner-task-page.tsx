@@ -4,7 +4,7 @@ import { CardGallery } from "@/components/runner/card-gallery";
 import { LinkInactive } from "@/components/runner/link-inactive";
 import { RunnerSkeleton } from "@/components/runner/runner-skeleton";
 import { TaskActions } from "@/components/runner/task-actions";
-import { isHandedIn } from "@/components/runner/task-facts";
+import { isFinished } from "@/components/runner/task-facts";
 import { BackToTasks, TaskHeading, WhereAndWhat } from "@/components/runner/task-heading";
 import { isInactiveLink } from "@/lib/runner-client";
 import { runnerHref } from "@/lib/routes";
@@ -59,7 +59,7 @@ export function RunnerTaskPage() {
         inboxHref={inboxHref}
         reload={inbox.reload}
       />
-      {!isHandedIn(task.status) && <CardGallery task={task} />}
+      {!isFinished(task.status) && <CardGallery task={task} />}
     </>
   );
 }

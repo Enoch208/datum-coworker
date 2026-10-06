@@ -1,10 +1,10 @@
 import {
   CancelCircleIcon,
   CheckmarkCircle02Icon,
+  CloudUploadIcon,
   RepairIcon,
   SentIcon,
   Task01Icon,
-  TaskDone01Icon,
   TimeQuarterPassIcon,
   UserCheck01Icon,
 } from "@hugeicons/core-free-icons";
@@ -15,7 +15,7 @@ const customerSpecs: Record<PhysicalTaskStatus, ChipSpec> = {
   CREATED: { tone: "quiet", icon: Task01Icon, label: "Created" },
   DISPATCHED: { tone: "neutral", icon: SentIcon, label: "Sent to runner" },
   ACCEPTED: { tone: "neutral", icon: UserCheck01Icon, label: "Accepted" },
-  SUBMITTED: { tone: "neutral", icon: TaskDone01Icon, label: "Handed in" },
+  SUBMITTED: { tone: "neutral", icon: CloudUploadIcon, label: "Proof sent" },
   COMPLETED: { tone: "ok", icon: CheckmarkCircle02Icon, label: "Done" },
   CANCELLED: { tone: "quiet", icon: CancelCircleIcon, label: "Cancelled" },
   EXPIRED: { tone: "danger", icon: TimeQuarterPassIcon, label: "Expired" },

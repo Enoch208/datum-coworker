@@ -1,8 +1,8 @@
-import { CheckmarkCircle02Icon, UserCheck01Icon } from "@hugeicons/core-free-icons";
+import { Alert02Icon, CheckmarkCircle02Icon, UserCheck01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { RunnerTaskView } from "@datum/core";
 import { useCallback } from "react";
-import { touchPrimary } from "@/components/feedback/buttons";
+import { touchPrimary, touchSecondary } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { acceptTask, completeTask } from "@/lib/runner-client";
 import { Spinner } from "./step-buttons";
@@ -26,14 +26,21 @@ function ActionButton({
   onClick,
   labels,
   icon,
+  quiet = false,
 }: {
   state: ActionState;
   onClick: () => void;
   labels: Record<ActionState, string>;
   icon: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  quiet?: boolean;
 }) {
   return (
-    <button type="button" onClick={onClick} disabled={state !== "ready"} className={touchPrimary}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={state !== "ready"}
+      className={quiet ? touchSecondary : touchPrimary}
+    >
       {state === "busy" ? (
         <Spinner />
       ) : (
@@ -74,23 +81,42 @@ export function AcceptStep({
 export function CompleteStep({
   token,
   task,
+  caution,
   onDone,
 }: {
   token: string;
   task: RunnerTaskView;
+  caution: string | null;
   onDone: () => void;
 }) {
   const run = useCallback(() => completeTask(token, task.id), [token, task.id]);
   const action = useAction(run, onDone);
   return (
     <StepFrame title="Finished here?">
+      {caution !== null && (
+        <p className="flex gap-2.5 rounded-xl border border-warn/40 bg-warn/5 p-3 text-[15px] text-ink">
+          <HugeiconsIcon
+            icon={Alert02Icon}
+            size={18}
+            strokeWidth={1.8}
+            className="mt-0.5 shrink-0 text-warn"
+            aria-hidden
+          />
+          {caution}
+        </p>
+      )}
       <StepText>{afterDone[task.type]}</StepText>
       {action.error !== null && <ErrorPanel title="Not marked done" message={action.error} />}
       <ActionButton
         state={action.state}
         onClick={action.trigger}
         icon={CheckmarkCircle02Icon}
-        labels={{ ready: "Mark done", busy: "Marking done…", done: "Marked done" }}
+        quiet={caution !== null}
+        labels={{
+          ready: caution === null ? "Mark done" : "Mark done anyway",
+          busy: "Marking done…",
+          done: "Marked done",
+        }}
       />
     </StepFrame>
   );

@@ -4,7 +4,7 @@ import { ErrorPanel } from "@/components/feedback/error-panel";
 import { Freshness } from "@/components/runner/freshness";
 import { LinkInactive } from "@/components/runner/link-inactive";
 import { RunnerSkeleton } from "@/components/runner/runner-skeleton";
-import { isHandedIn, runnerOrder } from "@/components/runner/task-facts";
+import { isFinished, runnerOrder } from "@/components/runner/task-facts";
 import { TaskRow } from "@/components/runner/task-row";
 import { runnerTaskHref } from "@/lib/routes";
 import { isInactiveLink } from "@/lib/runner-client";
@@ -77,13 +77,13 @@ export function RunnerInboxPage() {
       <TaskGroup
         token={token}
         title="To do"
-        tasks={ordered.filter((task) => !isHandedIn(task.status))}
+        tasks={ordered.filter((task) => !isFinished(task.status))}
         empty="Nothing to do right now. New tasks appear here on their own."
       />
       <TaskGroup
         token={token}
         title="Finished"
-        tasks={ordered.filter((task) => isHandedIn(task.status))}
+        tasks={ordered.filter((task) => isFinished(task.status))}
       />
     </>
   );

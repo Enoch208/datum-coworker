@@ -6,11 +6,10 @@ import { StepFrame, StepText } from "./step-frame";
 import { VerdictView } from "./verdict-view";
 
 const settledText: Partial<Record<PhysicalTaskStatus, { title: string; text: string }>> = {
-  SUBMITTED: {
-    title: "Handed in",
-    text: "Thank you. Datum checks the proof for every spot before the campaign counts as live.",
+  COMPLETED: {
+    title: "Done",
+    text: "Thank you. Nothing more is needed for this task. Datum checks the proof for every spot before the campaign counts as live.",
   },
-  COMPLETED: { title: "Done", text: "Thank you. Nothing more is needed for this task." },
   CANCELLED: {
     title: "Cancelled",
     text: "Datum cancelled this task. You do not need to do anything more for it.",
@@ -34,7 +33,7 @@ export function SettledStep({
 }) {
   const copy = settledText[task.status];
   return (
-    <StepFrame title={copy?.title ?? "Handed in"}>
+    <StepFrame title={copy?.title ?? "Finished"}>
       {copy !== undefined && <StepText>{copy.text}</StepText>}
       {evidence !== null && <VerdictView evidence={evidence} spotCode={task.spot?.code ?? ""} />}
       {expense !== null && <ExpenseRecord expense={expense} />}
