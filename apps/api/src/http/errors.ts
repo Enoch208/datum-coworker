@@ -27,3 +27,19 @@ export function notFound(what: string, id: string): HttpError {
 export function invalidRequest(message: string): HttpError {
   return new HttpError(400, "VALIDATION_FAILED", message);
 }
+
+export function conflict(code: string, message: string): HttpError {
+  return new HttpError(409, code, message);
+}
+
+export function unprocessable(code: string, message: string): HttpError {
+  return new HttpError(422, code, message);
+}
+
+export function upstreamFailed(code: string, message: string): HttpError {
+  return new HttpError(502, code, message);
+}
+
+export function unavailable(code: string, message: string): HttpError {
+  return new HttpError(503, code, message);
+}

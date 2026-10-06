@@ -1,5 +1,8 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { sql } from "drizzle-orm";
-import type { CampaignView, CreateCampaignRequest } from "@datum/core";
+import type { BrandPageReading, CampaignView, CreateCampaignRequest } from "@datum/core";
 import {
   approvals,
   auditEvents,
@@ -17,6 +20,10 @@ import {
 } from "@datum/db";
 import { afterAll, beforeEach } from "vitest";
 import { createApp } from "../src/app";
+import type { BrandPageReader } from "../src/brand-page/reader";
+import type { ApiDeps } from "../src/deps";
+import type { RateSettings } from "../src/env";
+import { fixturePlanner, plannerFixture } from "./planner/fixture-model";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (databaseUrl === undefined || !databaseUrl.endsWith("/datum_test")) {
@@ -25,7 +32,46 @@ if (databaseUrl === undefined || !databaseUrl.endsWith("/datum_test")) {
 
 export const db = createDb(databaseUrl);
 export const appBaseUrl = "https://datum.test";
-export const app = createApp({ db, appBaseUrl });
+export const assetDir = mkdtempSync(join(tmpdir(), "datum-api-assets-"));
+
+export const testRates: RateSettings = {
+  configured: true,
+  rates: {
+    printCostPerCopy: { amountMinor: 150, currency: "SGD" },
+    placementCostPerSpot: { amountMinor: 1_000, currency: "SGD" },
+  },
+};
+
+export const readKopiLabPage: BrandPageReader = (url) => {
+  if (url === null) return Promise.resolve({ outcome: "NOT_GIVEN" });
+  const reading: BrandPageReading = {
+    outcome: "READ",
+    url,
+    facts: {
+      finalUrl: `${url}/`,
+      title: "Kopi Lab | Specialty coffee",
+      description: "Single-origin coffee on Amoy Street",
+      imageUrl: null,
+    },
+  };
+  return Promise.resolve(reading);
+};
+
+export function testDeps(overrides: Partial<ApiDeps> = {}): ApiDeps {
+  return {
+    db,
+    appBaseUrl,
+    assetDir,
+    planner: fixturePlanner(plannerFixture("plan-accepted")),
+    rates: testRates,
+    readBrandPage: readKopiLabPage,
+    ...overrides,
+  };
+}
+
+export type TestApp = ReturnType<typeof createApp>;
+
+export const app = createApp(testDeps());
 
 const allTables = [
   masumiPaymentEvidence,
@@ -56,18 +102,27 @@ export interface Reply<Body> {
   readonly body: Body;
 }
 
-export async function call<Body>(
+export async function callApp<Body>(
+  target: TestApp,
   method: string,
   path: string,
   payload?: unknown,
 ): Promise<Reply<Body>> {
-  const response = await app.request(path, {
+  const response = await target.request(path, {
     method,
     headers: { "content-type": "application/json" },
     ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
   });
   const body: unknown = await response.json();
   return { status: response.status, body: body as Body };
+}
+
+export async function call<Body>(
+  method: string,
+  path: string,
+  payload?: unknown,
+): Promise<Reply<Body>> {
+  return callApp<Body>(app, method, path, payload);
 }
 
 export function briefBody(overrides: Partial<CreateCampaignRequest> = {}): CreateCampaignRequest {

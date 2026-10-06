@@ -47,11 +47,14 @@ export async function createCampaign(
         qrTargetUrl: buildSpotQrUrl(appBaseUrl, { campaignId: campaign.id, spotCode: spot.code }),
       })),
     );
-    await recordAudit(tx, campaign.id, "CAMPAIGN_CREATED", {
-      brandId: brand.id,
-      spotCodes: input.spots.map((spot) => spot.code),
-      budget: input.budget,
-      deadline: input.deadline.toISOString(),
+    await recordAudit(tx, campaign.id, {
+      type: "CAMPAIGN_CREATED",
+      payload: {
+        brandId: brand.id,
+        spotCodes: input.spots.map((spot) => spot.code),
+        budget: input.budget,
+        deadline: input.deadline.toISOString(),
+      },
     });
     return campaign.id;
   });
@@ -70,7 +73,7 @@ async function findCampaign(db: Executor, campaignId: string) {
   return row;
 }
 
-async function campaignPlaybook(db: Executor, brandId: string, version: number | null) {
+export async function campaignPlaybook(db: Executor, brandId: string, version: number | null) {
   if (version === null) return null;
   const [playbook] = await db
     .select()

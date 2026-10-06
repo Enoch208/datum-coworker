@@ -54,6 +54,7 @@ describe("campaignTransitions", () => {
     ["AWAITING_APPROVAL", "APPROVED"],
     ["AWAITING_APPROVAL", "CANCELLED"],
     ["APPROVED", "EXECUTING"],
+    ["APPROVED", "AWAITING_APPROVAL"],
     ["EXECUTING", "VERIFYING"],
     ["VERIFYING", "COMPLETED"],
     ["VERIFYING", "REMEDIATING"],
@@ -84,11 +85,21 @@ describe("campaignTransitions", () => {
     ["CANCELLED", "PLANNING"],
     ["FAILED", "REMEDIATING"],
     ["EXECUTING", "EXECUTING"],
+    ["EXECUTING", "AWAITING_APPROVAL"],
+    ["VERIFYING", "AWAITING_APPROVAL"],
+    ["NEEDS_APPROVAL", "AWAITING_APPROVAL"],
   ])("refuses %s -> %s", (from, to) => {
     expect(canTransition(from, to)).toBe(false);
     expect(() => {
       assertTransition(from, to);
     }).toThrow(TransitionError);
+  });
+
+  it("sends an approved campaign back for approval only before execution starts", () => {
+    const backToApproval = campaignStatuses.filter((status) =>
+      canTransition(status, "AWAITING_APPROVAL"),
+    );
+    expect(backToApproval.sort()).toEqual(["APPROVED", "PLANNING"]);
   });
 
   it("names both statuses on a refused transition", () => {

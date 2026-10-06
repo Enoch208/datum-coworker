@@ -4,6 +4,7 @@ dist
 build
 out
 coverage
+.assets
 *.tsbuildinfo
 .DS_Store
 npm-debug.log*

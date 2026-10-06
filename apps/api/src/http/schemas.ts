@@ -6,7 +6,9 @@ import {
   isMoneyText,
   isSpotCode,
   isWithinCampaignBudgetLimit,
+  type ApproveCampaignRequest,
   type CreateCampaignRequest,
+  type EditCopyRequest,
   type SpotDraft,
   type WireMoney,
 } from "@datum/core";
@@ -76,3 +78,14 @@ export const createCampaignSchema = z.strictObject({
 }) satisfies z.ZodType<unknown, CreateCampaignRequest>;
 
 export type CreateCampaignInput = z.output<typeof createCampaignSchema>;
+
+const copyText = z.string().max(500);
+
+export const editCopySchema = z.strictObject({
+  copy: z.strictObject({ headline: copyText, subcopy: copyText }),
+}) satisfies z.ZodType<unknown, EditCopyRequest>;
+
+export const approveCampaignSchema = z.strictObject({
+  assetVersion: z.int().positive(),
+  approvedBy: text(120),
+}) satisfies z.ZodType<unknown, ApproveCampaignRequest>;

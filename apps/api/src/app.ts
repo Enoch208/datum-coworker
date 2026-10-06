@@ -1,24 +1,21 @@
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
-import type { Db } from "@datum/db";
+import type { ApiDeps } from "./deps";
 import { errorBody, HttpError } from "./http/errors";
 import { agentRoutes } from "./routes/agent";
+import { assetRoutes } from "./routes/assets";
 import { campaignRoutes } from "./routes/campaigns";
 import { scanRoutes } from "./routes/scans";
 
-export interface AppDeps {
-  readonly db: Db;
-  readonly appBaseUrl: string;
-}
-
-export function createApp({ db, appBaseUrl }: AppDeps) {
+export function createApp(deps: ApiDeps) {
   return new Hono()
     .get("/health", async (c) => {
-      await db.execute(sql`select 1`);
+      await deps.db.execute(sql`select 1`);
       return c.json({ status: "ok" });
     })
-    .route("/", campaignRoutes(db, appBaseUrl))
-    .route("/", scanRoutes(db))
+    .route("/", campaignRoutes(deps))
+    .route("/", assetRoutes(deps))
+    .route("/", scanRoutes(deps.db))
     .route("/", agentRoutes())
     .notFound((c) =>
       c.json(errorBody("NOT_FOUND", `No route for ${c.req.method} ${c.req.path}`), 404),
