@@ -46,11 +46,11 @@ export function NewCampaignPage() {
   return (
     <>
       <header className="max-w-2xl">
-        <p className="font-mono text-xs tracking-[0.2em] text-muted uppercase">New campaign</p>
-        <h1 className="mt-5 text-3xl font-medium tracking-tight sm:text-4xl">
+        <p className="eyebrow text-muted">New campaign</p>
+        <h1 className="mt-4 text-3xl font-medium tracking-tight text-balance sm:text-4xl">
           What do you want to promote?
         </h1>
-        <p className="mt-4 max-w-xl text-sm text-muted">
+        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-pretty text-muted">
           A few details are all Datum needs to draft your cards and plan. You’ll review everything
           before approving any work.
         </p>

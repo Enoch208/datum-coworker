@@ -46,7 +46,7 @@ function DeadlineFields({ values, errors, onText }: SectionProps) {
             className={`${controlClass} ${controlBorder(error)} h-11 font-mono text-sm tabular-nums`}
           />
         </label>
-        <span className="flex h-11 items-center rounded-[10px] border border-line px-3 font-mono text-xs text-ink">
+        <span className="flex h-11 items-center rounded-xl border border-line px-3 font-mono text-xs text-muted">
           SGT
         </span>
       </div>

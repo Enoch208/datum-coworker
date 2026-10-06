@@ -19,7 +19,7 @@ export function FormSection({
           <h2 id={headingId} className="text-xl font-normal tracking-tight text-ink">
             {title}
           </h2>
-          <p className="mt-1.5 text-[15px] font-light text-muted">{description}</p>
+          <p className="mt-1.5 text-[15px] text-pretty text-muted">{description}</p>
         </div>
       </div>
       <div className="flex flex-col gap-5">{children}</div>

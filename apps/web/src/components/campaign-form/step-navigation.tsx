@@ -25,18 +25,18 @@ export function StepNavigation({
             onSelect(index as BriefStep);
           }}
           aria-current={index === step ? "step" : undefined}
-          className={`flex min-h-16 flex-col items-center justify-center gap-2 rounded-xl px-1 py-2 text-[11px] transition-colors sm:min-h-14 sm:flex-row sm:justify-start sm:px-4 sm:text-sm ${index === step ? "bg-raised text-ink" : "text-faint disabled:cursor-default"}`}
+          className={`flex min-h-16 flex-col items-center justify-center gap-2 rounded-xl px-1 py-2 text-[11px] transition-colors sm:min-h-14 sm:flex-row sm:justify-start sm:px-4 sm:text-sm ${index === step ? "bg-raised text-ink" : "text-muted hover:text-ink disabled:cursor-default disabled:hover:text-muted"}`}
         >
           {index < step ? (
             <HugeiconsIcon
               icon={CheckmarkCircle02Icon}
               size={17}
-              className="shrink-0 text-accent"
+              className="shrink-0 text-ink"
               aria-hidden
             />
           ) : (
             <span
-              className={`flex size-6 shrink-0 items-center justify-center rounded-full border font-mono text-[10px] ${index === step ? "border-accent/40 text-accent" : "border-line text-faint"}`}
+              className={`flex size-6 shrink-0 items-center justify-center rounded-full border font-mono text-[10px] ${index === step ? "border-ink/40 text-ink" : "border-line-strong text-muted"}`}
             >
               {index + 1}
             </span>

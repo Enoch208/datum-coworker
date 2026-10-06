@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
 export const controlClass =
-  "w-full rounded-xl border bg-canvas/70 px-3.5 text-base text-ink placeholder:text-faint transition-colors hover:border-faint focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:opacity-60";
+  "w-full rounded-xl border bg-canvas/70 px-3.5 text-base text-ink placeholder:text-muted/75 transition-colors hover:border-faint focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:opacity-60";
 
 export const controlBorder = (error: string | undefined): string =>
   error === undefined ? "border-line-strong" : "border-danger";

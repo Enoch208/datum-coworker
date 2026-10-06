@@ -15,7 +15,9 @@ const phaseText: Record<Exclude<SubmitPhase, "idle">, string> = {
 
 function Slot({ value, empty }: { value: string | null; empty: string }) {
   return value === null ? (
-    <span className="text-faint">{empty}</span>
+    <span className="text-muted underline decoration-line-strong decoration-dashed underline-offset-4">
+      {empty}
+    </span>
   ) : (
     <span className="text-ink">{value}</span>
   );
@@ -59,8 +61,8 @@ export function BriefPanel({
   const parts = briefParts(values);
   const busy = phase !== "idle";
   return (
-    <aside className="rounded-3xl border border-line bg-raised/40 p-6 xl:sticky xl:top-8">
-      <h2 className="font-mono text-xs tracking-[0.2em] text-muted uppercase">Your brief</h2>
+    <aside className="rounded-2xl border border-line bg-raised/40 p-6 xl:sticky xl:top-8">
+      <h2 className="eyebrow text-muted">Your brief</h2>
       <p className="mt-4 text-lg leading-snug font-light tracking-tight">
         Get a campaign for <Slot value={parts.brand} empty="your brand" /> live at{" "}
         <span className="text-ink">{parts.spots}</span> by{" "}

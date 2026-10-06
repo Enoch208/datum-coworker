@@ -92,9 +92,9 @@ export function CampaignForm({
         <div
           id="brief-step-content"
           tabIndex={-1}
-          className="min-w-0 scroll-mt-6 rounded-3xl border border-line bg-canvas/30 p-5 focus:outline-none sm:p-7"
+          className="min-w-0 scroll-mt-6 rounded-2xl border border-line bg-canvas/30 p-5 focus:outline-none sm:p-7"
         >
-          <p role="status" className="eyebrow mb-6 text-accent">
+          <p role="status" className="eyebrow mb-6 text-muted">
             Step {step + 1} of 3
           </p>
           <fieldset disabled={busy} className="min-w-0">
