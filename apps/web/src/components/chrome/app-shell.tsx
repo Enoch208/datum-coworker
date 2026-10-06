@@ -16,7 +16,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const campaignId = /^\/campaigns\/([^/]+)/.exec(pathname)?.[1];
   const currentId = campaignId === "new" ? undefined : campaignId;
-  const title = currentId === undefined ? "Create a campaign" : "Your campaign";
+  const title =
+    currentId !== undefined
+      ? "Your campaign"
+      : pathname === appRoutes.newCampaign
+        ? "Create a campaign"
+        : "Page not found";
   const items = [
     { label: "New campaign", short: "New", href: appRoutes.newCampaign, icon: Add01Icon },
     ...(currentId === undefined

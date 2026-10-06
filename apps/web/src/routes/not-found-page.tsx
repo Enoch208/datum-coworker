@@ -10,11 +10,11 @@ export function NotFoundPage() {
 
   return (
     <section className="flex max-w-xl flex-col items-start">
-      <p className="font-mono text-xs tracking-[0.2em] text-muted uppercase">404</p>
-      <h1 className="mt-5 text-4xl font-light tracking-tight sm:text-5xl">
+      <p className="eyebrow text-muted">Error 404</p>
+      <h1 className="mt-4 text-4xl font-medium tracking-tight text-balance sm:text-5xl">
         This page does not exist.
       </h1>
-      <p className="mt-5 text-lg font-light text-muted">
+      <p className="mt-5 text-lg font-light text-pretty text-muted">
         The address may be mistyped, or the link may point to something that was never created.
       </p>
       <Link to={appRoutes.landing} className={`${secondaryButton} mt-10`}>

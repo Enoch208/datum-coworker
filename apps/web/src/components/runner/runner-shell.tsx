@@ -10,7 +10,7 @@ export function RunnerShell() {
   }, [pathname]);
 
   return (
-    <div className="mx-auto my-3 flex min-h-[calc(100dvh-1.5rem)] max-w-2xl flex-col overflow-x-clip rounded-3xl border border-line bg-surface sm:my-6">
+    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col overflow-x-clip bg-surface sm:my-6 sm:min-h-[calc(100dvh-3rem)] sm:rounded-3xl sm:border sm:border-line">
       <meta name="referrer" content="no-referrer" />
       <header className="border-b border-line">
         <div className="mx-auto flex h-20 w-full max-w-xl items-center justify-between gap-4 px-4">

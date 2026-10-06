@@ -37,7 +37,7 @@ export function TaskHeading({
         <TaskStatusChip status={task.status} audience="runner" />
         <RecoveryChip attempt={task.attempt} />
       </div>
-      <h1 className="mt-4 text-3xl leading-tight font-light tracking-tight break-words">
+      <h1 className="mt-4 text-3xl leading-tight font-normal tracking-tight text-balance break-words">
         {taskTitle(task)}
       </h1>
       <p className="mt-2 text-[15px] text-muted">{task.brandName}</p>

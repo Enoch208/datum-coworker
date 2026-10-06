@@ -15,8 +15,10 @@ function TaskMissing({ inboxHref }: { inboxHref: string }) {
   return (
     <section>
       <BackToTasks href={inboxHref} />
-      <h1 className="mt-6 text-3xl font-light tracking-tight">This task is not in your list</h1>
-      <p className="mt-4 text-lg font-light text-muted">
+      <h1 className="mt-6 text-3xl font-normal tracking-tight text-balance">
+        This task is not in your list
+      </h1>
+      <p className="mt-4 text-lg text-pretty text-muted">
         It may have been replaced by a newer task. Your current tasks are in the list.
       </p>
     </section>

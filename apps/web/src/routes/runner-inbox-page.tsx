@@ -67,7 +67,7 @@ export function RunnerInboxPage() {
     <>
       <header>
         <p className="text-sm text-muted">Tasks for</p>
-        <h1 className="mt-1 text-3xl font-light tracking-tight break-words">
+        <h1 className="mt-1 text-3xl font-normal tracking-tight text-balance break-words">
           {inbox.data.runner.name}
         </h1>
         <div className="mt-3">
