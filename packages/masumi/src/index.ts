@@ -18,6 +18,7 @@ export {
   type TaskListItem,
 } from "./sokosumi/schemas";
 export { preflight } from "./gate0/preflight";
+export { gate0EnvSchema } from "./gate0/env";
 export { loadEnv, httpUrl, defaultDatumDir } from "./env";
 export { createFileJournal, type Journal } from "./lifecycle/journal";
 export {
