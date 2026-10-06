@@ -37,6 +37,7 @@ export type ExecutionAuditEvent =
   | { type: "TASK_ACCEPTED"; payload: TaskSubject & { runnerName: string } }
   | { type: "TASK_COMPLETED"; payload: TaskSubject & { runnerName: string } }
   | { type: "TASK_CANCELLED"; payload: TaskSubject }
+  | { type: "TASK_EXPIRED"; payload: TaskSubject & { attempt: number; released: Money } }
   | {
       type: "APPROVAL_REQUESTED";
       payload: { reason: "OVER_BUDGET"; estimated: Money; budget: Money; shortfall: Money };

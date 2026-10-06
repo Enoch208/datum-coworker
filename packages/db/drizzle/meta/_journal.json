@@ -29,6 +29,13 @@
       "when": 1791282981255,
       "tag": "0003_drop_superseded_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791286885681,
+      "tag": "0004_task_expired",
+      "breakpoints": true
     }
   ]
 }

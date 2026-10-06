@@ -63,6 +63,13 @@ export const physicalTaskStatuses = [
 ] as const;
 export type PhysicalTaskStatus = (typeof physicalTaskStatuses)[number];
 
+export const openTaskStatuses = [
+  "CREATED",
+  "DISPATCHED",
+  "ACCEPTED",
+  "SUBMITTED",
+] as const satisfies readonly PhysicalTaskStatus[];
+
 export const executorAdapters = ["LOCAL_ENROLLED_RUNNER", "RENTAHUMAN"] as const;
 export type ExecutorAdapter = (typeof executorAdapters)[number];
 
@@ -88,6 +95,7 @@ export const auditEventTypes = [
   "TASK_ACCEPTED",
   "TASK_COMPLETED",
   "TASK_CANCELLED",
+  "TASK_EXPIRED",
   "EVIDENCE_RECEIVED",
   "EVIDENCE_EVALUATED",
   "EXPENSE_SUBMITTED",

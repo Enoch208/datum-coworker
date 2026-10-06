@@ -21,6 +21,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "worker",
+          root: "apps/worker",
+          include: ["tests/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      {
+        test: {
           name: "api",
           root: "apps/api",
           include: ["tests/**/*.test.ts"],

@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sql } from "drizzle-orm";
-import type { BrandPageReading, CampaignView, CreateCampaignRequest } from "@datum/core";
+import type { BrandPageReading, CampaignView, CostRates, CreateCampaignRequest } from "@datum/core";
 import {
   approvals,
   auditEvents,
@@ -37,13 +37,12 @@ export const operatorKey = "operator-key-for-tests-0123456789abcdef";
 export const assetDir = mkdtempSync(join(tmpdir(), "datum-api-assets-"));
 export const evidenceDir = mkdtempSync(join(tmpdir(), "datum-api-evidence-"));
 
-export const testRates: RateSettings = {
-  configured: true,
-  rates: {
-    printCostPerCopy: { amountMinor: 150, currency: "SGD" },
-    placementCostPerSpot: { amountMinor: 1_000, currency: "SGD" },
-  },
+export const testCostRates: CostRates = {
+  printCostPerCopy: { amountMinor: 150, currency: "SGD" },
+  placementCostPerSpot: { amountMinor: 1_000, currency: "SGD" },
 };
+
+export const testRates: RateSettings = { configured: true, rates: testCostRates };
 
 export const readKopiLabPage: BrandPageReader = (url) => {
   if (url === null) return Promise.resolve({ outcome: "NOT_GIVEN" });

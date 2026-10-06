@@ -1,0 +1,19 @@
+{
+  "name": "@datum/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/main.ts",
+    "start": "tsx --env-file-if-exists=.env src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  },
+  "dependencies": {
+    "@datum/api": "workspace:*",
+    "@datum/core": "workspace:*",
+    "@datum/db": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

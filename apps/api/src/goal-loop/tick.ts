@@ -1,0 +1,19 @@
+import { eq } from "drizzle-orm";
+import { campaigns } from "@datum/db";
+import { isLoopStatus } from "./claim";
+import type { LoopDeps } from "./deps";
+import { expireOverdueTasks } from "./reconcile";
+
+export async function tickCampaign(
+  deps: LoopDeps,
+  campaignId: string,
+  signal: AbortSignal,
+): Promise<void> {
+  const [campaign] = await deps.db
+    .select({ status: campaigns.status })
+    .from(campaigns)
+    .where(eq(campaigns.id, campaignId));
+  if (campaign === undefined || !isLoopStatus(campaign.status)) return;
+  await expireOverdueTasks(deps.db, campaignId, deps.now());
+  signal.throwIfAborted();
+}

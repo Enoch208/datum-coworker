@@ -36,6 +36,12 @@ export const executionDescribers: Describers = {
     (p) => `${p.runnerName} marked ${taskName(p)} done`,
   ),
   TASK_CANCELLED: describe(task, "DATUM_RULES", (p) => `Cancelled ${taskName(p)}`),
+  TASK_EXPIRED: describe(
+    task.extend({ attempt: z.int(), released: money }),
+    "DATUM_RULES",
+    (p) =>
+      `Closed ${taskName(p)} (attempt ${String(p.attempt)}) as expired: it passed its due time${p.released.amountMinor > 0 ? `, so its ${formatMoney(p.released)} hold on the budget is released` : ""}`,
+  ),
   APPROVAL_REQUESTED: describe(
     z.object({ estimated: money, budget: money, shortfall: money }),
     "DATUM_RULES",

@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import {
   estimatePlan,
+  openTaskStatuses,
   type CancelResult,
   type CostRates,
   type ExecutorEvidence,
@@ -29,8 +30,6 @@ export interface LocalRunnerOptions {
   readonly appBaseUrl: string;
   readonly rates: CostRates;
 }
-
-const openStatuses = ["CREATED", "DISPATCHED", "ACCEPTED", "SUBMITTED"] as const;
 
 const planStep = (draft: PhysicalTaskDraft): PlanStepDraft => {
   if (draft.type === "PLACE_SPOT") {
@@ -100,7 +99,7 @@ async function cancelLocalTask(db: Executor, task: PhysicalTaskRow): Promise<Can
   const [cancelled] = await db
     .update(physicalTasks)
     .set({ status: "CANCELLED", updatedAt: new Date() })
-    .where(and(eq(physicalTasks.id, task.id), inArray(physicalTasks.status, [...openStatuses])))
+    .where(and(eq(physicalTasks.id, task.id), inArray(physicalTasks.status, [...openTaskStatuses])))
     .returning({ id: physicalTasks.id });
   if (cancelled === undefined) return { cancelled: false };
   const spotCode = await spotCodeOf(db, task);
