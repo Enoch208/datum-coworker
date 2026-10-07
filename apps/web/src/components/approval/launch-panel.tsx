@@ -69,8 +69,9 @@ export function LaunchPanel({
         </h2>
       </div>
       <p className="text-sm text-muted">
-        Your approval is saved. Nothing has been printed, placed or spent yet, and starting never
-        asks you to approve again.
+        Your approval is saved. No physical work has started and none of your campaign budget is
+        spent. Datum starts within the limits you approved, and if the plan no longer fits them it
+        stops and asks first.
       </p>
       {waitingForPayment ? (
         <p className="text-sm text-ink">
