@@ -25,6 +25,21 @@ brief → AI plan → rules check → one approval → physical tasks → eviden
 - **Spend from receipts.** Printing enters the ledger from a real receipt, and each runner fee enters it as an agreed rate, labelled as having no receipt. A receipt is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it (no test or void marking, a merchant and a date, a printed total) and the amount read from it matches the amount entered in the same currency; anything else, including a receipt the reader could not check, is disputed with the reason, never silently counted. The reader is advisory: it never writes an amount.
 - **Safe to retry.** Every external action has a deterministic key and is persisted before it runs, so a restart reconciles instead of repeating.
 
+## The first real campaign
+
+On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a campaign on usedatum.xyz: one QR card at Marina Bay Sands Expo, a budget of SGD 100. A member of the Datum team did the physical work as the local enrolled runner.
+
+| SGT      | What happened                                                                                                                                                                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19:05    | Maadhav approved the plan                                                                                                                                                                                                                                     |
+| 20:41    | The card was printed at home with no shop receipt. The receipt reader disputed the SGD 0.50, and Maadhav accepted it, which the receipt counts as one manual intervention                                                                                     |
+| 20:47:18 | Spot A, first photo: the QR code was cut off on purpose, labelled on screen as a demo test. Verdict `QR_NOT_FOUND`                                                                                                                                            |
+| 20:47:52 | Datum evaluated the goal, found Spot A unresolved and moved to recovery                                                                                                                                                                                       |
+| 20:47:56 | The model proposed one trip with a note for the runner, the rules checked it against the budget and the deadline, and attempt 2 was dispatched under the key `campaign:cmp_d1tmstsxkymtjp7n:spot:A:attempt:2`. Nobody acted between the miss and the dispatch |
+| 20:49:19 | Attempt 2 passed. The campaign completed 1/1 and published its Campaign Receipt                                                                                                                                                                               |
+
+[The Campaign Receipt](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt): first pass 0/1, 1 automatic recovery, 1 manual intervention, SGD 10.50 spent of SGD 100.00 (the print plus two agreed runner fees), 1 QR scan, SHA-256 `bfa8a63d33b2d14580fe0ca3b9ccda7a084f6d7eb67cafc3e5d6013a0e1793bf`. This campaign was created on the website, not hired through a Sokosumi Task, so it carries no Masumi payment.
+
 ## Datum gets paid as a Coworker on Cardano
 
 Masumi gives the Coworker its commercial lifecycle: signed terms, escrow, a committed result and settlement. Datum's first paid Sokosumi Task ran end to end on Cardano Preprod on 6 October 2026:
@@ -53,8 +68,8 @@ Built and running at usedatum.xyz:
 
 Not done yet:
 
-- A real physical campaign on the deployed stack: printed cards, permitted spots, a runner, real receipts.
-- An external founder's campaign.
+- A campaign with several spots. The first real campaign had one.
+- A print run with a shop receipt. The first campaign was printed at home, so its print cost was accepted by the customer instead of confirmed from a receipt.
 - A hired Sokosumi Task carried through a real campaign to collection. The paid-Task lifecycle itself is proven above, with a one-line result.
 
 ## Honest labels
