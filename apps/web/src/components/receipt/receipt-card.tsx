@@ -6,7 +6,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { CampaignStatusChip } from "@/components/status/campaign-status-chip";
 import { SpotStatusChip } from "@/components/status/spot-status-chip";
 import { cx } from "@/lib/cx";
-import { formatSgtHour, formatWireMoney, shortHash } from "@/lib/format";
+import { formatSgtShort, formatWireMoney, shortHash } from "@/lib/format";
 import { outcomeHeadline } from "./outcome-words";
 
 function Stat({ label, value, strong }: { label: string; value: ReactNode; strong?: boolean }) {
@@ -76,9 +76,9 @@ function Footer({ receipt }: { receipt: CampaignReceiptView }) {
       <div>
         <dt className="text-xs text-muted">{done === null ? "Ended" : "Completed"}</dt>
         <dd className="mt-1 font-mono text-ink tabular-nums">
-          {done === null ? "not complete" : formatSgtHour(done)}
+          {done === null ? "not complete" : formatSgtShort(done)}
           <span className="block text-xs text-muted">
-            deadline {formatSgtHour(receipt.target.deadline)}
+            deadline {formatSgtShort(receipt.target.deadline)}
           </span>
         </dd>
       </div>
