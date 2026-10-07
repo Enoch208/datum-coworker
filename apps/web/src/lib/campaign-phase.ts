@@ -17,7 +17,7 @@ export const hasStarted = (campaign: CampaignView): boolean =>
   isRunning(campaign.status) || hasReceipt(campaign.status) || campaign.tasks.length > 0;
 
 export const pollsWhile = (status: CampaignStatus): boolean =>
-  status === "PLANNING" || isRunning(status);
+  status === "PLANNING" || status === "APPROVED" || isRunning(status);
 
 export const countInterventions = (timeline: readonly TimelineEventView[]): number =>
   timeline.filter((event) => event.type === "INTERVENTION_RECORDED").length;
