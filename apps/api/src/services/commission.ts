@@ -1,8 +1,10 @@
 import {
+  formatMoney,
   printKey,
   recoveryKey,
   type EstimatedPlanStep,
   type IsoTimestamp,
+  type Money,
   type PhysicalTaskDraft,
   type PrintFormat,
 } from "@datum/core";
@@ -33,14 +35,15 @@ export const placementCardUrl = (
 const cardPdf = (source: CommissionSource, spotCode: string): string =>
   placementCardUrl(source.appBaseUrl, source.campaignId, source.assetVersion, spotCode);
 
-const printInstructions = (source: CommissionSource, copies: number): string => {
+const printInstructions = (source: CommissionSource, copies: number, ceiling: Money): string => {
   const codes = source.spots.map((spot) => spot.code);
   const spares = copies - codes.length;
   return [
     `Print ${String(copies)} copies of the approved ${source.printFormat} cards: at least one card for each spot (${codes.join(", ")}).`,
     spares > 0 ? `The other ${String(spares)} are spares in case a card is damaged.` : "",
     "Each card carries its own spot's QR code, so keep every spot's cards apart.",
-    "Pay, keep the receipt, and upload a photo of it with the amount you paid.",
+    `Pay no more than ${formatMoney(ceiling)}, the amount the customer approved for printing. If it costs more, do not pay: stop, because Datum must ask the customer first.`,
+    "Keep the receipt, and upload a photo of it with the amount you paid.",
   ]
     .filter((line) => line.length > 0)
     .join(" ");
@@ -69,7 +72,7 @@ const stepDraft = (source: CommissionSource, step: EstimatedPlanStep): PhysicalT
       type: step.type,
       idempotencyKey: printKey(source.campaignId, firstAttempt),
       copies: step.quantity,
-      instructions: printInstructions(source, step.quantity),
+      instructions: printInstructions(source, step.quantity, step.estimatedCost),
       assetUrls: source.spots.map((spot) => cardPdf(source, spot.code)),
     };
   }

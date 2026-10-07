@@ -46,6 +46,9 @@ describe("POST /campaigns/:id/start (Gate 3)", () => {
       `https://datum.test/assets/${campaign.id}/v1/B.pdf`,
     ]);
     expect(print?.instructions).toMatch(/^Print 4 copies of the approved A6 cards/);
+    expect(print?.instructions).toContain(
+      "Pay no more than SGD 6.00, the amount the customer approved for printing.",
+    );
     expect(campaign.ledger).toEqual({
       approvedBudget: { amount: "50.00", currency: "SGD" },
       confirmedSpend: { amount: "0.00", currency: "SGD" },
