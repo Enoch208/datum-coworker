@@ -95,6 +95,8 @@ const askModel = async (client: Anthropic, jpeg: Buffer) => {
   }
 };
 
+export const receiptCallLimits = { timeoutMs: 30_000, maxRetries: 3 } as const;
+
 export interface AnthropicReceiptReaderOptions {
   readonly apiKey: string;
   readonly fetch?: typeof fetch;
@@ -105,8 +107,8 @@ export function createAnthropicReceiptReader(
 ): ReceiptReader {
   const client = new Anthropic({
     apiKey: options.apiKey,
-    timeout: 60_000,
-    maxRetries: 1,
+    timeout: receiptCallLimits.timeoutMs,
+    maxRetries: receiptCallLimits.maxRetries,
     ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
   });
   return {
