@@ -64,7 +64,7 @@ The model proposes. It never authorizes. Every recovery it suggests goes through
 | Declare a spot live                            | Not possible: only a decoded QR in a photo through the open task passes a spot                                      |
 | Mark the campaign complete or get itself paid  | Not possible: completion comes from evidence, payment from the [settlement rule](#paid-only-for-a-verified-outcome) |
 
-The cases are tested in `packages/core/tests/remediation.test.ts`, `packages/core/tests/recovery-plan.test.ts` and `apps/api/tests/goal-loop/planner.test.ts`. If the model is unavailable or its plan is rejected, a deterministic plan runs through the same validation.
+Every row is an attack case in `packages/core/tests/authority.test.ts`, which also shows that a runner cannot pass a spot without its own code in a photo, that an amount counts only when a clean purchase receipt matches it, and that nobody can get Datum paid for an unfinished job. The full rule coverage is in `packages/core/tests/remediation.test.ts`, `packages/core/tests/recovery-plan.test.ts` and `apps/api/tests/goal-loop/planner.test.ts`. If the model is unavailable or its plan is rejected, a deterministic plan runs through the same validation.
 
 ## The first real job
 
@@ -211,7 +211,7 @@ Built and running at usedatum.xyz:
 - The Goal Loop worker. It evaluates the goal from evidence, and when a spot is missing it gives the model the unresolved spots, the remaining budget and the time left. Each campaign is claimed under a Postgres advisory lock and every action carries a deterministic key.
 - The live screen, a record of why Datum took each decision, and the Campaign Receipt, stored as canonical JSON with its SHA-256.
 - The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a job. It reads the brief from the Task, posts the proposal link, works only after the escrow is funded and the customer has approved, claims payment only when the settlement rule passes, names the Campaign Receipt's SHA-256 in the Task result, commits that result's hash on chain, completes the Task and verifies its own collection. A campaign that did not finish ends its Task `FAILED` without a result.
-- 941 automated tests, run on every push by CI.
+- 956 automated tests, run on every push by CI.
 
 Not done yet:
 
