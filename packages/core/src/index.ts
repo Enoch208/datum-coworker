@@ -19,3 +19,4 @@ export * from "./plan";
 export * from "./approval";
 export * from "./canonical";
 export * from "./wire";
+export * from "./settlement";
