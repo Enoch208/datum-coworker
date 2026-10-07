@@ -12,13 +12,15 @@ Datum is an AI Coworker that gets small real-world jobs done. Say you want QR po
 demo: https://youtu.be/BlrdzPOo0QI
 ## See it in 60 seconds
 
-| You want to know                        | Where to look                                                                                                                                           |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Does it work end to end?                | [A real founder's job, finished 1/1](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt), with a failed first photo and an automatic recovery  |
-| Is the Cardano part real?               | [The on-chain table below](#datum-is-hired-and-paid-on-cardano): escrow, result hash and collection, each a Preprod transaction                         |
-| Is the AI doing something that matters? | [The recovery](#the-first-real-job): the model proposed the fix, deterministic rules approved it, and it reached the runner four seconds after the miss |
-| Can I trust the numbers?                | Every number on the receipt is built from stored records and carries a SHA-256 of its canonical bytes                                                   |
-| What is honest about the limits?        | [Known limits](#known-limits) and [Honest labels](#honest-labels) say exactly what is and is not proven                                                 |
+| You want to know                           | Where to look                                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Does it work end to end?                   | [A real founder's job, finished 1/1](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt), with a failed first photo and an automatic recovery  |
+| Is the Cardano part real?                  | [The on-chain table below](#datum-is-hired-and-paid-on-cardano): escrow, result hash and collection, each a Preprod transaction                         |
+| Is the AI doing something that matters?    | [The recovery](#the-first-real-job): the model proposed the fix, deterministic rules approved it, and it reached the runner four seconds after the miss |
+| Can it be paid for work it did not finish? | [No](#paid-only-for-a-verified-outcome). Payment is claimed only for a completed campaign whose Campaign Receipt hash is the committed result           |
+| What stops the AI from overreaching?       | [Rules it cannot change](#what-the-ai-can-and-cannot-do): it proposes, deterministic code approves or rejects every action                              |
+| Can I trust the numbers?                   | Every number on the receipt is built from stored records and carries a SHA-256 of its canonical bytes                                                   |
+| What is honest about the limits?           | [Known limits](#known-limits) and [Honest labels](#honest-labels) say exactly what is and is not proven                                                 |
 
 ## Why
 
@@ -46,6 +48,23 @@ flowchart LR
 - **Evidence, not status.** Each spot has its own QR code. A spot counts only when a photo sent through its open task, before the deadline, decodes to that spot's code. The server reads the QR and records every check and the reason for each verdict.
 - **Cost from receipts.** A purchase is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it and the amount read matches the amount entered. Anything else is disputed with the reason, never silently counted. The reader is advisory.
 - **Safe to retry.** Every outside action has a deterministic key and is saved before it runs, so a restart reconciles instead of repeating.
+
+## What the AI can and cannot do
+
+The model proposes. It never authorizes. Every recovery it suggests goes through `validateRemediation` against the approval it was given (`RemediationAuthority`: the approved spots, card version, copy, budget position, deadline and open tasks), and each rejection has a name.
+
+| The model tries to                             | What happens                                                                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Spend more than the remaining budget           | `NEEDS_APPROVAL` with the shortfall; nothing is commissioned                                                        |
+| Act at a spot the customer did not approve     | Rejected: `SPOT_NOT_APPROVED`                                                                                       |
+| Use a different card or change the public copy | Rejected: `ASSET_NOT_APPROVED`, `COPY_CHANGED`                                                                      |
+| Schedule work after the deadline               | Rejected: `DUE_AFTER_DEADLINE`; after the deadline, `EXPIRED`                                                       |
+| Redo a spot that already passed or is in hand  | Rejected: `SPOT_NOT_UNRESOLVED`, `SPOT_HAS_OPEN_TASK`                                                               |
+| Name a price                                   | Its output is malformed and discarded; prices come from rates                                                       |
+| Declare a spot live                            | Not possible: only a decoded QR in a photo through the open task passes a spot                                      |
+| Mark the campaign complete or get itself paid  | Not possible: completion comes from evidence, payment from the [settlement rule](#paid-only-for-a-verified-outcome) |
+
+The cases are tested in `packages/core/tests/remediation.test.ts`, `packages/core/tests/recovery-plan.test.ts` and `apps/api/tests/goal-loop/planner.test.ts`. If the model is unavailable or its plan is rejected, a deterministic plan runs through the same validation.
 
 ## The first real job
 
@@ -122,6 +141,32 @@ Datum's first paid Sokosumi Task ran end to end on Cardano Preprod on 6 October 
 
 Datum does not mark itself paid because a Task says COMPLETED. It verifies the collection independently: the collection transaction must spend this payment's own escrow output (the one whose datum carries the result hash), the seller's net gain of tUSDM in that transaction must cover the payment, and Sokosumi's receipt, the payment service and the chain must all name the same transaction. Printing and runner costs are ordinary expenses. They are never paid through Masumi.
 
+### Paid only for a verified outcome
+
+Cardano settlement is bound to the physical result. The Coworker produces a Task result only when the settlement rule passes. That result names the Campaign Receipt's SHA-256, and its own hash is what Datum commits into the escrow datum on chain.
+
+```mermaid
+flowchart TB
+    E[Campaign ends] --> S{Settlement rule}
+    S -->|"completed, every spot passed, within budget, receipt bytes match"| R[Result names the<br/>Campaign Receipt SHA-256]
+    R --> B{Saved result still names<br/>this receipt?}
+    B -->|yes| C[Result hash committed<br/>into the escrow datum]
+    C --> P[Collection, verified on chain]
+    B -->|no| X[Task stopped,<br/>result not submitted]
+    S -->|"anything else"| F[Task ends FAILED,<br/>no result submitted,<br/>payment not claimed]
+```
+
+| Situation                                                   | Datum's behaviour                                         |
+| ----------------------------------------------------------- | --------------------------------------------------------- |
+| Completed, every spot proven, within budget                 | Submits the receipt-bound result and collects             |
+| Ran but ended `EXPIRED_INCOMPLETE`, `FAILED` or `CANCELLED` | Ends the Task `FAILED`, submits no result, claims nothing |
+| A required spot never passed                                | Refused: `SPOTS_UNRESOLVED`                               |
+| Recorded cost over the approved budget                      | Refused: `OVER_BUDGET`                                    |
+| Stored receipt bytes changed after publishing               | Refused: `RECEIPT_ALTERED`                                |
+| Saved result names a different receipt                      | Task stopped before submission: `RESULT_NOT_BOUND`        |
+
+The rule is `settlementVerdict` in `packages/core/src/settlement.ts`, unit-tested in `packages/core/tests/settlement.test.ts`. The Coworker paths are integration-tested end to end against recorded Masumi and chain fixtures in `apps/coworker/tests/paid-campaign.test.ts`: a campaign that really completes (confirmed print receipt, every spot proven by photo) is paid, one that ran and expired ends `FAILED` without a result, and a forged result file is refused. When Datum submits no result, it cannot collect, and the escrowed payment stays under Masumi's refund rules for the buyer. A live refund on chain has not been exercised yet.
+
 ## What is built
 
 ```mermaid
@@ -165,14 +210,15 @@ Built and running at usedatum.xyz:
 - Server-side QR reading of evidence photos, verdicts with per-check reasons, and a spend ledger.
 - The Goal Loop worker. It evaluates the goal from evidence, and when a spot is missing it gives the model the unresolved spots, the remaining budget and the time left. Each campaign is claimed under a Postgres advisory lock and every action carries a deterministic key.
 - The live screen, a record of why Datum took each decision, and the Campaign Receipt, stored as canonical JSON with its SHA-256.
-- The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a job. It reads the brief from the Task, posts the proposal link, works only after the escrow is funded and the customer has approved, names the Campaign Receipt's SHA-256 in the Task result, commits that result's hash on chain, completes the Task and verifies its own collection.
-- 918 automated tests, run on every push by CI.
+- The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a job. It reads the brief from the Task, posts the proposal link, works only after the escrow is funded and the customer has approved, claims payment only when the settlement rule passes, names the Campaign Receipt's SHA-256 in the Task result, commits that result's hash on chain, completes the Task and verifies its own collection. A campaign that did not finish ends its Task `FAILED` without a result.
+- 941 automated tests, run on every push by CI.
 
 Not done yet:
 
 - A job with several spots. The first real one had one.
 - A print run with a shop receipt. The first job was printed at home, so its print cost was accepted by the customer instead of confirmed from a receipt.
 - A hired Sokosumi Task carried through a real job to collection. The paid-Task lifecycle itself is proven above, with a one-line result.
+- A live refund on chain for a hired job that did not finish. The failure path is implemented and tested; the refund itself has not been exercised.
 
 ## What comes next
 
