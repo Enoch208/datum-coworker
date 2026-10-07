@@ -40,7 +40,7 @@ async function askForDetails(
     await recordIntent(tx, {
       ...key,
       taskStatus: "INPUT_REQUIRED",
-      body: inputRequestComment(missing),
+      body: inputRequestComment(missing, key.round),
     });
     await moveStage(tx, hire.sokosumiTaskId, { stage: "NEEDS_INPUT", inputRequests: key.round });
   });

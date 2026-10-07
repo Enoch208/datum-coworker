@@ -36,6 +36,28 @@ describe("a Task whose brief is incomplete", () => {
     ]);
   });
 
+  it("asks again, and really posts the second request, when the reply leaves the same details missing", async () => {
+    const h = await askedOnce();
+    h.world.events.push({
+      id: "evt_reply",
+      taskId: h.world.taskId,
+      createdAt: new Date(h.clock.now()).toISOString(),
+      status: null,
+      comment: "Soon, and not too expensive.",
+      actor: { type: "user", id: "user_owner" },
+    });
+    h.world.taskStatus = "READY";
+    await h.passesUntil(() => Promise.resolve(asks(h).length === 2), 1_000);
+    const [first, second] = asks(h);
+    expect(second?.comment).toContain("(request 2)");
+    expect(second?.comment).not.toBe(first?.comment);
+    expect(h.world.taskStatus).toBe("INPUT_REQUIRED");
+    const rows = await commentRows(h.world.taskId);
+    expect(rows.map((row) => row.round).sort()).toEqual([1, 2]);
+    expect(rows.every((row) => row.eventId !== null)).toBe(true);
+    expect((await hireRow(h.world.taskId))?.stage).toBe("NEEDS_INPUT");
+  });
+
   it("reads the brief again with the customer's reply once the Task is READY again", async () => {
     const h = await askedOnce();
     h.world.events.push({

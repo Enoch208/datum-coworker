@@ -30,9 +30,13 @@ export function proposalComment(view: CampaignView, appBaseUrl: string): string 
   ].join("\n");
 }
 
-export function inputRequestComment(missing: readonly string[]): string {
+export function inputRequestComment(missing: readonly string[], round: number): string {
+  const opening =
+    round <= 1
+      ? "Datum needs a few more details before it can plan this campaign:"
+      : `Datum still needs a few more details before it can plan this campaign (request ${String(round)}):`;
   return [
-    "Datum needs a few more details before it can plan this campaign:",
+    opening,
     ...missing.map((item) => `- ${item}`),
     "",
     "Reply on this Task with the details and set it back to Ready. Datum reads the description and your replies again and drafts the campaign.",
