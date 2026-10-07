@@ -22,7 +22,7 @@ brief → AI plan → rules check → one approval → physical tasks → eviden
 - **AI drafts, rules decide.** The planner proposes copy and steps. Deterministic code checks the spots, the copy, the budget and the deadline, prices every step from explicit rates, and decides every state change. The model never does money arithmetic and never decides whether a spot is live.
 - **One approval locks the bounds.** The approval stores the exact card version, the spot set, the budget, the deadline and the copy. Changing any of them needs a new approval.
 - **Evidence, not status.** Each spot has its own QR code. A spot counts only when a photo submitted through its open task, before the deadline, decodes to that spot's code. The server reads the QR and records every check and the reason for each verdict.
-- **Spend from receipts.** Physical costs enter a ledger from real receipts. An expense is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it (no test or void marking, a merchant and a date, a printed total) and the amount read from it matches the amount entered in the same currency; anything else is disputed with the reason, never silently counted. The reader is advisory: it never writes an amount.
+- **Spend from receipts.** Printing enters the ledger from a real receipt, and each runner fee enters it as an agreed rate, labelled as having no receipt. A receipt is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it (no test or void marking, a merchant and a date, a printed total) and the amount read from it matches the amount entered in the same currency; anything else, including a receipt the reader could not check, is disputed with the reason, never silently counted. The reader is advisory: it never writes an amount.
 - **Safe to retry.** Every external action has a deterministic key and is persisted before it runs, so a restart reconciles instead of repeating.
 
 ## Datum gets paid as a Coworker on Cardano
@@ -60,10 +60,17 @@ Not done yet:
 ## Honest labels
 
 - Physical work in this build is done by a **local enrolled runner**. No external worker marketplace was used.
-- Masumi pays **Datum** as the Coworker. Printing and runner costs are ordinary expenses recorded from receipts; they are not paid through Masumi.
+- Masumi pays **Datum** as the Coworker. Printing is recorded from a receipt and each runner fee is an agreed rate recorded when a placement completes, with no receipt; neither is paid through Masumi.
 - A QR in a photo proves that the expected spot-specific card appears in the evidence. It is not a cryptographic proof of location.
 - Any staged failure in a demo is labelled on screen.
 - Providers: Sokosumi and the Masumi Payment Service on Cardano Preprod, Blockfrost for chain reads, the Anthropic API for planning and receipt reading.
+
+## Known limits
+
+- **No accounts yet.** A campaign's link is its authority. The campaign ID also appears in each card's QR URL, so anyone who scans a placed card can learn it. The customer actions (raising the budget, accepting a disputed receipt) are checked against the campaign's state, not against who is asking, and `approvedBy` and `acceptedBy` are names the customer typed, not verified identities. The next step is a per-campaign owner key, derived on the server and carried in the link the customer is given.
+- **A runner's purchase is checked after the fact.** Datum checks the budget before it commissions each step, but what a runner pays the printer is only known when the receipt arrives, and the runner's instructions do not yet state a maximum.
+- **Evidence photos have no access check.** The public Campaign Receipt links them, so each is served to anyone who has its random 128-bit filename.
+- **One Task at a time.** The Coworker works its Sokosumi Tasks one after another, so a slow model call delays the others.
 
 ## Inside
 
