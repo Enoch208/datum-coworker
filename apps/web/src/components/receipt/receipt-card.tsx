@@ -60,7 +60,10 @@ function InducedNote({ spots }: { spots: readonly ReceiptSpotView[] }) {
     <p className="mt-4 flex items-center gap-1.5 text-[13px] font-medium text-warn">
       <HugeiconsIcon icon={TestTube01Icon} size={15} strokeWidth={1.8} aria-hidden />
       {induced
-        .map((code) => `DEMO TEST: Spot ${code} intentionally skipped to test recovery`)
+        .map(
+          (code) =>
+            `DEMO TEST: first attempt at Spot ${code} intentionally failed to test recovery`,
+        )
         .join(" · ")}
     </p>
   );

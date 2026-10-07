@@ -16,7 +16,7 @@ export function DemoTestLabel({ spotCode }: { spotCode: string }) {
         className="mt-px shrink-0"
         aria-hidden
       />
-      DEMO TEST: Spot {spotCode} intentionally skipped to test recovery
+      DEMO TEST: first attempt at Spot {spotCode} intentionally failed to test recovery
     </p>
   );
 }
