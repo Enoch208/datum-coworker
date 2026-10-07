@@ -51,7 +51,8 @@ function DeadlineFields({ values, errors, onText }: SectionProps) {
         </span>
       </div>
       <p id="deadline-hint" className="text-sm text-muted">
-        Singapore time (UTC+08:00). Every spot must be live by then.
+        Singapore time (UTC+08:00). Every spot must be live by then, so leave a few hours for
+        printing and placing.
       </p>
       <FieldError id="deadline" error={error} />
     </fieldset>
