@@ -12,11 +12,11 @@ export function ReceiptSpend({ receipt }: { receipt: CampaignReceiptView }) {
   return (
     <ReceiptSection
       id="receipt-spend-heading"
-      title="Spend"
-      note="Physical costs only, each from a checked receipt or an agreed fee. Nothing here was paid through Masumi."
+      title="Physical cost"
+      note="Printing comes from a checked receipt. A runner fee is an agreed rate owed once a placement is complete, so it has no receipt. Nothing here was paid through Masumi."
     >
       {spend.lines.length === 0 ? (
-        <p className="text-sm text-muted">Nothing was spent.</p>
+        <p className="text-sm text-muted">No physical cost was counted.</p>
       ) : (
         <ul className="divide-y divide-line border-y border-line">
           {spend.lines.map((line) => (
@@ -37,7 +37,7 @@ export function ReceiptSpend({ receipt }: { receipt: CampaignReceiptView }) {
       )}
       <dl className="mt-5 grid grid-cols-3 gap-4">
         <div>
-          <dt className="text-xs text-muted">Spent</dt>
+          <dt className="text-xs text-muted">Cost</dt>
           <dd className="mt-1 font-mono text-lg text-ink tabular-nums">
             {formatWireMoney(spend.confirmed)}
           </dd>

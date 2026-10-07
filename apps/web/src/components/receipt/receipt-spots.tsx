@@ -50,7 +50,7 @@ function SpotRow({ spot }: { spot: ReceiptSpotView }) {
         {spot.inducedMiss && <DemoTestLabel spotCode={spot.spotCode} />}
         <p className="font-mono text-xs text-muted tabular-nums">
           {plural(spot.attempts, "attempt")} · {plural(spot.scans, "scan")}
-          {spot.passedAt === null ? "" : ` · proven ${formatSgtMoment(spot.passedAt)} SGT`}
+          {spot.passedAt === null ? "" : ` · photo passed ${formatSgtMoment(spot.passedAt)} SGT`}
         </p>
       </div>
     </li>

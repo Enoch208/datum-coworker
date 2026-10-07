@@ -80,7 +80,7 @@ function Footer({ receipt }: { receipt: CampaignReceiptView }) {
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-muted">Physical spend</dt>
+        <dt className="text-xs text-muted">Physical cost</dt>
         <dd className="mt-1 font-mono text-ink tabular-nums">
           {formatWireMoney(receipt.spend.confirmed)}
           <span className="block text-xs text-muted">
@@ -132,7 +132,7 @@ export function ReceiptCard({ receipt }: { receipt: CampaignReceiptView }) {
             <span className="text-faint">{receipt.target.spots}</span>
           </p>
           <p className="mt-3 text-base text-muted">
-            approved spots live, each proven by its own photo
+            approved spots live, each with a photo of its own card
           </p>
           <InducedNote spots={receipt.spots} />
           <dl className="mt-8 grid grid-cols-3 gap-6 xl:mt-auto">
