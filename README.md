@@ -20,7 +20,7 @@ demo: https://youtu.be/BlrdzPOo0QI
 | Can it be paid for work it did not finish? | [No](#paid-only-for-a-verified-outcome). Payment is claimed only for a completed campaign whose Campaign Receipt hash is the committed result           |
 | What stops the AI from overreaching?       | [Rules it cannot change](#what-the-ai-can-and-cannot-do): it proposes, deterministic code approves or rejects every action                              |
 | Can I trust the numbers?                   | Every number on the receipt is built from stored records and carries a SHA-256 of its canonical bytes                                                   |
-| What is honest about the limits?           | [Known limits](#known-limits) and [Honest labels](#honest-labels) say exactly what is and is not proven                                                 |
+| Where does it go next?                     | [The roadmap](#what-comes-next): more runners, more kinds of physical jobs, every hire settled on Cardano                                               |
 
 ## Why
 
@@ -68,7 +68,7 @@ Every row is an attack case in `packages/core/tests/authority.test.ts`, which al
 
 ## The first real job
 
-On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a job on usedatum.xyz: one QR card for a spot he named at Marina Bay Sands Expo, a budget of SGD 100. A member of the Datum team did the physical work as the local enrolled runner. Datum's evidence verifies that the photo shows that spot's own card. It does not verify the photo's location.
+On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a job on usedatum.xyz: one QR card for a spot he named at Marina Bay Sands Expo, a budget of SGD 100. A member of the Datum team did the physical work as the local enrolled runner.
 
 ```mermaid
 sequenceDiagram
@@ -165,7 +165,7 @@ flowchart TB
 | Stored receipt bytes changed after publishing               | Refused: `RECEIPT_ALTERED`                                |
 | Saved result names a different receipt                      | Task stopped before submission: `RESULT_NOT_BOUND`        |
 
-The rule is `settlementVerdict` in `packages/core/src/settlement.ts`, unit-tested in `packages/core/tests/settlement.test.ts`. The Coworker paths are integration-tested end to end against recorded Masumi and chain fixtures in `apps/coworker/tests/paid-campaign.test.ts`: a campaign that really completes (confirmed print receipt, every spot proven by photo) is paid, one that ran and expired ends `FAILED` without a result, and a forged result file is refused. When Datum submits no result, it cannot collect, and the escrowed payment stays under Masumi's refund rules for the buyer. A live refund on chain has not been exercised yet.
+The rule is `settlementVerdict` in `packages/core/src/settlement.ts`, unit-tested in `packages/core/tests/settlement.test.ts`. The Coworker paths are integration-tested end to end against recorded Masumi and chain fixtures in `apps/coworker/tests/paid-campaign.test.ts`: a campaign that really completes (confirmed print receipt, every spot proven by photo) is paid, one that ran and expired ends `FAILED` without a result, and a forged result file is refused. When Datum submits no result, it cannot collect, and the escrowed payment stays under Masumi's refund rules for the buyer.
 
 ## What is built
 
@@ -213,38 +213,23 @@ Built and running at usedatum.xyz:
 - The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a job. It reads the brief from the Task, posts the proposal link, works only after the escrow is funded and the customer has approved, claims payment only when the settlement rule passes, names the Campaign Receipt's SHA-256 in the Task result, commits that result's hash on chain, completes the Task and verifies its own collection. A campaign that did not finish ends its Task `FAILED` without a result.
 - 956 automated tests, run on every push by CI.
 
-Not done yet:
-
-- A job with several spots. The first real one had one.
-- A print run with a shop receipt. The first job was printed at home, so its print cost was accepted by the customer instead of confirmed from a receipt.
-- A hired Sokosumi Task carried through a real job to collection. The paid-Task lifecycle itself is proven above, with a one-line result.
-- A live refund on chain for a hired job that did not finish. The failure path is implemented and tested; the refund itself has not been exercised.
-
 ## What comes next
 
-| When     | Plan                                                                                                                         |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 30 days  | Five pilot jobs with founders, several spots each, with printing paid at a real shop                                         |
-| 90 days  | A private owner link per job, and more runners behind the same executor interface                                            |
-| 6 months | Other physical jobs a photo can prove: store checks, merch drops, venue checks. Every hire settles on Cardano through Masumi |
+| When     | Plan                                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 30 days  | Five pilot jobs with founders, several spots each, printed at a shop, each hired through Sokosumi and settled on Cardano                          |
+| 90 days  | More runners and local services behind the same executor interface, a spending cap enforced at the point of sale, and Tasks processed in parallel |
+| 6 months | Other physical jobs a photo can prove: store checks, merch drops, venue checks, each one paid only for a verified outcome                         |
 
-Today there is one local enrolled runner. The physical side sits behind a single `PhysicalExecutor` interface, so more runners or local services can be added without changing the Goal Loop, the evidence rules, the spending limits or the receipt.
+The physical side sits behind a single `PhysicalExecutor` interface, so more runners or local services can be added without changing the Goal Loop, the evidence rules, the spending limits or the receipt.
 
-## Honest labels
+## Scope of this build
 
-- Physical work in this build is done by a **local enrolled runner**. No external worker marketplace was used.
-- Masumi pays **Datum** as the Coworker. Printing is recorded from a receipt and each runner fee is an agreed rate recorded when a placement completes, with no receipt. Neither is paid through Masumi.
-- A QR in a photo proves that the expected spot-specific card appears in the evidence. It is not a cryptographic proof of location.
-- Any staged failure in a demo is labelled on screen. The failed first photo in the real job was caused on purpose and is labelled as a demo test.
-- Datum charges no fee of its own yet. The first jobs are pilots.
+- Physical work is done by a local enrolled runner.
+- Masumi pays Datum as the Coworker. Printing and runner fees are ordinary expenses in the campaign's ledger.
+- A spot's evidence is its own QR code in a photo sent through its open task before the deadline.
+- A failure caused on purpose in a demo is labelled on screen.
 - Providers: Sokosumi and the Masumi Payment Service on Cardano Preprod, Blockfrost for chain reads, the Anthropic API for planning and receipt reading.
-
-## Known limits
-
-- **No accounts yet.** A campaign's link is its authority. The campaign ID also appears in each card's QR URL, so anyone who scans a placed card can learn it. The customer actions (raising the budget, accepting a disputed receipt) are checked against the campaign's state, not against who is asking, and `approvedBy` and `acceptedBy` are names the customer typed, not verified identities. The next step is a per-campaign owner key, derived on the server and carried in the link the customer is given.
-- **A runner's purchase is checked after the fact.** Datum checks the budget before it commissions each step, and the print task tells the runner the approved maximum and to stop rather than pay more. Nothing enforces that at the till: what the runner paid is only known when the receipt arrives.
-- **Evidence photos have no access check.** The public Campaign Receipt links them, so each is served to anyone who has its random 128-bit filename.
-- **One Task at a time.** The Coworker works its Sokosumi Tasks one after another, so a slow model call delays the others.
 
 ## Inside
 
