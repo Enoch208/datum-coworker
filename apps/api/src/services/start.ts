@@ -56,7 +56,7 @@ async function commission(
     if (error instanceof NoRunnerAvailableError) {
       throw conflict(
         "NO_RUNNER",
-        "Enroll a runner whose link stays active until the campaign deadline before starting",
+        "Datum has no runner available through this campaign's deadline yet. Ask the Datum team to add one, then start again.",
       );
     }
     throw error;

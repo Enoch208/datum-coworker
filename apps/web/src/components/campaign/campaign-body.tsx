@@ -11,6 +11,7 @@ import { ApprovalPanel } from "@/components/approval/approval-panel";
 import { approvalState, isFinal } from "@/components/approval/approval-state";
 import { LaunchPanel } from "@/components/approval/launch-panel";
 import { LockedPanel } from "@/components/approval/locked-panel";
+import type { StartFailure } from "@/components/approval/start-failure";
 import { secondaryButton } from "@/components/feedback/buttons";
 import { CampaignHeader } from "./campaign-header";
 import { CopySection } from "./copy-section";
@@ -29,7 +30,7 @@ function ApprovalAside({
   proposal: ProposalView;
   reload: () => void;
 }) {
-  const [startFailure, setStartFailure] = useState<string | null>(null);
+  const [startFailure, setStartFailure] = useState<StartFailure | null>(null);
   const state = approvalState(campaign);
   if (state === "current" && campaign.approval !== null) {
     return (

@@ -4,6 +4,32 @@ import { useState } from "react";
 import { primaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { startCampaign } from "@/lib/api-client";
+import { isPaymentWait, startFailureOf, type StartFailure } from "./start-failure";
+
+function StartButton({
+  busy,
+  retry,
+  onStart,
+}: {
+  busy: boolean;
+  retry: boolean;
+  onStart: () => void;
+}) {
+  return (
+    <button type="button" onClick={onStart} disabled={busy} className={`${primaryButton} w-full`}>
+      {busy && (
+        <HugeiconsIcon
+          icon={Loading03Icon}
+          size={18}
+          strokeWidth={2}
+          className="animate-spin motion-reduce:animate-none"
+          aria-hidden
+        />
+      )}
+      {busy ? "Starting…" : retry ? "Try starting again" : "Start the campaign"}
+    </button>
+  );
+}
 
 export function LaunchPanel({
   campaignId,
@@ -11,10 +37,11 @@ export function LaunchPanel({
   onResult,
 }: {
   campaignId: string;
-  failure: string | null;
-  onResult: (failure: string | null) => void;
+  failure: StartFailure | null;
+  onResult: (failure: StartFailure | null) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const waitingForPayment = isPaymentWait(failure);
 
   const start = () => {
     setBusy(true);
@@ -25,7 +52,7 @@ export function LaunchPanel({
       },
       (cause: unknown) => {
         setBusy(false);
-        onResult(cause instanceof Error ? cause.message : String(cause));
+        onResult(startFailureOf(cause));
       },
     );
   };
@@ -33,31 +60,31 @@ export function LaunchPanel({
   return (
     <section
       aria-labelledby="launch-heading"
-      className="flex flex-col gap-4 rounded-2xl border border-warn/40 bg-warn/5 p-6"
+      className={`flex flex-col gap-4 rounded-2xl border p-6 ${waitingForPayment ? "border-line-strong bg-surface" : "border-warn/40 bg-warn/5"}`}
     >
-      <div className="flex items-center gap-2 text-warn">
+      <div className={`flex items-center gap-2 ${waitingForPayment ? "text-ink" : "text-warn"}`}>
         <HugeiconsIcon icon={HourglassIcon} size={18} strokeWidth={1.8} aria-hidden />
         <h2 id="launch-heading" className="text-base font-medium">
-          Approved, not started
+          {waitingForPayment ? "Approved, waiting for payment" : "Approved, not started yet"}
         </h2>
       </div>
       <p className="text-sm text-muted">
-        Your approval is recorded, but Datum has not started the work. Starting uses the approval
-        below exactly as it is; nothing is approved again.
+        Your approval is saved. Nothing has been printed, placed or spent yet, and starting never
+        asks you to approve again.
       </p>
-      {failure !== null && <ErrorPanel title="Datum could not start" message={failure} />}
-      <button type="button" onClick={start} disabled={busy} className={`${primaryButton} w-full`}>
-        {busy && (
-          <HugeiconsIcon
-            icon={Loading03Icon}
-            size={18}
-            strokeWidth={2}
-            className="animate-spin motion-reduce:animate-none"
-            aria-hidden
-          />
-        )}
-        {busy ? "Starting…" : "Start the campaign"}
-      </button>
+      {waitingForPayment ? (
+        <p className="text-sm text-ink">
+          Datum starts on its own as soon as the payment for its Sokosumi Task is confirmed in
+          escrow. There is nothing for you to do.
+        </p>
+      ) : (
+        <>
+          {failure !== null && (
+            <ErrorPanel title="Datum could not start yet" message={failure.message} />
+          )}
+          <StartButton busy={busy} retry={failure !== null} onStart={start} />
+        </>
+      )}
     </section>
   );
 }

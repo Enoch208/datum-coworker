@@ -9,6 +9,7 @@ import { approveCampaign, startCampaign } from "@/lib/api-client";
 import { ApiRequestError } from "@/lib/http";
 import { formatSgt, formatWireMoney, shortHash } from "@/lib/format";
 import { BoundsList, Mono, SpotCodes } from "./bounds-list";
+import { startFailureOf, type StartFailure } from "./start-failure";
 
 const messageOf = (cause: unknown): string =>
   cause instanceof Error ? cause.message : String(cause);
@@ -64,7 +65,7 @@ export function ApprovalPanel({
   proposal: ProposalView;
   stale: boolean;
   onChanged: () => void;
-  onStartFailed: (message: string) => void;
+  onStartFailed: (failure: StartFailure) => void;
 }) {
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | undefined>(undefined);
@@ -81,7 +82,7 @@ export function ApprovalPanel({
       },
       (cause: unknown) => {
         setPhase("idle");
-        onStartFailed(messageOf(cause));
+        onStartFailed(startFailureOf(cause));
         onChanged();
       },
     );
