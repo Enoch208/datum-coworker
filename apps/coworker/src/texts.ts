@@ -1,4 +1,4 @@
-import type { CampaignView, WireMoney } from "@datum/core";
+import type { CampaignReceipt, CampaignView, SettlementRefusal, WireMoney } from "@datum/core";
 
 const singaporeOffsetMs = 8 * 3_600_000;
 
@@ -46,4 +46,20 @@ export function inputRequestComment(missing: readonly string[], round: number): 
 export function notLaunchedComment(approved: boolean, deadline: Date): string {
   const reason = approved ? "it was approved but did not start" : "it was not approved";
   return `Datum did not run this campaign: ${reason} before its deadline (${singaporeTime(deadline)}). No cards were printed or placed and nothing was spent. Datum submitted no result for this Task's payment, so it does not claim it.`;
+}
+
+const unfulfilledReasons: Record<SettlementRefusal, string> = {
+  NOT_COMPLETED: "it did not finish",
+  SPOTS_UNRESOLVED: "not every spot was proven live",
+  OVER_BUDGET: "its recorded cost went over the approved budget",
+  RECEIPT_ALTERED: "its stored Campaign Receipt no longer matches its recorded hash",
+  RESULT_NOT_BOUND: "its result does not name its Campaign Receipt",
+};
+
+export function unfulfilledComment(
+  receipt: CampaignReceipt,
+  reason: SettlementRefusal,
+  appBaseUrl: string,
+): string {
+  return `Datum did not get this campaign done: ${unfulfilledReasons[reason]} (${String(receipt.actual.spotsPassed)} of ${String(receipt.target.spots)} spots proven live, status ${receipt.status}, deadline ${singaporeTime(receipt.target.deadline)}). Datum is paid only for a completed campaign, so it submitted no result for this Task's payment and does not claim it. What happened is recorded in the Campaign Receipt: ${campaignPageUrl(appBaseUrl, receipt.campaignId)}/receipt`;
 }
