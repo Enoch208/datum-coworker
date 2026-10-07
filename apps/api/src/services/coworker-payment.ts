@@ -32,6 +32,8 @@ export async function campaignPaymentEvidence(
     resultHash: row.resultHash,
     sellerAddress: row.sellerAddress,
     tokenUnit: row.tokenUnit,
+    escrowTxHash: row.escrowTxHash,
+    resultTxHash: row.resultTxHash,
     collectionTxHash: row.collectionTxHash,
     netReceivedAtomic: row.netReceivedAtomic,
     collectionConfirmed: row.collectionConfirmed,

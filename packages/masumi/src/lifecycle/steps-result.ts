@@ -1,5 +1,5 @@
 import { TerminalLifecycleError } from "../errors";
-import type { EvidenceDraft } from "../evidence-store";
+import type { ChainReferences, EvidenceDraft } from "../evidence-store";
 import { sokosumiResultHash } from "../hash";
 import type { MpsPayment } from "../mps/schemas";
 import { confirmedTransition } from "../mps/states";
@@ -21,6 +21,19 @@ export function evidenceDraft(state: WithResult, deps: LifecycleDeps): EvidenceD
     sellerAddress: deps.config.sellerAddress,
     tokenUnit: deps.config.unit,
   };
+}
+
+function chainReferences(state: WithResult): ChainReferences {
+  return {
+    escrowTxHash: state.escrowTxHash.toLowerCase(),
+    resultTxHash: "resultTxHash" in state ? state.resultTxHash.toLowerCase() : null,
+  };
+}
+
+export async function recordEvidence(state: WithResult, deps: LifecycleDeps): Promise<void> {
+  const draft = evidenceDraft(state, deps);
+  await deps.evidence.record(draft);
+  await deps.evidence.attachTransactions(draft, chainReferences(state));
 }
 
 function assertSubmitWindow(state: StateAt<"funds_locked" | "result_saved">, deps: LifecycleDeps) {
@@ -70,7 +83,7 @@ export async function saveResult(
   const hash = sokosumiResultHash(text, state.nonce);
   const next: StateAt<"result_saved"> = { ...state, step: "result_saved", result: { text, hash } };
   const saved = await persist(deps, next, "step:result_saved", hash);
-  await deps.evidence.record(evidenceDraft(saved, deps));
+  await recordEvidence(saved, deps);
   deps.log(`Result saved (${String(Buffer.byteLength(text, "utf8"))} bytes), hash ${hash}`);
   return saved;
 }
@@ -93,7 +106,7 @@ export async function submitResult(
   state: StateAt<"result_saved">,
   deps: LifecycleDeps,
 ): Promise<LifecycleState> {
-  await deps.evidence.record(evidenceDraft(state, deps));
+  await recordEvidence(state, deps);
   const identifier = state.terms.blockchainIdentifier;
   if (isPending(state, "submit_result")) {
     const payment = await deps.mps.resolvePayment(identifier);

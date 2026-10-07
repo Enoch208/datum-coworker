@@ -34,11 +34,25 @@ describe("paid Task lifecycle", () => {
       blockchainIdentifier: verified.terms.blockchainIdentifier,
       resultHash: verified.result.hash,
       sellerAddress: recordedSeller.sellerAddress,
+      escrowTxHash: recordedTxs.escrow,
+      resultTxHash: recordedTxs.result,
       collectionTxHash: recordedTxs.collection,
       netReceivedAtomic: "1000000",
       collectionConfirmed: true,
     });
     expect(lines.some((line) => line.startsWith("Core receipt not settled yet"))).toBe(true);
+  });
+
+  it("records the escrow and result transactions before the seller has collected", async () => {
+    const { clock, world, evidence, run } = await scenario();
+    clock.killWhen = () => world.taskStatus === "COMPLETED";
+    await expect(run()).rejects.toThrow(ProcessKilled);
+    expect(evidence.rows.get(world.taskId)).toMatchObject({
+      escrowTxHash: recordedTxs.escrow,
+      resultTxHash: recordedTxs.result,
+      collectionTxHash: null,
+      collectionConfirmed: false,
+    });
   });
 
   it("writes every intent to the journal before its side effect", async () => {

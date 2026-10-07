@@ -13,6 +13,11 @@ export type EvidenceDraft = Pick<
   | "tokenUnit"
 >;
 
+export interface ChainReferences {
+  readonly escrowTxHash: string;
+  readonly resultTxHash: string | null;
+}
+
 export interface CollectionRecord {
   readonly collectionTxHash: string;
   readonly netReceivedAtomic: string;
@@ -21,7 +26,33 @@ export interface CollectionRecord {
 
 export interface EvidenceStore {
   record(draft: EvidenceDraft): Promise<void>;
+  attachTransactions(draft: EvidenceDraft, references: ChainReferences): Promise<void>;
   confirmCollection(draft: EvidenceDraft, collection: CollectionRecord): Promise<void>;
+}
+
+type StoredReferences = Pick<MasumiPaymentEvidence, "escrowTxHash" | "resultTxHash">;
+
+export function referenceConflicts(
+  stored: StoredReferences,
+  references: ChainReferences,
+): string[] {
+  const escrowDiffers =
+    stored.escrowTxHash !== null && stored.escrowTxHash !== references.escrowTxHash;
+  const resultDiffers =
+    references.resultTxHash !== null &&
+    stored.resultTxHash !== null &&
+    stored.resultTxHash !== references.resultTxHash;
+  return [...(escrowDiffers ? ["escrowTxHash"] : []), ...(resultDiffers ? ["resultTxHash"] : [])];
+}
+
+export function mergedReferences(
+  stored: StoredReferences,
+  references: ChainReferences,
+): StoredReferences {
+  return {
+    escrowTxHash: references.escrowTxHash,
+    resultTxHash: references.resultTxHash ?? stored.resultTxHash,
+  };
 }
 
 const draftKeys = [
@@ -66,6 +97,30 @@ export function createDbEvidenceStore(db: Db, campaignId: string | null = null):
           `Task ${draft.sokosumiTaskId} already has payment evidence that differs in ${differences.join(", ")}`,
         );
       }
+    },
+    async attachTransactions(draft, references) {
+      const [stored] = await db
+        .select({
+          escrowTxHash: masumiPaymentEvidence.escrowTxHash,
+          resultTxHash: masumiPaymentEvidence.resultTxHash,
+        })
+        .from(masumiPaymentEvidence)
+        .where(forTask(draft));
+      if (stored === undefined) {
+        throw new TerminalLifecycleError(
+          `No payment evidence row for Task ${draft.sokosumiTaskId} to attach transactions to`,
+        );
+      }
+      const conflicts = referenceConflicts(stored, references);
+      if (conflicts.length > 0) {
+        throw new TerminalLifecycleError(
+          `Task ${draft.sokosumiTaskId} already has payment evidence that differs in ${conflicts.join(", ")}`,
+        );
+      }
+      await db
+        .update(masumiPaymentEvidence)
+        .set(mergedReferences(stored, references))
+        .where(forTask(draft));
     },
     async confirmCollection(draft, collection) {
       const updated = await db

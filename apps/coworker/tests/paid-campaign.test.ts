@@ -93,6 +93,8 @@ describe("a hired campaign is paid through its Task with the receipt as the resu
     expect(await evidenceRows(h.world.taskId)).toEqual([
       expect.objectContaining({
         campaignId,
+        escrowTxHash: recordedTxs.escrow,
+        resultTxHash: recordedTxs.result,
         collectionTxHash: recordedTxs.collection,
         netReceivedAtomic: "1000000",
         collectionConfirmed: true,
@@ -104,6 +106,8 @@ describe("a hired campaign is paid through its Task with the receipt as the resu
       resultHash: h.world.submitted?.hash,
       sellerAddress: recordedSeller.sellerAddress,
       tokenUnit: tusdmUnit,
+      escrowTxHash: recordedTxs.escrow,
+      resultTxHash: recordedTxs.result,
       collectionTxHash: recordedTxs.collection,
       collectionConfirmed: true,
     });

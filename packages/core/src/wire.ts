@@ -319,6 +319,8 @@ export interface MasumiProofView {
   resultHash: string;
   sellerAddress: string;
   tokenUnit: string;
+  escrowTxHash: string | null;
+  resultTxHash: string | null;
   collectionTxHash: string | null;
   netReceivedAtomic: string | null;
   collectionConfirmed: boolean;

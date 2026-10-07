@@ -56,10 +56,14 @@ const assertCounts = (spots: readonly SpotReceiptLine[]): void => {
 
 const assertVerifiedCollection = (masumi: MasumiPaymentEvidence | null): void => {
   if (masumi?.collectionConfirmed !== true) return;
-  if (masumi.collectionTxHash === null || masumi.verifiedAt === null) {
+  if (
+    masumi.collectionTxHash === null ||
+    masumi.resultTxHash === null ||
+    masumi.verifiedAt === null
+  ) {
     throw new ReceiptError(
       "UNVERIFIED_COLLECTION",
-      "A collection is confirmed only with a checked tx hash and verification time",
+      "A collection is confirmed only with its checked collection and result tx hashes and a verification time",
     );
   }
 };

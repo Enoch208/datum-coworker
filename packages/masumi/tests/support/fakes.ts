@@ -4,7 +4,12 @@ import { join } from "node:path";
 import type { MasumiPaymentEvidence } from "@datum/core";
 import { gate0AmountAtomic, tusdmUnit } from "../../src/constants";
 import { HttpStatusError } from "../../src/errors";
-import { draftDifferences, type EvidenceStore } from "../../src/evidence-store";
+import {
+  draftDifferences,
+  mergedReferences,
+  referenceConflicts,
+  type EvidenceStore,
+} from "../../src/evidence-store";
 import { gate0Result } from "../../src/gate0/result";
 import type { LifecycleDeps } from "../../src/lifecycle/deps";
 import { createFileJournal } from "../../src/lifecycle/journal";
@@ -111,6 +116,8 @@ export class MemoryEvidence implements EvidenceStore {
     if (stored === undefined) {
       this.rows.set(draft.sokosumiTaskId, {
         ...draft,
+        escrowTxHash: null,
+        resultTxHash: null,
         collectionTxHash: null,
         netReceivedAtomic: null,
         collectionConfirmed: false,
@@ -119,6 +126,19 @@ export class MemoryEvidence implements EvidenceStore {
     } else if (draftDifferences(stored, draft).length > 0) {
       return Promise.reject(new Error("evidence differs"));
     }
+    return Promise.resolve();
+  };
+
+  attachTransactions: EvidenceStore["attachTransactions"] = (draft, references) => {
+    const stored = this.rows.get(draft.sokosumiTaskId);
+    if (stored?.blockchainIdentifier !== draft.blockchainIdentifier) {
+      return Promise.reject(new Error("no evidence row"));
+    }
+    const conflicts = referenceConflicts(stored, references);
+    if (conflicts.length > 0) {
+      return Promise.reject(new Error(`evidence differs in ${conflicts.join(", ")}`));
+    }
+    this.rows.set(draft.sokosumiTaskId, { ...stored, ...mergedReferences(stored, references) });
     return Promise.resolve();
   };
 

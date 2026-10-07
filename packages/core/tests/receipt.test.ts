@@ -101,6 +101,8 @@ const masumi: MasumiPaymentEvidence = {
   resultHash: "hash_1",
   sellerAddress: "addr_test1",
   tokenUnit: "tUSDM",
+  escrowTxHash: null,
+  resultTxHash: null,
   collectionTxHash: null,
   netReceivedAtomic: null,
   collectionConfirmed: false,
@@ -226,16 +228,20 @@ describe("buildReceipt", () => {
     expect(() => buildReceipt({ ...facts, status: "CANCELLED" })).toThrow(ReceiptError);
   });
 
-  it("refuses a confirmed Masumi collection without a checked tx hash and verification time", () => {
+  it("refuses a confirmed Masumi collection without its checked tx hashes and verification time", () => {
     const unchecked = { ...masumi, collectionConfirmed: true };
     expect(() => buildReceipt({ ...facts, masumi: unchecked })).toThrow(
       expect.objectContaining({ code: "UNVERIFIED_COLLECTION" }),
     );
-    const checked = {
+    const withoutResultTx = {
       ...unchecked,
-      collectionTxHash: "tx_1",
+      collectionTxHash: "tx_2",
       verifiedAt: "2026-10-07T16:50:00+08:00",
     };
+    expect(() => buildReceipt({ ...facts, masumi: withoutResultTx })).toThrow(
+      expect.objectContaining({ code: "UNVERIFIED_COLLECTION" }),
+    );
+    const checked = { ...withoutResultTx, escrowTxHash: "tx_0", resultTxHash: "tx_1" };
     expect(buildReceipt({ ...facts, masumi: checked }).masumi).toEqual(checked);
     expect(buildReceipt({ ...facts, masumi }).masumi).toEqual(masumi);
   });

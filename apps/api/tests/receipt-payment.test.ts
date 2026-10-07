@@ -31,10 +31,29 @@ describe("the receipt shows the payment for the Task that hired Datum", () => {
     const pending = await call<CampaignReceiptView>("GET", `/campaigns/${approved.id}/receipt`);
     expect(pending.body.masumi).toEqual({
       ...Object.fromEntries(Object.entries(evidence).filter(([key]) => key !== "campaignId")),
+      escrowTxHash: null,
+      resultTxHash: null,
       collectionTxHash: null,
       netReceivedAtomic: null,
       collectionConfirmed: false,
       verifiedAt: null,
+    });
+
+    const escrowTxHash = "2f04c89076e7803a6e2bcf7783366c5d2beb0d1763265e2e463e7b352574938f";
+    const resultTxHash = "1143d3caa49856ef388fbffcdc2673de1c89837b25db662c7d18d19433ec2360";
+    await db
+      .update(masumiPaymentEvidence)
+      .set({ escrowTxHash, resultTxHash })
+      .where(eq(masumiPaymentEvidence.sokosumiTaskId, hiringTaskId));
+    const awaitingPayout = await call<CampaignReceiptView>(
+      "GET",
+      `/campaigns/${approved.id}/receipt`,
+    );
+    expect(awaitingPayout.body.masumi).toMatchObject({
+      escrowTxHash,
+      resultTxHash,
+      collectionTxHash: null,
+      collectionConfirmed: false,
     });
 
     const verifiedAt = new Date("2026-10-07T12:00:00.000Z");
@@ -50,6 +69,8 @@ describe("the receipt shows the payment for the Task that hired Datum", () => {
       .where(eq(masumiPaymentEvidence.sokosumiTaskId, hiringTaskId));
     const paid = await call<CampaignReceiptView>("GET", `/campaigns/${approved.id}/receipt`);
     expect(paid.body.masumi).toMatchObject({
+      escrowTxHash,
+      resultTxHash,
       collectionTxHash,
       netReceivedAtomic: "1000000",
       collectionConfirmed: true,

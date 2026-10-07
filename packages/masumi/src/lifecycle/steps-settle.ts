@@ -7,7 +7,7 @@ import { verifyCollection } from "../verify";
 import type { LifecycleDeps } from "./deps";
 import { beginOutbound, isPending, persist, rejectedWrite } from "./persist";
 import type { LifecycleState, StateAt } from "./state";
-import { evidenceDraft } from "./steps-result";
+import { evidenceDraft, recordEvidence } from "./steps-result";
 
 function completed(
   state: StateAt<"result_confirmed">,
@@ -42,6 +42,7 @@ export async function completeTask(
   state: StateAt<"result_confirmed">,
   deps: LifecycleDeps,
 ): Promise<LifecycleState> {
+  await recordEvidence(state, deps);
   if (isPending(state, "complete_task")) {
     const task = await deps.core.task(state.taskId);
     const completion = latestCompletion(task);
@@ -125,6 +126,7 @@ export async function verifySettlement(
     deps.chain,
     new Date(deps.clock.now()),
   );
+  await recordEvidence(state, deps);
   await deps.evidence.confirmCollection(evidenceDraft(state, deps), {
     collectionTxHash: proof.txHash,
     netReceivedAtomic: proof.netReceivedAtomic,

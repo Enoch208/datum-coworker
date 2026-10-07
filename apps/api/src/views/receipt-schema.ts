@@ -60,6 +60,8 @@ const masumi = z.strictObject({
   resultHash: z.string(),
   sellerAddress: z.string(),
   tokenUnit: z.string(),
+  escrowTxHash: z.string().nullable(),
+  resultTxHash: z.string().nullable(),
   collectionTxHash: z.string().nullable(),
   netReceivedAtomic: z.string().nullable(),
   collectionConfirmed: z.boolean(),
