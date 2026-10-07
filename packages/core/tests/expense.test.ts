@@ -85,14 +85,18 @@ describe("decideExpense", () => {
     expect(read(overrides).status).toBe("DISPUTED");
   });
 
-  it("leaves the amount SUBMITTED when no reader is set up or the reader failed", () => {
+  it("leaves the amount SUBMITTED when no reader is set up", () => {
     expect(decideExpense(entered, { kind: "NO_READER" })).toEqual({
       status: "SUBMITTED",
       explanation: "No receipt reader is set up, so the entered SGD 13.80 waits for review.",
     });
-    expect(decideExpense(entered, { kind: "READER_FAILED", reason: "timeout" })).toMatchObject({
-      status: "SUBMITTED",
-      explanation: expect.stringContaining("(timeout)") as unknown,
+  });
+
+  it("disputes the amount when the reader failed, so a person can decide", () => {
+    expect(decideExpense(entered, { kind: "READER_FAILED", reason: "timeout" })).toEqual({
+      status: "DISPUTED",
+      explanation:
+        "The receipt reader could not check this receipt (timeout), so the entered SGD 13.80 needs review.",
     });
   });
 

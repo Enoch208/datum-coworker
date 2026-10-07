@@ -130,7 +130,7 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
     });
   });
 
-  it("leaves the amount submitted when there is no reader or the reader fails", async () => {
+  it("leaves the amount submitted when there is no reader", async () => {
     const quiet = await printReady(null);
     const unread = await quiet.send({ receipt: await receipt(), amount: "13.80" });
     expect(unread.body).toMatchObject({
@@ -138,10 +138,40 @@ describe("POST /runner/:token/tasks/:taskId/expense (spec 9)", () => {
       explanation: "No receipt reader is set up, so the entered SGD 13.80 waits for review.",
     });
     expect(await quiet.ledger()).toMatchObject({ confirmedSpend: { amount: "0.00" } });
-    const broken = await printReady(failingReceiptReader("API_ERROR"));
-    const failed = await broken.send({ receipt: await receipt(), amount: "13.80" });
-    expect(failed.body).toMatchObject({ status: "SUBMITTED" });
-    expect(failed.body.explanation).toContain("(API_ERROR)");
+  });
+
+  it("disputes a receipt the reader failed to check instead of leaving it waiting forever", async () => {
+    const reader = failingReceiptReader("API_ERROR");
+    const { send, ledger } = await printReady(reader);
+    const failed = await send({ receipt: await receipt(), amount: "13.80" });
+    expect(failed.body).toMatchObject({
+      status: "DISPUTED",
+      explanation:
+        "The receipt reader could not check this receipt (API_ERROR), so the entered SGD 13.80 needs review.",
+    });
+    expect(reader.calls).toHaveLength(1);
+    expect(await ledger()).toMatchObject({
+      confirmedSpend: { amount: "0.00" },
+      committedSpend: { amount: "6.00" },
+    });
+  });
+
+  it("takes a retaken receipt after the reader failed and confirms it", async () => {
+    const { send, taskId, runner } = await printReady(failingReceiptReader("API_ERROR"));
+    await send({ receipt: await receipt(), amount: "13.80" });
+    const working = createApp(testDeps({ receiptReader: matching() }));
+    const retaken = await postForm<ExpenseView>(
+      taskPath(runner.token, taskId, "expense"),
+      {
+        receipt: jpegFile(
+          await receiptPhoto({ merchant: "PRINT HUB PTE LTD (RETAKEN)", total: "13.80" }),
+          "receipt.jpg",
+        ),
+        amount: "13.80",
+      },
+      working,
+    );
+    expect(retaken).toMatchObject({ status: 201, body: { status: "CONFIRMED" } });
   });
 
   it("counts the same receipt and amount sent twice once, and refuses a second receipt", async () => {

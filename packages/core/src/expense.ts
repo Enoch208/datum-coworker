@@ -94,9 +94,9 @@ export const decideExpense = (entered: Money, check: ReceiptCheck): ExpenseDecis
         `No receipt reader is set up, so the entered ${enteredText} waits for review.`,
       );
     case "READER_FAILED":
-      return decision(
-        "SUBMITTED",
-        `The receipt reader could not check this receipt (${check.reason}), so the entered ${enteredText} waits for review.`,
+      return needsReview(
+        `The receipt reader could not check this receipt (${check.reason})`,
+        entered,
       );
     case "READ":
       return readDecision(entered, check.reading);
