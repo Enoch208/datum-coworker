@@ -2,47 +2,114 @@
 
 **You set the goal. Datum gets the campaign live.**
 
-Datum is an AI Coworker that owns a measurable physical business outcome, from one approval to proof. Field marketing is its first job: tell it to get a QR campaign live at four approved spots before 5 PM for at most SGD 50, approve the plan once, and it coordinates the printing, the placements, the proof and the fixes until every spot is live, or until it reaches the edge of the authority you gave it.
+[![CI](https://github.com/Enoch208/datum-coworker/actions/workflows/ci.yml/badge.svg)](https://github.com/Enoch208/datum-coworker/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Cardano Preprod](https://img.shields.io/badge/Cardano-Preprod-0033ad.svg)](#datum-is-hired-and-paid-on-cardano)
 
-Live at **[usedatum.xyz](https://usedatum.xyz)**. Built for TOKEN2049 Origins 2026 (Cardano / Masumi / Sokosumi Coworker track).
+Datum is an AI Coworker that gets small real-world jobs done. Say you want QR posters put up in a few places before a deadline, on a budget. You tell Datum what, where, by when and how much, and you approve one plan. Datum gets the posters printed and placed, checks a photo of each one, fixes any that were missed, and keeps going until every spot is proven live or it reaches the limits you set. It is hired and paid on Cardano.
+
+**Live:** [usedatum.xyz](https://usedatum.xyz) · **A real finished job:** [its Campaign Receipt](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt) · Built for TOKEN2049 Origins 2026 (Cardano / Masumi / Sokosumi Coworker track).
+
+## See it in 60 seconds
+
+| You want to know                        | Where to look                                                                                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Does it work end to end?                | [A real founder's job, finished 1/1](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt), with a failed first photo and an automatic recovery  |
+| Is the Cardano part real?               | [The on-chain table below](#datum-is-hired-and-paid-on-cardano): escrow, result hash and collection, each a Preprod transaction                         |
+| Is the AI doing something that matters? | [The recovery](#the-first-real-job): the model proposed the fix, deterministic rules approved it, and it reached the runner four seconds after the miss |
+| Can I trust the numbers?                | Every number on the receipt is built from stored records and carries a SHA-256 of its canonical bytes                                                   |
+| What is honest about the limits?        | [Known limits](#known-limits) and [Honest labels](#honest-labels) say exactly what is and is not proven                                                 |
 
 ## Why
 
-A small physical campaign is too small for an agency and too fiddly to do yourself while you are building. The work is easy; the coordination is not: prepare the card, print it, brief someone, place it, get proof, notice the spot that was missed, fix it, track the spend. Existing worker platforms run a task you already defined. Datum starts one level higher, with the outcome, and keeps going until the outcome is true.
+A small physical job is too small for an agency and too fiddly to do yourself. The work is easy. The coordination is not: briefing someone, getting proof, noticing the spot that got missed, fixing it, and keeping the spend inside a limit. Existing worker platforms run a task you already defined. Datum starts one level higher, with the goal, and keeps going until the goal is true.
 
 ## How it works: the Goal Loop
 
+```mermaid
+flowchart LR
+    A[You: goal, spots,<br/>deadline, budget] --> B[AI drafts the<br/>cards and plan]
+    B --> C{Rules check<br/>budget, deadline,<br/>spots}
+    C --> D[You approve once]
+    D --> E[Runner prints<br/>and places]
+    E --> F[Photo per spot]
+    F --> G{Right QR code,<br/>before the deadline?}
+    G -- every spot yes --> H[Campaign Receipt]
+    G -- a spot missed --> I[AI proposes a fix]
+    I --> J{Rules check budget<br/>and deadline}
+    J -- fits --> E
+    J -- over budget --> K[Ask the customer]
 ```
-brief → AI plan → rules check → one approval → physical tasks → evidence
-      → is every approved spot proven live?  yes → Campaign Receipt
-                                             no  → plan the smallest recovery
-                                                   within budget and deadline → act again
+
+- **AI suggests, rules decide.** The model drafts copy and plans and proposes each recovery. Deterministic code checks the spots, the copy, the budget and the deadline, prices every step from explicit rates, and makes every state change. The model never does money arithmetic and never decides whether a spot is live. If the model is down or its plan fails the rules, a deterministic plan runs instead.
+- **One approval locks the limits.** It stores the exact card version, the spot set, the budget, the deadline and the copy. Changing any of them needs a new approval. Going over budget stops at `NEEDS_APPROVAL` with the extra amount needed. It never silently overspends.
+- **Evidence, not status.** Each spot has its own QR code. A spot counts only when a photo sent through its open task, before the deadline, decodes to that spot's code. The server reads the QR and records every check and the reason for each verdict.
+- **Cost from receipts.** A purchase is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it and the amount read matches the amount entered. Anything else is disputed with the reason, never silently counted. The reader is advisory.
+- **Safe to retry.** Every outside action has a deterministic key and is saved before it runs, so a restart reconciles instead of repeating.
+
+## The first real job
+
+On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a job on usedatum.xyz: one QR card for a spot he named at Marina Bay Sands Expo, a budget of SGD 100. A member of the Datum team did the physical work as the local enrolled runner. Datum's evidence verifies that the photo shows that spot's own card. It does not verify the photo's location.
+
+```mermaid
+sequenceDiagram
+    participant R as Runner
+    participant D as Datum
+    participant M as AI model
+    participant L as Rules
+    R->>D: Photo 1 of Spot A (QR cut off on purpose)
+    D->>D: QR_NOT_FOUND, task closed (20:47:50)
+    D->>D: Goal check: Spot A unresolved (20:47:52)
+    D->>M: Unresolved spots, budget left, time left
+    M->>L: Proposed recovery trip
+    L->>D: Approved against budget and deadline
+    D->>R: Attempt 2 dispatched (20:47:56)
+    R->>D: Photo 2, QR clear
+    D->>D: PASS, 1 of 1 live, receipt published (20:49:19)
 ```
 
-- **AI drafts, rules decide.** The planner proposes copy and steps. Deterministic code checks the spots, the copy, the budget and the deadline, prices every step from explicit rates, and decides every state change. The model never does money arithmetic and never decides whether a spot is live.
-- **One approval locks the bounds.** The approval stores the exact card version, the spot set, the budget, the deadline and the copy. Changing any of them needs a new approval.
-- **Evidence, not status.** Each spot has its own QR code. A spot counts only when a photo submitted through its open task, before the deadline, decodes to that spot's code. The server reads the QR and records every check and the reason for each verdict.
-- **Spend from receipts.** Printing enters the ledger from a real receipt, and each runner fee enters it as an agreed rate, labelled as having no receipt. A receipt is confirmed only when the receipt reader takes the photo for a purchase receipt with nothing doubtful on it (no test or void marking, a merchant and a date, a printed total) and the amount read from it matches the amount entered in the same currency; anything else, including a receipt the reader could not check, is disputed with the reason, never silently counted. The reader is advisory: it never writes an amount.
-- **Safe to retry.** Every external action has a deterministic key and is persisted before it runs, so a restart reconciles instead of repeating.
+| SGT      | What happened                                                                                                                                                                                                                                              |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19:05    | Maadhav approved the plan                                                                                                                                                                                                                                  |
+| 20:41    | The card was printed at home with no shop receipt. The receipt reader could not read the photo as a purchase receipt, so Datum disputed the SGD 0.50. Maadhav accepted it, which the receipt counts as one manual intervention                             |
+| 20:47:18 | Spot A, first photo: the QR code was cut off on purpose, labelled on screen as a demo test. Verdict `QR_NOT_FOUND`                                                                                                                                         |
+| 20:47:52 | Datum evaluated the goal, found Spot A unresolved and moved to recovery                                                                                                                                                                                    |
+| 20:47:56 | The model proposed one trip, the rules checked it against the budget and the deadline, and attempt 2 was dispatched under the key `campaign:cmp_d1tmstsxkymtjp7n:spot:A:attempt:2`. No human input is recorded between detecting the miss and the dispatch |
+| 20:49:19 | Attempt 2 passed. The job completed 1/1 and published its Campaign Receipt                                                                                                                                                                                 |
 
-## The first real campaign
+[The receipt](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt): first pass 0/1, 1 automatic recovery, 1 manual intervention, SGD 10.50 of physical cost recorded against the SGD 100.00 budget (the SGD 0.50 home print the customer accepted, plus two SGD 5.00 agreed runner fees, which are owed at an agreed rate and carry no receipt), 1 QR scan, SHA-256 `bfa8a63d33b2d14580fe0ca3b9ccda7a084f6d7eb67cafc3e5d6013a0e1793bf`. This job was created on the website, not hired through a Sokosumi Task, so it carries no Masumi payment.
 
-On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a campaign on usedatum.xyz: one QR card for a spot he named at Marina Bay Sands Expo, a budget of SGD 100. A member of the Datum team did the physical work as the local enrolled runner. Datum's evidence verifies that the photo shows that spot's own card; it does not independently verify the photo's location.
+## Datum is hired and paid on Cardano
 
-| SGT      | What happened                                                                                                                                                                                                                                                                         |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 19:05    | Maadhav approved the plan                                                                                                                                                                                                                                                             |
-| 20:41    | The card was printed at home with no shop receipt. The receipt reader could not read the photo as a purchase receipt, so Datum disputed the SGD 0.50; Maadhav accepted it, which the receipt counts as one manual intervention                                                        |
-| 20:47:18 | Spot A, first photo: the QR code was cut off on purpose, labelled on screen as a demo test. Verdict `QR_NOT_FOUND`                                                                                                                                                                    |
-| 20:47:52 | Datum evaluated the goal, found Spot A unresolved and moved to recovery                                                                                                                                                                                                               |
-| 20:47:56 | The model proposed one trip with a note for the runner, the rules checked it against the budget and the deadline, and attempt 2 was dispatched under the key `campaign:cmp_d1tmstsxkymtjp7n:spot:A:attempt:2`. No human input is recorded between detecting the miss and the dispatch |
-| 20:49:19 | Attempt 2 passed. The campaign completed 1/1 and published its Campaign Receipt                                                                                                                                                                                                       |
+Masumi gives the Coworker its commercial lifecycle: signed terms, a smart-contract escrow, a committed result and settlement. Datum is a Coworker on Sokosumi. A customer hires it with a Task, the payment is locked on chain before any work starts, and Datum is paid in tUSDM, a Cardano native token, after it commits its result.
 
-[The Campaign Receipt](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt): first pass 0/1, 1 automatic recovery, 1 manual intervention, SGD 10.50 of physical cost recorded against the SGD 100.00 budget (the SGD 0.50 home print the customer accepted, plus two SGD 5.00 agreed runner fees, which are owed at an agreed rate and carry no receipt), 1 QR scan, SHA-256 `bfa8a63d33b2d14580fe0ca3b9ccda7a084f6d7eb67cafc3e5d6013a0e1793bf`. This campaign was created on the website, not hired through a Sokosumi Task, so it carries no Masumi payment.
+```mermaid
+sequenceDiagram
+    participant C as Customer (Sokosumi)
+    participant S as Datum Coworker
+    participant P as Masumi Payment Service
+    participant X as Cardano Preprod
+    C->>S: Creates a Task for Datum
+    S->>P: Signed terms (price, deadlines)
+    C->>X: Payment locked in escrow (smart contract)
+    S->>S: Starts only after FundsLocked
+    Note over S: Physical job runs (Goal Loop)
+    S->>S: Saves the exact result bytes
+    S->>X: Result hash written into the escrow datum
+    S->>C: Task completed with exactly those bytes
+    X->>S: Escrow released, tUSDM to Datum
+    S->>X: Checks its own collection on chain
+```
 
-## Datum gets paid as a Coworker on Cardano
+| Cardano feature                | How Datum uses it                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Smart contract escrow (Masumi) | The customer's payment is locked on chain before Datum starts work                                        |
+| eUTXO datum                    | The result hash is written into the escrow output's datum. That output is how Datum finds its own payment |
+| Native token (tUSDM)           | The payment is made and collected in tUSDM                                                                |
+| Agent registry                 | Datum is registered on the Masumi registry                                                                |
+| Independent verification       | Datum counts itself paid only after reading the chain (see below)                                         |
 
-Masumi gives the Coworker its commercial lifecycle: signed terms, escrow, a committed result and settlement. Datum's first paid Sokosumi Task ran end to end on Cardano Preprod on 6 October 2026:
+Datum's first paid Sokosumi Task ran end to end on Cardano Preprod on 6 October 2026:
 
 | Step                                          | Evidence                                                                                                                                                                                                              |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -53,31 +120,77 @@ Masumi gives the Coworker its commercial lifecycle: signed terms, escrow, a comm
 | Task completed with exactly the hashed result | completion event `01a11071-a9cc-70f9-aa3a-36713d0ccb84`                                                                                                                                                               |
 | **Seller collected the payment**              | [0ae460f6…](https://preprod.cardanoscan.io/transaction/0ae460f6d36d76c600dd84287a9d3834754c6d9ea1e56ce3939a00c080b587f9): **+1 tUSDM** to the seller address                                                          |
 
-Datum does not mark itself paid because a Task says COMPLETED. It verifies the collection independently: the collection transaction must spend this payment's own escrow output (the one whose datum carries the result hash), the seller's net gain of tUSDM in that transaction must cover the payment, and Sokosumi's receipt, the payment service and the chain must all name the same transaction.
+Datum does not mark itself paid because a Task says COMPLETED. It verifies the collection independently: the collection transaction must spend this payment's own escrow output (the one whose datum carries the result hash), the seller's net gain of tUSDM in that transaction must cover the payment, and Sokosumi's receipt, the payment service and the chain must all name the same transaction. Printing and runner costs are ordinary expenses. They are never paid through Masumi.
 
-## What is built and what is not
+## What is built
+
+```mermaid
+flowchart TB
+    subgraph Customer side
+        W[Web app<br/>brief, approval, live view, receipt]
+    end
+    subgraph Datum
+        API[API<br/>Hono + zod]
+        WK[Goal Loop worker]
+        CW[Coworker<br/>Sokosumi Task worker]
+        CORE[Core engine<br/>money, budget, evidence,<br/>state machine, receipt]
+        DB[(Postgres)]
+    end
+    subgraph Outside
+        AI[Claude<br/>planning, receipt reading]
+        RUN[Runner phone]
+        SOK[Sokosumi]
+        MPS[Masumi Payment Service]
+        ADA[Cardano Preprod]
+    end
+    W --> API
+    RUN --> API
+    API --> CORE
+    WK --> CORE
+    CW --> CORE
+    API --> DB
+    WK --> DB
+    CW --> DB
+    API --> AI
+    WK --> AI
+    CW --> SOK
+    CW --> MPS
+    MPS --> ADA
+```
 
 Built and running at usedatum.xyz:
 
-- Campaign brief, AI-drafted proposal, rule validation, cost estimate, printable cards with one QR per spot (each card is tested to scan back to its own URL), one versioned approval.
-- Pre-enrolled local runner: a phone inbox, task pages, photo and receipt upload.
-- Server-side QR reading of evidence photos, deterministic verdicts with per-check reasons, a spend ledger.
-- The Goal Loop worker. It evaluates the goal from evidence, and when a spot is missing it gives the model the unresolved spots, the remaining budget and the time left. The model proposes a recovery; the rules check it against the approval and either commission it without the customer or stop at NEEDS_APPROVAL with the extra amount needed. If the model is unavailable or its plan fails the rules, a deterministic plan runs instead. Each campaign is claimed under a Postgres advisory lock and every action carries a deterministic key, so a restarted worker reconciles instead of commissioning twice.
-- The live campaign screen, a record of why Datum took each decision, and the Campaign Receipt, stored as canonical JSON with its SHA-256.
-- The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a campaign. It reads the brief from the Task and posts the proposal link. It works only after the escrow is funded and the customer has approved. When the campaign ends, the Task result names the Campaign Receipt's SHA-256 and links its exact bytes. Datum commits that result's hash on chain, completes the Task and verifies its own collection.
+- Brief, AI-drafted proposal, rule validation, cost estimate, printable cards with one QR per spot (each card is tested to scan back to its own URL), one versioned approval.
+- A phone inbox for the runner, with task pages, photo and receipt upload.
+- Server-side QR reading of evidence photos, verdicts with per-check reasons, and a spend ledger.
+- The Goal Loop worker. It evaluates the goal from evidence, and when a spot is missing it gives the model the unresolved spots, the remaining budget and the time left. Each campaign is claimed under a Postgres advisory lock and every action carries a deterministic key.
+- The live screen, a record of why Datum took each decision, and the Campaign Receipt, stored as canonical JSON with its SHA-256.
+- The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a job. It reads the brief from the Task, posts the proposal link, works only after the escrow is funded and the customer has approved, names the Campaign Receipt's SHA-256 in the Task result, commits that result's hash on chain, completes the Task and verifies its own collection.
+- 918 automated tests, run on every push by CI.
 
 Not done yet:
 
-- A campaign with several spots. The first real campaign had one.
-- A print run with a shop receipt. The first campaign was printed at home, so its print cost was accepted by the customer instead of confirmed from a receipt.
-- A hired Sokosumi Task carried through a real campaign to collection. The paid-Task lifecycle itself is proven above, with a one-line result.
+- A job with several spots. The first real one had one.
+- A print run with a shop receipt. The first job was printed at home, so its print cost was accepted by the customer instead of confirmed from a receipt.
+- A hired Sokosumi Task carried through a real job to collection. The paid-Task lifecycle itself is proven above, with a one-line result.
+
+## What comes next
+
+| When     | Plan                                                                                                                         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 30 days  | Five pilot jobs with founders, several spots each, with printing paid at a real shop                                         |
+| 90 days  | A private owner link per job, and more runners behind the same executor interface                                            |
+| 6 months | Other physical jobs a photo can prove: store checks, merch drops, venue checks. Every hire settles on Cardano through Masumi |
+
+Today there is one local enrolled runner. The physical side sits behind a single `PhysicalExecutor` interface, so more runners or local services can be added without changing the Goal Loop, the evidence rules, the spending limits or the receipt.
 
 ## Honest labels
 
 - Physical work in this build is done by a **local enrolled runner**. No external worker marketplace was used.
-- Masumi pays **Datum** as the Coworker. Printing is recorded from a receipt and each runner fee is an agreed rate recorded when a placement completes, with no receipt; neither is paid through Masumi.
+- Masumi pays **Datum** as the Coworker. Printing is recorded from a receipt and each runner fee is an agreed rate recorded when a placement completes, with no receipt. Neither is paid through Masumi.
 - A QR in a photo proves that the expected spot-specific card appears in the evidence. It is not a cryptographic proof of location.
-- Any staged failure in a demo is labelled on screen.
+- Any staged failure in a demo is labelled on screen. The failed first photo in the real job was caused on purpose and is labelled as a demo test.
+- Datum charges no fee of its own yet. The first jobs are pilots.
 - Providers: Sokosumi and the Masumi Payment Service on Cardano Preprod, Blockfrost for chain reads, the Anthropic API for planning and receipt reading.
 
 ## Known limits
@@ -97,9 +210,11 @@ packages/db       Postgres schema; invariants enforced by constraints
 packages/masumi   Sokosumi and Masumi clients, the resumable paid-Task lifecycle, on-chain verification
 apps/api          campaigns, planner, cards, runners, evidence, expenses, the Goal Loop, receipts, scan redirects
 apps/worker       the durable Goal Loop process
-apps/coworker     the always-on Sokosumi Coworker: hired Task → campaign → paid result
-apps/web          founder screens, the Campaign Receipt and the runner's phone pages
+apps/coworker     the always-on Sokosumi Coworker: hired Task → job → paid result
+apps/web          the customer screens, the Campaign Receipt and the runner's phone pages
 ```
+
+Stack: TypeScript, Hono, Drizzle, Postgres, React, Vite, Tailwind. Claude for planning and receipt reading. Masumi and Sokosumi on Cardano Preprod.
 
 ## Running it locally
 
@@ -114,3 +229,7 @@ pnpm test
 ```
 
 Open http://localhost:5180. As in production, the web server proxies `/api` (prefix stripped), `/c/`, `/assets/cmp_` and `/evidence/` to the API on port 8790, so `APP_BASE_URL` is the web origin, `http://localhost:5180`, and every QR code, card link and runner link works through it.
+
+## License
+
+[MIT](LICENSE)
