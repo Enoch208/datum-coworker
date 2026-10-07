@@ -37,9 +37,12 @@ const guardedLookup =
   (allow: AddressPolicy): LookupFunction =>
   (hostname, options, callback) => {
     lookup(hostname, { ...options, all: true }, (error, addresses) => {
+      if (error !== null) {
+        callback(error, "");
+        return;
+      }
       const [first] = addresses;
-      if (error !== null) callback(error, "");
-      else if (first === undefined || addresses.some((entry) => !allow(entry.address))) {
+      if (first === undefined || addresses.some((entry) => !allow(entry.address))) {
         callback(blocked(hostname), "");
       } else if (options.all === true) callback(null, addresses);
       else callback(null, first.address, first.family);

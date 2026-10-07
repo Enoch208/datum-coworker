@@ -85,6 +85,12 @@ describe("the brand page fetcher", () => {
     });
   });
 
+  it("reports a name that does not resolve as DNS_FAILED instead of crashing", async () => {
+    await expect(fetchForProduction("https://no-such-brand.invalid/")).rejects.toMatchObject({
+      code: "DNS_FAILED",
+    });
+  });
+
   it("refuses a response that is not HTML", async () => {
     const server = await servePages((_request, response) => {
       response.writeHead(200, { "content-type": "application/json" });
