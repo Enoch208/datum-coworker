@@ -83,7 +83,7 @@ Not done yet:
 ## Known limits
 
 - **No accounts yet.** A campaign's link is its authority. The campaign ID also appears in each card's QR URL, so anyone who scans a placed card can learn it. The customer actions (raising the budget, accepting a disputed receipt) are checked against the campaign's state, not against who is asking, and `approvedBy` and `acceptedBy` are names the customer typed, not verified identities. The next step is a per-campaign owner key, derived on the server and carried in the link the customer is given.
-- **A runner's purchase is checked after the fact.** Datum checks the budget before it commissions each step, but what a runner pays the printer is only known when the receipt arrives, and the runner's instructions do not yet state a maximum.
+- **A runner's purchase is checked after the fact.** Datum checks the budget before it commissions each step, and the print task tells the runner the approved maximum and to stop rather than pay more. Nothing enforces that at the till: what the runner paid is only known when the receipt arrives.
 - **Evidence photos have no access check.** The public Campaign Receipt links them, so each is served to anyone who has its random 128-bit filename.
 - **One Task at a time.** The Coworker works its Sokosumi Tasks one after another, so a slow model call delays the others.
 
