@@ -85,6 +85,13 @@
       "when": 1791304724569,
       "tag": "0011_coworker_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791330534961,
+      "tag": "0012_payment_chain_proof",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,8 @@ export const masumiPaymentEvidence = pgTable(
     resultHash: text("result_hash").notNull(),
     sellerAddress: text("seller_address").notNull(),
     tokenUnit: text("token_unit").notNull(),
+    escrowTxHash: text("escrow_tx_hash"),
+    resultTxHash: text("result_tx_hash"),
     collectionTxHash: text("collection_tx_hash"),
     netReceivedAtomic: text("net_received_atomic"),
     collectionConfirmed: boolean("collection_confirmed").notNull().default(false),
@@ -23,6 +25,8 @@ export const masumiPaymentEvidence = pgTable(
     createdAt: createdAt(),
   },
   (table) => [
+    check("masumi_payment_escrow_tx_is_hash", sql`${table.escrowTxHash} ~ '^[0-9a-f]{64}$'`),
+    check("masumi_payment_result_tx_is_hash", sql`${table.resultTxHash} ~ '^[0-9a-f]{64}$'`),
     check("masumi_payment_net_received_is_integer", sql`${table.netReceivedAtomic} ~ '^[0-9]+$'`),
     check(
       "masumi_payment_confirmed_has_proof",
