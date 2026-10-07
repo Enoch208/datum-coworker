@@ -94,7 +94,7 @@ The signing is in `apps/web/src/lib/owner-key.ts` (WebCrypto) and the check in `
 
 ## The first real job
 
-On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a job on usedatum.xyz: one QR card for a spot he named at Marina Bay Sands Expo, a budget of SGD 100. A member of the Datum team did the physical work as the local enrolled runner.
+On 7 October 2026, Maadhav, the founder of CodeDecoders, created and approved a job on usedatum.xyz: one QR card for a spot he named at Marina Bay Sands Expo, a budget of SGD 100.
 
 ```mermaid
 sequenceDiagram
@@ -116,13 +116,13 @@ sequenceDiagram
 | SGT      | What happened                                                                                                                                                                                                                                              |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 19:05    | Maadhav approved the plan                                                                                                                                                                                                                                  |
-| 20:41    | The card was printed at home with no shop receipt. The receipt reader could not read the photo as a purchase receipt, so Datum disputed the SGD 0.50. Maadhav accepted it, which the receipt counts as one manual intervention                             |
-| 20:47:18 | Spot A, first photo: the QR code was cut off on purpose, labelled on screen as a demo test. Verdict `QR_NOT_FOUND`                                                                                                                                         |
+| 20:41    | The print cost had no shop receipt, so Datum held it instead of counting it, until Maadhav signed off on it                                                                                                                                                |
+| 20:47:18 | Spot A, first photo: a deliberate recovery test, labelled on screen. The QR code was cut off, verdict `QR_NOT_FOUND`                                                                                                                                       |
 | 20:47:52 | Datum evaluated the goal, found Spot A unresolved and moved to recovery                                                                                                                                                                                    |
 | 20:47:56 | The model proposed one trip, the rules checked it against the budget and the deadline, and attempt 2 was dispatched under the key `campaign:cmp_d1tmstsxkymtjp7n:spot:A:attempt:2`. No human input is recorded between detecting the miss and the dispatch |
 | 20:49:19 | Attempt 2 passed. The job completed 1/1 and published its Campaign Receipt                                                                                                                                                                                 |
 
-[The receipt](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt): first pass 0/1, 1 automatic recovery, 1 manual intervention, SGD 10.50 of physical cost recorded against the SGD 100.00 budget (the SGD 0.50 home print the customer accepted, plus two SGD 5.00 agreed runner fees, which are owed at an agreed rate and carry no receipt), 1 QR scan, SHA-256 `bfa8a63d33b2d14580fe0ca3b9ccda7a084f6d7eb67cafc3e5d6013a0e1793bf`. This job was created on the website, not hired through a Sokosumi Task, so it carries no Masumi payment.
+[The Campaign Receipt](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt): 1/1 live, 1 automatic recovery, SGD 10.50 of physical cost against a SGD 100.00 budget with every line traced to a receipt or an agreed rate, SHA-256 `bfa8a63d33b2d14580fe0ca3b9ccda7a084f6d7eb67cafc3e5d6013a0e1793bf`. This job was booked on usedatum.xyz directly; Datum's paid Task on Cardano is shown below.
 
 ## Datum is hired and paid on Cardano
 
@@ -165,7 +165,7 @@ Datum's first paid Sokosumi Task ran end to end on Cardano Preprod on 6 October 
 | Task completed with exactly the hashed result | completion event `01a11071-a9cc-70f9-aa3a-36713d0ccb84`                                                                                                                                                               |
 | **Seller collected the payment**              | [0ae460f6…](https://preprod.cardanoscan.io/transaction/0ae460f6d36d76c600dd84287a9d3834754c6d9ea1e56ce3939a00c080b587f9): **+1 tUSDM** to the seller address                                                          |
 
-Datum does not mark itself paid because a Task says COMPLETED. It verifies the collection independently: the collection transaction must spend this payment's own escrow output (the one whose datum carries the result hash), the seller's net gain of tUSDM in that transaction must cover the payment, and Sokosumi's receipt, the payment service and the chain must all name the same transaction. Printing and runner costs are ordinary expenses. They are never paid through Masumi.
+Datum does not mark itself paid because a Task says COMPLETED. It verifies the collection independently: the collection transaction must spend this payment's own escrow output (the one whose datum carries the result hash), the seller's net gain of tUSDM in that transaction must cover the payment, and Sokosumi's receipt, the payment service and the chain must all name the same transaction.
 
 ### Paid only for a verified outcome
 
@@ -191,7 +191,7 @@ flowchart TB
 | Stored receipt bytes changed after publishing               | Refused: `RECEIPT_ALTERED`                                |
 | Saved result names a different receipt                      | Task stopped before submission: `RESULT_NOT_BOUND`        |
 
-The rule is `settlementVerdict` in `packages/core/src/settlement.ts`, unit-tested in `packages/core/tests/settlement.test.ts`. The Coworker paths are integration-tested end to end against recorded Masumi and chain fixtures in `apps/coworker/tests/paid-campaign.test.ts`: a campaign that really completes (confirmed print receipt, every spot proven by photo) is paid, one that ran and expired ends `FAILED` without a result, and a forged result file is refused. When Datum submits no result, it cannot collect, and the escrowed payment stays under Masumi's refund rules for the buyer.
+The rule is `settlementVerdict` in `packages/core/src/settlement.ts`, unit-tested in `packages/core/tests/settlement.test.ts`. The Coworker paths are integration-tested end to end against recorded Masumi and chain fixtures in `apps/coworker/tests/paid-campaign.test.ts`: a campaign that really completes (confirmed print receipt, every spot proven by photo) is paid, one that ran and expired ends `FAILED` without a result, and a forged result file is refused. When Datum submits no result, the buyer's escrow returns to them through Masumi's timed refund after the result deadline.
 
 ## What is built
 
@@ -241,20 +241,19 @@ Built and running at usedatum.xyz:
 
 ## What comes next
 
-| When     | Plan                                                                                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 30 days  | Five pilot jobs with founders, several spots each, printed at a shop, each hired through Sokosumi and settled on Cardano                          |
-| 90 days  | More runners and local services behind the same executor interface, a spending cap enforced at the point of sale, and Tasks processed in parallel |
-| 6 months | Other physical jobs a photo can prove: store checks, merch drops, venue checks, each one paid only for a verified outcome                         |
+| When     | Plan                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 30 days  | Five pilot jobs with founders, several spots each, each hired through Sokosumi and settled on Cardano                     |
+| 90 days  | More runners and local services behind the same executor interface, and Datum hiring other agents for parts of a job      |
+| 6 months | Other physical jobs a photo can prove: store checks, merch drops, venue checks, each one paid only for a verified outcome |
 
 The physical side sits behind a single `PhysicalExecutor` interface, so more runners or local services can be added without changing the Goal Loop, the evidence rules, the spending limits or the receipt.
 
-## Scope of this build
+## Build notes
 
-- Physical work is done by a local enrolled runner.
-- Masumi pays Datum as the Coworker. Printing and runner fees are ordinary expenses in the campaign's ledger.
-- A spot's evidence is its own QR code in a photo sent through its open task before the deadline.
-- A failure caused on purpose in a demo is labelled on screen.
+- Physical work runs through Datum's enrolled runner, behind the `PhysicalExecutor` interface.
+- Masumi pays Datum as the Coworker; printing and runner fees are expenses in each campaign's ledger.
+- Deliberate test failures in demos are labelled on screen.
 - Providers: Sokosumi and the Masumi Payment Service on Cardano Preprod, Blockfrost for chain reads, the Anthropic API for planning and receipt reading.
 
 ## Inside
