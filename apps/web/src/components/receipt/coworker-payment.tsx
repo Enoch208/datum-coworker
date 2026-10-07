@@ -4,32 +4,10 @@ import type { MasumiProofView } from "@datum/core";
 import type { ReactNode } from "react";
 import { formatSgtMoment, shortHash } from "@/lib/format";
 import { atomicToToken, explorerTx } from "./outcome-words";
+import { paymentSteps, stepWord, type PaymentStep } from "./payment-steps";
 import { ReceiptSection } from "./receipt-section";
 
 const tusdmDecimals = 6;
-
-function Check({ verified, children }: { verified: boolean; children?: ReactNode }) {
-  return (
-    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-      <span
-        className={
-          verified
-            ? "inline-flex items-center gap-1 font-medium text-ok"
-            : "inline-flex items-center gap-1 text-muted"
-        }
-      >
-        <HugeiconsIcon
-          icon={verified ? Tick02Icon : HourglassIcon}
-          size={15}
-          strokeWidth={2}
-          aria-hidden
-        />
-        {verified ? "Verified" : "Not verified yet"}
-      </span>
-      {children}
-    </span>
-  );
-}
 
 function TxLink({ hash }: { hash: string }) {
   return (
@@ -46,8 +24,32 @@ function TxLink({ hash }: { hash: string }) {
   );
 }
 
+function StepStatus({ step, children }: { step: PaymentStep; children?: ReactNode }) {
+  const reached = step.state !== "waiting";
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span
+        className={
+          reached
+            ? "inline-flex items-center gap-1 font-medium text-ok"
+            : "inline-flex items-center gap-1 text-muted"
+        }
+      >
+        <HugeiconsIcon
+          icon={reached ? Tick02Icon : HourglassIcon}
+          size={15}
+          strokeWidth={2}
+          aria-hidden
+        />
+        {stepWord(step)}
+      </span>
+      {step.txHash !== null && <TxLink hash={step.txHash} />}
+      {children}
+    </span>
+  );
+}
+
 function Rows({ proof }: { proof: MasumiProofView }) {
-  const verified = proof.collectionConfirmed;
   const rows: { label: string; value: ReactNode }[] = [
     { label: "Network", value: "Cardano Preprod" },
     {
@@ -62,30 +64,22 @@ function Rows({ proof }: { proof: MasumiProofView }) {
         </span>
       ),
     },
-    { label: "Funds locked", value: <Check verified={verified} /> },
-    {
-      label: "Result submitted",
+    ...paymentSteps(proof).map((step) => ({
+      label: step.label,
       value: (
-        <Check verified={verified}>
-          <span className="font-mono text-[13px] text-muted" title={proof.resultHash}>
-            {shortHash(proof.resultHash)}
-          </span>
-        </Check>
+        <StepStatus step={step}>
+          {step.key === "result" && (
+            <span className="font-mono text-[13px] text-muted" title={proof.resultHash}>
+              {shortHash(proof.resultHash)}
+            </span>
+          )}
+        </StepStatus>
       ),
-    },
-    { label: "Result matches", value: <Check verified={verified} /> },
-    {
-      label: "Seller collection",
-      value: (
-        <Check verified={verified}>
-          {proof.collectionTxHash !== null && <TxLink hash={proof.collectionTxHash} />}
-        </Check>
-      ),
-    },
+    })),
     {
       label: "Earned",
       value:
-        verified && proof.netReceivedAtomic !== null ? (
+        proof.collectionConfirmed && proof.netReceivedAtomic !== null ? (
           <span className="font-mono text-lg font-medium text-ink tabular-nums">
             +{atomicToToken(proof.netReceivedAtomic, tusdmDecimals)} tUSDM
           </span>
@@ -103,6 +97,36 @@ function Rows({ proof }: { proof: MasumiProofView }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function HowChecked() {
+  return (
+    <div className="mt-4 text-sm text-pretty text-muted">
+      <p>
+        Datum does not treat a finished Task as proof of payment. After the payout it reads Cardano
+        itself and confirms the money arrived.
+      </p>
+      <details className="mt-2 print:hidden">
+        <summary className="w-fit cursor-pointer text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+          How Datum checks this
+        </summary>
+        <div className="mt-2 space-y-2">
+          <p>
+            Confirmed means the payment service reported the transaction on chain. Verified means
+            Datum re-read the chain itself.
+          </p>
+          <p>
+            Datum looks up the result transaction and finds the one contract output whose datum
+            carries this result&apos;s hash and holds exactly the agreed tUSDM. It then checks that
+            the seller collection spent that output, that the contract&apos;s script passed, and
+            that the seller&apos;s tUSDM balance rose by at least the payment. Sokosumi&apos;s
+            receipt, the payment service and the chain must all name the same collection
+            transaction.
+          </p>
+        </div>
+      </details>
+    </div>
   );
 }
 
@@ -125,6 +149,7 @@ export function CoworkerPayment({ proof }: { proof: MasumiProofView | null }) {
               Checked on chain {formatSgtMoment(proof.verifiedAt)} SGT
             </p>
           )}
+          <HowChecked />
         </>
       )}
     </ReceiptSection>
