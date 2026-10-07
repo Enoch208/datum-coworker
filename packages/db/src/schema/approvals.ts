@@ -24,6 +24,8 @@ export const approvals = pgTable(
     evidencePolicy: evidencePolicy("evidence_policy").notNull(),
     approvedBy: text("approved_by").notNull(),
     approvedAt: instant("approved_at").notNull(),
+    ownerStatement: text("owner_statement"),
+    ownerSignature: text("owner_signature"),
   },
   (table) => [
     unique("approvals_campaign_version_unique").on(table.campaignId, table.version),

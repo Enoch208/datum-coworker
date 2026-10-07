@@ -4,6 +4,8 @@ import {
   compareMoney,
   isMoneyText,
   parseMoney,
+  raiseBudgetStatementFor,
+  type CampaignView,
   type RemediationVerdictView,
   type WireMoney,
 } from "@datum/core";
@@ -12,6 +14,7 @@ import { FieldError, controlBorder, controlClass } from "@/components/campaign-f
 import { primaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { raiseBudget } from "@/lib/api-client";
+import { ownerSigner, signAsOwner } from "@/lib/owner-key";
 import { formatWireMoney, toMoney } from "@/lib/format";
 import { InterventionNote } from "./intervention-note";
 
@@ -46,12 +49,12 @@ function Figure({ label, money }: { label: string; money: WireMoney | null }) {
 }
 
 export function BudgetRaise({
-  campaignId,
+  campaign,
   current,
   verdict,
   onDone,
 }: {
-  campaignId: string;
+  campaign: CampaignView;
   current: WireMoney;
   verdict: RemediationVerdictView | null;
   onDone: () => void;
@@ -71,7 +74,14 @@ export function BudgetRaise({
     setBusy(true);
     setFailure(null);
     const budget = { amount: amount.trim(), currency: current.currency };
-    void raiseBudget(campaignId, { budget, approvedBy: name.trim() }).then(
+    const approvedBy = name.trim();
+    const signed = async () => {
+      const { privateKey } = await ownerSigner(campaign);
+      const statement = raiseBudgetStatementFor(campaign, budget, approvedBy);
+      const signature = await signAsOwner(privateKey, statement);
+      await raiseBudget(campaign.id, { budget, approvedBy, signature });
+    };
+    void signed().then(
       () => {
         setBusy(false);
         onDone();

@@ -14,6 +14,7 @@ import { taskFor, type StartedCampaign } from "../runners/campaign";
 import { jpegFile, phonePhoto, postForm, runnerCall, taskPath } from "../runners/calls";
 import { enrollTestRunner } from "../runners/enroll";
 import { campaignNow, finishPrint } from "../runners/print";
+import { signedApproval } from "../flows";
 import { briefBody, callApp, testDeps } from "../support";
 import { runPass } from "./loop";
 
@@ -64,10 +65,12 @@ export async function fieldCampaign(
   const created = await callApp<CampaignView>(target, "POST", "/campaigns", brief);
   const id = created.body.id;
   expect((await callApp(target, "POST", `/campaigns/${id}/plan`)).status).toBe(200);
-  const approved = await callApp(target, "POST", `/campaigns/${id}/approve`, {
-    assetVersion: 1,
-    approvedBy: "Mei Tan",
-  });
+  const approved = await callApp(
+    target,
+    "POST",
+    `/campaigns/${id}/approve`,
+    await signedApproval(id, 1),
+  );
   expect(approved.status).toBe(200);
   const started = await callApp<CampaignView>(target, "POST", `/campaigns/${id}/start`);
   expect(started.body.status).toBe("EXECUTING");

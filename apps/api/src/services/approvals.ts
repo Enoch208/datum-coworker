@@ -1,7 +1,20 @@
-import type { ApproveCampaignRequest, CampaignView } from "@datum/core";
-import { approvals, type CampaignAssetRow, type CampaignRow, type Executor } from "@datum/db";
+import {
+  toWireMoney,
+  type ApproveCampaignRequest,
+  type ApproveStatement,
+  type CampaignView,
+} from "@datum/core";
+import {
+  approvals,
+  campaigns,
+  type CampaignAssetRow,
+  type CampaignRow,
+  type Executor,
+} from "@datum/db";
+import { eq } from "drizzle-orm";
 import type { ApiDeps } from "../deps";
 import { conflict } from "../http/errors";
+import { signingKeyFor, verifyOwnerSignature } from "../http/owner";
 import { recordAudit } from "./audit";
 import {
   campaignDetail,
@@ -41,11 +54,51 @@ const assertApprovable = (campaign: CampaignRow): void => {
   }
 };
 
+interface OwnerProof {
+  readonly statement: string;
+  readonly signature: string;
+}
+
+const approveStatement = (
+  campaign: CampaignRow,
+  asset: CampaignAssetRow,
+  approvedBy: string,
+): ApproveStatement => ({
+  action: "APPROVE",
+  campaignId: campaign.id,
+  assetVersion: asset.version,
+  assetHash: asset.assetHash,
+  spotsHash: asset.spotsHash,
+  copy: { headline: asset.headline, subcopy: asset.subcopy },
+  budget: toWireMoney({ amountMinor: campaign.budgetMinor, currency: campaign.currency }),
+  deadline: campaign.deadline.toISOString(),
+  approvedBy,
+});
+
+async function ownerProof(
+  tx: Executor,
+  campaign: CampaignRow,
+  asset: CampaignAssetRow,
+  request: ApproveCampaignRequest,
+): Promise<OwnerProof> {
+  const key = signingKeyFor(campaign, request.ownerKey);
+  const statement = verifyOwnerSignature(
+    key,
+    approveStatement(campaign, asset, request.approvedBy),
+    request.signature,
+  );
+  if (campaign.ownerPublicKey === null) {
+    await tx.update(campaigns).set({ ownerPublicKey: key }).where(eq(campaigns.id, campaign.id));
+  }
+  return { statement, signature: request.signature };
+}
+
 async function lockApproval(
   tx: Executor,
   campaign: CampaignRow,
   asset: CampaignAssetRow,
   approvedBy: string,
+  proof: OwnerProof,
 ): Promise<void> {
   const parts = await campaignParts(tx, campaign.id);
   if (spotsHash(spotFingerprints(parts)) !== asset.spotsHash) {
@@ -69,6 +122,8 @@ async function lockApproval(
     evidencePolicy: playbook.defaultEvidencePolicy,
     approvedBy,
     approvedAt,
+    ownerStatement: proof.statement,
+    ownerSignature: proof.signature,
   });
   await recordAudit(tx, campaign.id, {
     type: "CAMPAIGN_APPROVED",
@@ -96,7 +151,8 @@ export async function approveProposal(
     const latest = await latestApproval(tx, campaignId);
     if (campaign.status === "APPROVED" && latest?.assetVersion === asset.version) return;
     assertApprovable(campaign);
-    await lockApproval(tx, campaign, asset, request.approvedBy);
+    const proof = await ownerProof(tx, campaign, asset, request);
+    await lockApproval(tx, campaign, asset, request.approvedBy, proof);
   });
   return campaignDetail(deps.db, deps.appBaseUrl, campaignId);
 }

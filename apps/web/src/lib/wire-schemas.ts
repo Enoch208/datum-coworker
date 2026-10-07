@@ -44,6 +44,7 @@ const playbook: z.ZodType<PlaybookView> = z.object({
 const proposal: z.ZodType<ProposalView> = z.object({
   assetVersion: z.int(),
   assetHash: z.string(),
+  spotsHash: z.string(),
   copy: publicCopy,
   printFormat: z.enum(printFormats),
   steps: z.array(planStep),
@@ -94,6 +95,7 @@ export const campaignViewSchema: z.ZodType<CampaignView> = z.object({
   createdAt: instant,
   approvedAt: instant.nullable(),
   completedAt: instant.nullable(),
+  ownerKeyRegistered: z.boolean(),
   playbook: playbook.nullable(),
   proposal: proposal.nullable(),
   approval: approval.nullable(),

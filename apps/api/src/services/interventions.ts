@@ -9,6 +9,8 @@ export interface InterventionInput {
   readonly actorName: string;
   readonly action: InterventionAction;
   readonly reason: string;
+  readonly ownerStatement?: string;
+  readonly ownerSignature?: string;
 }
 
 export async function recordIntervention(db: Executor, input: InterventionInput): Promise<void> {

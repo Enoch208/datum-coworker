@@ -49,20 +49,10 @@ export function ApprovalNeeded({
       <div className="mt-8 flex flex-col gap-12">
         {disputes.length > 0 ? (
           disputes.map((expense) => (
-            <DisputeReview
-              key={expense.id}
-              campaignId={campaign.id}
-              expense={expense}
-              onDone={onDone}
-            />
+            <DisputeReview key={expense.id} campaign={campaign} expense={expense} onDone={onDone} />
           ))
         ) : (
-          <BudgetRaise
-            campaignId={campaign.id}
-            current={current}
-            verdict={verdict}
-            onDone={onDone}
-          />
+          <BudgetRaise campaign={campaign} current={current} verdict={verdict} onDone={onDone} />
         )}
       </div>
     </section>

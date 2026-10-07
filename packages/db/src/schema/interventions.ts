@@ -15,6 +15,8 @@ export const interventions = pgTable(
     actorName: text("actor_name").notNull(),
     action: interventionAction("action").notNull(),
     reason: text("reason").notNull(),
+    ownerStatement: text("owner_statement"),
+    ownerSignature: text("owner_signature"),
     createdAt: createdAt(),
   },
   (table) => [

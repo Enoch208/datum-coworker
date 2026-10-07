@@ -5,6 +5,7 @@ import { sokosumiResultHash, tusdmUnit } from "@datum/masumi";
 import { describe, expect, it } from "vitest";
 import type { Coworker } from "../src/context";
 import { recordedSeller, recordedTxs } from "../../../packages/masumi/tests/fixtures/mps-payment";
+import { signedApproval } from "../../api/tests/flows";
 import { placeAndProve } from "../../api/tests/goal-loop/field";
 import { campaignNow, finishPrint } from "../../api/tests/runners/print";
 import type { EnrolledRunner } from "../../api/tests/runners/enroll";
@@ -62,10 +63,12 @@ async function fundedAndApproved(): Promise<FundedRun> {
     expiresAt: new Date(Date.now() + 2 * 86_400_000).toISOString(),
   });
   expect(runner.status).toBe(201);
-  const approved = await callApi<CampaignView>(h, "POST", `/campaigns/${campaign.id}/approve`, {
-    assetVersion: 1,
-    approvedBy: "Mei Tan",
-  });
+  const approved = await callApi<CampaignView>(
+    h,
+    "POST",
+    `/campaigns/${campaign.id}/approve`,
+    await signedApproval(campaign.id, 1),
+  );
   expect(approved.body.status).toBe("APPROVED");
   const token = runner.body.inboxUrl.split("/").at(-1) ?? "";
   return {

@@ -69,6 +69,13 @@ const printableName = text(120).refine(
   "The brand name uses characters the card font cannot print",
 );
 
+const ownerKey = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{100,140}$/, "The owner key must be a base64url P-256 public key");
+const ownerSignature = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{86}$/, "The signature must be a base64url P-256 signature");
+
 export const createCampaignSchema = z.strictObject({
   brandName: printableName,
   brandUrl: httpUrl.nullable(),
@@ -77,6 +84,7 @@ export const createCampaignSchema = z.strictObject({
   spots: spotsSchema,
   deadline: futureDeadline,
   budget: budgetSchema,
+  ownerKey: ownerKey.exactOptional(),
 }) satisfies z.ZodType<unknown, CreateCampaignRequest>;
 
 export type CreateCampaignInput = z.output<typeof createCampaignSchema>;
@@ -90,14 +98,18 @@ export const editCopySchema = z.strictObject({
 export const approveCampaignSchema = z.strictObject({
   assetVersion: z.int().positive(),
   approvedBy: text(120),
+  signature: ownerSignature,
+  ownerKey: ownerKey.exactOptional(),
 }) satisfies z.ZodType<unknown, ApproveCampaignRequest>;
 
 export const raiseBudgetSchema = z.strictObject({
   budget: budgetSchema,
   approvedBy: text(120),
+  signature: ownerSignature,
 }) satisfies z.ZodType<unknown, RaiseBudgetRequest>;
 
 export const acceptExpenseSchema = z.strictObject({
   acceptedBy: text(120),
   reason: text(280),
+  signature: ownerSignature,
 }) satisfies z.ZodType<unknown, AcceptExpenseRequest>;

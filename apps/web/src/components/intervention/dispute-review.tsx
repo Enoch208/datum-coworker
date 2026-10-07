@@ -1,12 +1,13 @@
 import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ExpenseView } from "@datum/core";
+import { acceptExpenseStatementFor, type CampaignView, type ExpenseView } from "@datum/core";
 import { useState } from "react";
 import { FieldError, controlBorder, controlClass } from "@/components/campaign-form/field";
 import { primaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { ExpenseStatusChip } from "@/components/status/expense-status-chip";
 import { acceptExpense } from "@/lib/api-client";
+import { ownerSigner, signAsOwner } from "@/lib/owner-key";
 import { formatWireMoney } from "@/lib/format";
 import { InterventionNote } from "./intervention-note";
 
@@ -40,11 +41,11 @@ function ReceiptFacts({ expense }: { expense: ExpenseView }) {
 }
 
 export function DisputeReview({
-  campaignId,
+  campaign,
   expense,
   onDone,
 }: {
-  campaignId: string;
+  campaign: CampaignView;
   expense: ExpenseView;
   onDone: () => void;
 }) {
@@ -64,8 +65,15 @@ export function DisputeReview({
     if (name.trim() === "" || reason.trim() === "") return;
     setBusy(true);
     setFailure(null);
-    const request = { acceptedBy: name.trim(), reason: reason.trim() };
-    void acceptExpense(campaignId, expense.id, request).then(
+    const acceptedBy = name.trim();
+    const why = reason.trim();
+    const signed = async () => {
+      const { privateKey } = await ownerSigner(campaign);
+      const statement = acceptExpenseStatementFor(campaign, expense.id, acceptedBy, why);
+      const signature = await signAsOwner(privateKey, statement);
+      await acceptExpense(campaign.id, expense.id, { acceptedBy, reason: why, signature });
+    };
+    void signed().then(
       () => {
         setBusy(false);
         onDone();

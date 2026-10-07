@@ -4,6 +4,7 @@ import { CampaignForm } from "@/components/campaign-form/campaign-form";
 import type { SubmitPhase } from "@/components/campaign-form/brief-panel";
 import { toCreateRequest, type CampaignFormValues } from "@/components/campaign-form/form-values";
 import { createCampaign, requestPlan } from "@/lib/api-client";
+import { newOwnerKey, ownerLinkHash, rememberOwner } from "@/lib/owner-key";
 import type { PlanHandoff } from "@/lib/plan-handoff";
 import { campaignHref } from "@/lib/routes";
 import { useDocumentTitle } from "@/lib/use-document-title";
@@ -17,30 +18,38 @@ export function NewCampaignPage() {
   const [phase, setPhase] = useState<SubmitPhase>("idle");
   const [serverError, setServerError] = useState<Error | null>(null);
 
-  const open = (campaignId: string, handoff: PlanHandoff | null) => {
-    void navigate(campaignHref(campaignId), { state: handoff });
-  };
-
   const submit = (values: CampaignFormValues) => {
     setPhase("creating");
     setServerError(null);
-    void createCampaign(toCreateRequest(values)).then(
-      (campaignId) => {
-        setPhase("planning");
-        void requestPlan(campaignId).then(
-          () => {
-            open(campaignId, null);
-          },
-          (cause: unknown) => {
-            open(campaignId, { planFailure: asError(cause).message });
-          },
-        );
-      },
-      (cause: unknown) => {
-        setPhase("idle");
-        setServerError(asError(cause));
-      },
-    );
+    void newOwnerKey()
+      .then(async (owner) => {
+        const campaignId = await createCampaign({
+          ...toCreateRequest(values),
+          ownerKey: owner.publicKey,
+        });
+        rememberOwner(campaignId, owner);
+        return { campaignId, link: ownerLinkHash(owner.privateKey) };
+      })
+      .then(
+        ({ campaignId, link }) => {
+          const open = (handoff: PlanHandoff | null) => {
+            void navigate(`${campaignHref(campaignId)}${link}`, { state: handoff });
+          };
+          setPhase("planning");
+          void requestPlan(campaignId).then(
+            () => {
+              open(null);
+            },
+            (cause: unknown) => {
+              open({ planFailure: asError(cause).message });
+            },
+          );
+        },
+        (cause: unknown) => {
+          setPhase("idle");
+          setServerError(asError(cause));
+        },
+      );
   };
 
   return (

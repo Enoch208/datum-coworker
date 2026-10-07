@@ -1,4 +1,5 @@
 import { Link, useLocation, useParams } from "react-router";
+import { adoptOwnerLink } from "@/lib/owner-key";
 import { CampaignBody } from "@/components/campaign/campaign-body";
 import { CampaignSkeleton } from "@/components/campaign/campaign-skeleton";
 import { secondaryButton } from "@/components/feedback/buttons";
@@ -26,6 +27,7 @@ function MissingCampaign({ message }: { message: string }) {
 export function CampaignPage() {
   const { campaignId = "" } = useParams();
   const location = useLocation();
+  adoptOwnerLink(campaignId, location.hash);
   const { campaign, timeline, goal, reload } = useCampaignScreen(campaignId);
   useDocumentTitle(campaign.data === null ? "Campaign" : `${campaign.data.brand.name} campaign`);
 

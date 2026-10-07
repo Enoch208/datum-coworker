@@ -116,6 +116,7 @@ export function toCampaignView(parts: CampaignParts, appBaseUrl: string): Campai
     createdAt: campaign.createdAt.toISOString(),
     approvedAt: isoOrNull(campaign.approvedAt),
     completedAt: isoOrNull(campaign.completedAt),
+    ownerKeyRegistered: campaign.ownerPublicKey !== null,
     playbook: playbook === null ? null : toPlaybookView(playbook, brand),
     proposal: proposalOf(parts),
     approval: approval === null || asset === null ? null : toApprovalView(approval, asset.version),

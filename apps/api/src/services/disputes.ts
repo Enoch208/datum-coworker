@@ -2,12 +2,14 @@ import { and, eq } from "drizzle-orm";
 import {
   formatMoney,
   isFinalStatus,
+  toWireMoney,
   type AcceptExpenseRequest,
   type CampaignView,
 } from "@datum/core";
 import { expenses, hasIdShape, type ExpenseRow, type Executor } from "@datum/db";
 import type { ApiDeps } from "../deps";
 import { conflict, notFound } from "../http/errors";
+import { registeredOwnerKey, verifyOwnerSignature } from "../http/owner";
 import { recordAudit } from "./audit";
 import { campaignDetail } from "./campaigns";
 import { recordIntervention } from "./interventions";
@@ -59,6 +61,18 @@ async function acceptLocked(
   }
   const expense = await disputedExpense(db, campaignId, expenseId);
   const amount = { amountMinor: expense.amountMinor, currency: expense.currency };
+  const ownerStatement = verifyOwnerSignature(
+    registeredOwnerKey(campaign),
+    {
+      action: "ACCEPT_EXPENSE",
+      campaignId,
+      expenseId: expense.id,
+      amount: toWireMoney(amount),
+      acceptedBy: input.acceptedBy,
+      reason: input.reason,
+    },
+    input.signature,
+  );
   const explanation = `${input.acceptedBy} accepted this ${formatMoney(amount)} receipt after review: ${input.reason}`;
   await db
     .update(expenses)
@@ -74,6 +88,8 @@ async function acceptLocked(
     actorName: input.acceptedBy,
     action: "EXPENSE_ACCEPTED",
     reason: `accepted a disputed ${formatMoney(amount)} receipt: ${input.reason}`,
+    ownerStatement,
+    ownerSignature: input.signature,
   });
   if (campaign.status === "NEEDS_APPROVAL") {
     await moveStatus(db, campaignId, "NEEDS_APPROVAL", "EXECUTING");

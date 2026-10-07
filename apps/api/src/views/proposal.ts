@@ -22,6 +22,7 @@ export function toProposalView(
   return {
     assetVersion: asset.version,
     assetHash: asset.assetHash,
+    spotsHash: asset.spotsHash,
     copy: { headline: asset.headline, subcopy: asset.subcopy },
     printFormat: asset.printFormat,
     steps: asset.steps.map(toPlanStep),

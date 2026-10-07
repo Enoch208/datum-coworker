@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { startedCampaign, taskFor } from "../runners/campaign";
 import { runnerCall, taskPath } from "../runners/calls";
 import { campaignNow, purchaseReading, sendPrintReceipt } from "../runners/print";
+import { signedAccept, signedRaise } from "../flows";
 import { call, db, resetDatabaseBetweenTests } from "../support";
 import { fieldCampaign, markDoneWithoutValidPhoto, placeAndProve } from "./field";
 import { runPass } from "./loop";
@@ -36,10 +37,11 @@ describe("post-approval interventions are measured (Gate 5)", () => {
     await runPass();
     const id = field.campaign.id;
     expect((await campaignNow(id)).status).toBe("NEEDS_APPROVAL");
-    const raised = await call<CampaignView>("POST", `/campaigns/${id}/budget`, {
-      budget: { amount: "60.00", currency: "SGD" },
-      approvedBy: "Mei Tan",
-    });
+    const raised = await call<CampaignView>(
+      "POST",
+      `/campaigns/${id}/budget`,
+      await signedRaise(id, "60.00"),
+    );
     expect(raised).toMatchObject({
       status: 200,
       body: { status: "EXECUTING", budget: { amount: "60.00" }, approval: { version: 2 } },
@@ -65,10 +67,11 @@ describe("post-approval interventions are measured (Gate 5)", () => {
   it("refuses a cap that is not higher, or a campaign that is not waiting", async () => {
     const field = await fieldCampaign(["A"], "60.00");
     const id = field.campaign.id;
-    const notWaiting = await call<ApiError>("POST", `/campaigns/${id}/budget`, {
-      budget: { amount: "90.00", currency: "SGD" },
-      approvedBy: "Mei Tan",
-    });
+    const notWaiting = await call<ApiError>(
+      "POST",
+      `/campaigns/${id}/budget`,
+      await signedRaise(id, "90.00"),
+    );
     expect(notWaiting).toMatchObject({ status: 409, body: { error: "INVALID_STATE" } });
     expect(await db.select().from(interventions)).toEqual([]);
   });
@@ -87,10 +90,12 @@ describe("post-approval interventions are measured (Gate 5)", () => {
     const accepted = await call<CampaignView>(
       "POST",
       `/campaigns/${id}/expenses/${sent.body.id}/accept`,
-      {
-        acceptedBy: "Mei Tan",
-        reason: "I paid Print Hub in cash; the shop printed a test header.",
-      },
+      await signedAccept(
+        id,
+        sent.body.id,
+        "Mei Tan",
+        "I paid Print Hub in cash; the shop printed a test header.",
+      ),
     );
     expect(accepted.body.status).toBe("EXECUTING");
     expect(accepted.body.ledger?.confirmedSpend).toEqual({ amount: "6.00", currency: "SGD" });
@@ -129,6 +134,7 @@ describe("post-approval interventions are measured (Gate 5)", () => {
       const id = started.campaign.id;
       const sent = await sendPrintReceipt(started, "6.00", doubtful);
       expect(sent.body.status).toBe("DISPUTED");
+      const signed = await signedAccept(id, sent.body.id, "Mei Tan", "I paid Print Hub in cash.");
       await db
         .update(campaigns)
         .set({ status, completedAt: new Date() })
@@ -136,10 +142,7 @@ describe("post-approval interventions are measured (Gate 5)", () => {
       const reply = await call<ApiError>(
         "POST",
         `/campaigns/${id}/expenses/${sent.body.id}/accept`,
-        {
-          acceptedBy: "Mei Tan",
-          reason: "I paid Print Hub in cash.",
-        },
+        signed,
       );
       expect(reply).toMatchObject({ status: 409, body: { error: "CAMPAIGN_ENDED" } });
       const [row] = await db.select().from(expenses).where(eq(expenses.id, sent.body.id));
@@ -154,7 +157,7 @@ describe("post-approval interventions are measured (Gate 5)", () => {
     const reply = await call<ExpenseView & ApiError>(
       "POST",
       `/campaigns/${started.campaign.id}/expenses/${sent.body.id}/accept`,
-      { acceptedBy: "Mei Tan", reason: "Looks fine" },
+      await signedAccept(started.campaign.id, sent.body.id, "Mei Tan", "Looks fine"),
     );
     expect(reply).toMatchObject({ status: 409, body: { error: "NOT_DISPUTED" } });
   });

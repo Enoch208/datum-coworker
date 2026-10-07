@@ -32,6 +32,7 @@ export const campaigns = pgTable(
     completedAt: instant("completed_at"),
     canonicalResultHash: text("canonical_result_hash"),
     sokosumiTaskId: text("sokosumi_task_id").unique("campaigns_sokosumi_task_unique"),
+    ownerPublicKey: text("owner_public_key"),
     createdAt: createdAt(),
   },
   (table) => [

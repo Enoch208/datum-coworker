@@ -5,7 +5,9 @@ import { useState } from "react";
 import { FieldError, controlBorder, controlClass } from "@/components/campaign-form/field";
 import { primaryButton } from "@/components/feedback/buttons";
 import { ErrorPanel } from "@/components/feedback/error-panel";
+import { approveStatementFor } from "@datum/core";
 import { approveCampaign, startCampaign } from "@/lib/api-client";
+import { ownerSigner, signAsOwner } from "@/lib/owner-key";
 import { ApiRequestError } from "@/lib/http";
 import { formatSgt, formatWireMoney, shortHash } from "@/lib/format";
 import { BoundsList, Mono, SpotCodes } from "./bounds-list";
@@ -96,8 +98,21 @@ export function ApprovalPanel({
     }
     setPhase("approving");
     setFailure(null);
-    const request = { assetVersion: proposal.assetVersion, approvedBy: name.trim() };
-    void approveCampaign(campaign.id, request).then(start, (cause: unknown) => {
+    const approvedBy = name.trim();
+    const signed = async () => {
+      const signer = await ownerSigner(campaign);
+      const signature = await signAsOwner(
+        signer.privateKey,
+        approveStatementFor(campaign, approvedBy),
+      );
+      await approveCampaign(campaign.id, {
+        assetVersion: proposal.assetVersion,
+        approvedBy,
+        signature,
+        ...(signer.ownerKey === undefined ? {} : { ownerKey: signer.ownerKey }),
+      });
+    };
+    void signed().then(start, (cause: unknown) => {
       setPhase("idle");
       const conflict = cause instanceof ApiRequestError && cause.status === 409;
       setFailure(conflict ? staleText : messageOf(cause));

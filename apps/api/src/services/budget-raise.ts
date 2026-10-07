@@ -1,6 +1,7 @@
 import {
   compareMoney,
   formatMoney,
+  toWireMoney,
   type CampaignView,
   type Money,
   type RaiseBudgetRequest,
@@ -9,6 +10,7 @@ import { approvals, campaigns, type Executor } from "@datum/db";
 import { eq } from "drizzle-orm";
 import type { ApiDeps } from "../deps";
 import { conflict } from "../http/errors";
+import { registeredOwnerKey, verifyOwnerSignature } from "../http/owner";
 import { recordAudit } from "./audit";
 import { campaignDetail, latestApproval } from "./campaigns";
 import { recordIntervention } from "./interventions";
@@ -32,6 +34,17 @@ async function raiseLocked(db: Executor, campaignId: string, input: RaiseBudgetI
       `The new budget must be more than the approved ${formatMoney(current)}`,
     );
   }
+  const ownerStatement = verifyOwnerSignature(
+    registeredOwnerKey(campaign),
+    {
+      action: "RAISE_BUDGET",
+      campaignId,
+      approvalVersion: approval.version,
+      budget: toWireMoney(input.budget),
+      approvedBy: input.approvedBy,
+    },
+    input.signature,
+  );
   const approvedAt = new Date();
   await db.insert(approvals).values({
     campaignId,
@@ -47,6 +60,8 @@ async function raiseLocked(db: Executor, campaignId: string, input: RaiseBudgetI
     budgetMinor: input.budget.amountMinor,
     approvedBy: input.approvedBy,
     approvedAt,
+    ownerStatement,
+    ownerSignature: input.signature,
   });
   await db
     .update(campaigns)
@@ -70,6 +85,8 @@ async function raiseLocked(db: Executor, campaignId: string, input: RaiseBudgetI
     actorName: input.approvedBy,
     action: "BUDGET_RAISED",
     reason: `raised the approved budget from ${formatMoney(current)} to ${formatMoney(input.budget)}`,
+    ownerStatement,
+    ownerSignature: input.signature,
   });
   await moveStatus(db, campaignId, "NEEDS_APPROVAL", "EXECUTING");
 }

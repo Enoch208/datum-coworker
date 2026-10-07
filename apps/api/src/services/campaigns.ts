@@ -14,6 +14,7 @@ import {
 } from "@datum/db";
 import { notFound } from "../http/errors";
 import type { CreateCampaignInput } from "../http/schemas";
+import { assertOwnerKey } from "../http/owner";
 import { toCampaignView, type CampaignParts } from "../views/campaigns";
 import { auditTrail, recordAudit } from "./audit";
 import { ensureBrand } from "./brands";
@@ -36,6 +37,7 @@ export async function insertCampaign(
       budgetMinor: input.budget.amountMinor,
       currency: input.budget.currency,
       sokosumiTaskId,
+      ownerPublicKey: input.ownerKey === undefined ? null : assertOwnerKey(input.ownerKey),
     })
     .returning({ id: campaigns.id });
   if (campaign === undefined) {

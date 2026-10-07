@@ -43,11 +43,14 @@ export interface CreateCampaignRequest {
   spots: SpotDraft[];
   deadline: IsoTimestamp;
   budget: WireMoney;
+  ownerKey?: string;
 }
 
 export interface ApproveCampaignRequest {
   assetVersion: number;
   approvedBy: string;
+  signature: string;
+  ownerKey?: string;
 }
 
 export interface EditCopyRequest {
@@ -57,11 +60,13 @@ export interface EditCopyRequest {
 export interface RaiseBudgetRequest {
   budget: WireMoney;
   approvedBy: string;
+  signature: string;
 }
 
 export interface AcceptExpenseRequest {
   acceptedBy: string;
   reason: string;
+  signature: string;
 }
 
 export type PlanStep =
@@ -83,6 +88,7 @@ export interface PlaybookView {
 export interface ProposalView {
   assetVersion: number;
   assetHash: string;
+  spotsHash: string;
   copy: PublicCopy;
   printFormat: PrintFormat;
   steps: PlanStep[];
@@ -138,6 +144,7 @@ export interface CampaignView {
   createdAt: IsoTimestamp;
   approvedAt: IsoTimestamp | null;
   completedAt: IsoTimestamp | null;
+  ownerKeyRegistered: boolean;
   playbook: PlaybookView | null;
   proposal: ProposalView | null;
   approval: ApprovalView | null;
