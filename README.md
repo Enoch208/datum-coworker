@@ -12,15 +12,16 @@ Datum is an AI Coworker that gets small real-world jobs done. Say you want QR po
 demo: https://youtu.be/BlrdzPOo0QI
 ## See it in 60 seconds
 
-| You want to know                           | Where to look                                                                                                                                           |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Does it work end to end?                   | [A real founder's job, finished 1/1](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt), with a failed first photo and an automatic recovery  |
-| Is the Cardano part real?                  | [The on-chain table below](#datum-is-hired-and-paid-on-cardano): escrow, result hash and collection, each a Preprod transaction                         |
-| Is the AI doing something that matters?    | [The recovery](#the-first-real-job): the model proposed the fix, deterministic rules approved it, and it reached the runner four seconds after the miss |
-| Can it be paid for work it did not finish? | [No](#paid-only-for-a-verified-outcome). Payment is claimed only for a completed campaign whose Campaign Receipt hash is the committed result           |
-| What stops the AI from overreaching?       | [Rules it cannot change](#what-the-ai-can-and-cannot-do): it proposes, deterministic code approves or rejects every action                              |
-| Can I trust the numbers?                   | Every number on the receipt is built from stored records and carries a SHA-256 of its canonical bytes                                                   |
-| Where does it go next?                     | [The roadmap](#what-comes-next): more runners, more kinds of physical jobs, every hire settled on Cardano                                               |
+| You want to know                                 | Where to look                                                                                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Does it work end to end?                         | [A real founder's job, finished 1/1](https://usedatum.xyz/campaigns/cmp_d1tmstsxkymtjp7n/receipt), with a failed first photo and an automatic recovery  |
+| Is the Cardano part real?                        | [The on-chain table below](#datum-is-hired-and-paid-on-cardano): escrow, result hash and collection, each a Preprod transaction                         |
+| Is the AI doing something that matters?          | [The recovery](#the-first-real-job): the model proposed the fix, deterministic rules approved it, and it reached the runner four seconds after the miss |
+| Can it be paid for work it did not finish?       | [No](#paid-only-for-a-verified-outcome). Payment is claimed only for a completed campaign whose Campaign Receipt hash is the committed result           |
+| What stops the AI from overreaching?             | [Rules it cannot change](#what-the-ai-can-and-cannot-do): it proposes, deterministic code approves or rejects every action                              |
+| Who can approve, spend more or accept a receipt? | [Only the customer's key](#signed-by-the-customer): every such decision is a signature over the exact terms, re-verifiable by anyone                    |
+| Can I trust the numbers?                         | Every number on the receipt is built from stored records and carries a SHA-256 of its canonical bytes                                                   |
+| Where does it go next?                           | [The roadmap](#what-comes-next): more runners, more kinds of physical jobs, every hire settled on Cardano                                               |
 
 ## Why
 
@@ -65,6 +66,31 @@ The model proposes. It never authorizes. Every recovery it suggests goes through
 | Mark the campaign complete or get itself paid  | Not possible: completion comes from evidence, payment from the [settlement rule](#paid-only-for-a-verified-outcome) |
 
 Every row is an attack case in `packages/core/tests/authority.test.ts`, which also shows that a runner cannot pass a spot without its own code in a photo, that an amount counts only when a clean purchase receipt matches it, and that nobody can get Datum paid for an unfinished job. The full rule coverage is in `packages/core/tests/remediation.test.ts`, `packages/core/tests/recovery-plan.test.ts` and `apps/api/tests/goal-loop/planner.test.ts`. If the model is unavailable or its plan is rejected, a deterministic plan runs through the same validation.
+
+## Signed by the customer
+
+Approving a plan, raising the budget and accepting a disputed receipt are the only ways authority changes hands, and each one is a signature only the customer can produce. When a campaign is created, the customer's browser generates an ECDSA P-256 key pair. Only the public key reaches Datum; the private key stays in the browser and in the customer's private owner link.
+
+```mermaid
+sequenceDiagram
+    participant B as Customer's browser
+    participant A as Datum API
+    participant D as Postgres
+    B->>B: Build the statement of the exact terms
+    B->>B: Sign it with the private key
+    B->>A: Approve / raise budget / accept receipt + signature
+    A->>A: Rebuild the statement from stored state
+    A->>A: Verify against the campaign's public key
+    A-->>B: 403 if the key or any term differs
+    A->>D: Store the statement and its signature
+```
+
+- **What is signed.** For an approval: the card's asset hash, the spot-set hash, the public copy, the budget, the deadline and the approver. For a budget raise: the new budget and the approval it replaces. For a disputed receipt: the expense, its amount and the stated reason. One function in `@datum/core` builds the canonical statement, so the browser and the server sign and check identical bytes.
+- **What is refused.** A forged signature, a different key, or any change to the terms after signing gets `403` and changes nothing.
+- **What anyone can check.** Each approval and intervention stores the signed statement and its signature next to the campaign's public key, so the decision can be re-verified outside Datum.
+- **Hired through Sokosumi.** A campaign created from a Task has no key yet; the key that signs its first approval becomes its owner.
+
+The signing is in `apps/web/src/lib/owner-key.ts` (WebCrypto) and the check in `apps/api/src/http/owner.ts`. `apps/api/tests/owner-authority.test.ts` attacks it with other keys, forged signatures and changed terms, and `apps/web/tests/owner-key.test.ts` proves a browser signature verifies exactly as the API checks it.
 
 ## The first real job
 
@@ -211,7 +237,7 @@ Built and running at usedatum.xyz:
 - The Goal Loop worker. It evaluates the goal from evidence, and when a spot is missing it gives the model the unresolved spots, the remaining budget and the time left. Each campaign is claimed under a Postgres advisory lock and every action carries a deterministic key.
 - The live screen, a record of why Datum took each decision, and the Campaign Receipt, stored as canonical JSON with its SHA-256.
 - The Masumi seller lifecycle shown above, and the Coworker service that turns a hired Sokosumi Task into a job. It reads the brief from the Task, posts the proposal link, works only after the escrow is funded and the customer has approved, claims payment only when the settlement rule passes, names the Campaign Receipt's SHA-256 in the Task result, commits that result's hash on chain, completes the Task and verifies its own collection. A campaign that did not finish ends its Task `FAILED` without a result.
-- 956 automated tests, run on every push by CI.
+- 967 automated tests, run on every push by CI.
 
 ## What comes next
 
