@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { ApiError, CampaignView, ExpenseView, TimelineEventView } from "@datum/core";
-import { interventions, physicalTasks } from "@datum/db";
+import { campaigns, expenses, interventions, physicalTasks } from "@datum/db";
 import { describe, expect, it } from "vitest";
 import { startedCampaign, taskFor } from "../runners/campaign";
 import { runnerCall, taskPath } from "../runners/calls";
@@ -121,6 +121,32 @@ describe("post-approval interventions are measured (Gate 5)", () => {
     expect((await campaignNow(id)).status).toBe("EXECUTING");
     expect(await db.select().from(interventions)).toEqual([]);
   });
+
+  it.each(["COMPLETED", "EXPIRED_INCOMPLETE", "FAILED", "CANCELLED"] as const)(
+    "will not accept a disputed receipt once the campaign is %s",
+    async (status) => {
+      const started = await startedCampaign();
+      const id = started.campaign.id;
+      const sent = await sendPrintReceipt(started, "6.00", doubtful);
+      expect(sent.body.status).toBe("DISPUTED");
+      await db
+        .update(campaigns)
+        .set({ status, completedAt: new Date() })
+        .where(eq(campaigns.id, id));
+      const reply = await call<ApiError>(
+        "POST",
+        `/campaigns/${id}/expenses/${sent.body.id}/accept`,
+        {
+          acceptedBy: "Mei Tan",
+          reason: "I paid Print Hub in cash.",
+        },
+      );
+      expect(reply).toMatchObject({ status: 409, body: { error: "CAMPAIGN_ENDED" } });
+      const [row] = await db.select().from(expenses).where(eq(expenses.id, sent.body.id));
+      expect(row?.status).toBe("DISPUTED");
+      expect(await db.select().from(interventions)).toEqual([]);
+    },
+  );
 
   it("will not accept a receipt that is not an open dispute", async () => {
     const started = await startedCampaign();

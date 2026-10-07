@@ -1,5 +1,10 @@
 import { and, eq } from "drizzle-orm";
-import { formatMoney, type AcceptExpenseRequest, type CampaignView } from "@datum/core";
+import {
+  formatMoney,
+  isFinalStatus,
+  type AcceptExpenseRequest,
+  type CampaignView,
+} from "@datum/core";
 import { expenses, hasIdShape, type ExpenseRow, type Executor } from "@datum/db";
 import type { ApiDeps } from "../deps";
 import { conflict, notFound } from "../http/errors";
@@ -46,6 +51,12 @@ async function acceptLocked(
   input: AcceptExpenseRequest,
 ) {
   const campaign = await lockCampaign(db, campaignId);
+  if (isFinalStatus(campaign.status)) {
+    throw conflict(
+      "CAMPAIGN_ENDED",
+      `A ${campaign.status} campaign is closed, so its ledger can no longer change`,
+    );
+  }
   const expense = await disputedExpense(db, campaignId, expenseId);
   const amount = { amountMinor: expense.amountMinor, currency: expense.currency };
   const explanation = `${input.acceptedBy} accepted this ${formatMoney(amount)} receipt after review: ${input.reason}`;
